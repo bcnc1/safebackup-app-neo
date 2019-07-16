@@ -22,7 +22,13 @@
   "win": {
     "icon": "dist",
     "target": [
-      "portable"
+      {
+        "target": "nsis",
+        "arch": [
+          "x64",
+          "ia32"
+        ]
+      }
     ]
   },
   "mac": {
