@@ -31,6 +31,7 @@ export class SignupPageComponent implements OnInit {
 
 
   ngOnInit() {
+    console.log("ngOnInit :");
     this.registerForm = this.formBuilder.group({
       fullname: ['', Validators.required],
       username: ['', Validators.required],
@@ -43,7 +44,9 @@ export class SignupPageComponent implements OnInit {
     this.memberAPI.signup(this.registerForm.value).subscribe(
       response => {
         {
-          console.log(response);
+          console.log("signup :", response);
+          //kimcy
+         // this.storage.set('username', this.registerForm.value.username);
           this.storage.set('password', this.registerForm.value.password);
           this.router.navigateByUrl('/home');
         }

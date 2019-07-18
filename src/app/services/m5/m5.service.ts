@@ -6,6 +6,9 @@ import {environment} from '../../../environments/environment';
 export class M5Service {
   static apiKey = environment.M5APIKEY;
   static server = environment.M5SERVER;
+  //kimcy
+  static s3Storage = environment.STORAGE_URL;
+  static s3Auth = environment.AUTH_URL
   // static server = 'http://localhost:7919';
   // static server = 'http://192.168.0.197:7919';
 
@@ -27,6 +30,11 @@ export class M5Service {
     },
     members: function (memberId) {
       return M5Service.server + '/v1/members/' + memberId;
+    },
+    
+    //kimcy, 추후 수정, 현재는 그냥 kt로..
+    loginB: function () {
+      return environment.AUTH_URL ;
     }
   };
 
@@ -37,6 +45,7 @@ export class M5Service {
 
 
   protected handleData(response: any) {
+    console.log('handleData');
     console.log(response);
     if (200 !== response.header.code) {
       throw response.header;

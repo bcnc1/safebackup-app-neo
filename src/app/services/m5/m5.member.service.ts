@@ -14,7 +14,6 @@ import {environment} from '../../../environments/environment';
   providedIn: 'root'
 })
 
-
 export class M5MemberService extends M5Service {
 
   constructor(
@@ -36,9 +35,15 @@ export class M5MemberService extends M5Service {
    *  로그아웃
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   public logout() {
+    console.log('logout');
     this.storage.remove('member');
     this.storage.remove('board');
     this.storage.remove('accessToken');
+    //kimcy add
+    this.storage.remove('username');
+    this.storage.remove('userToken');  //추후 삭제 안할수도..
+    //this.storage.remove('password'); 패스워드 없애면 죽음 왜 안지울까?
+
   }
 
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -47,8 +52,34 @@ export class M5MemberService extends M5Service {
    *  username
    *  password
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
+   private getLoginToken(response: any) {
+    console.log('응답 : ',response.headers);
+    if(response.statusCode == 200){
+      var userToken = response.headers['x-auth-token'];
+      this.storage.set('userToken', userToken);
+    }
+     //this.handleData(response);
+    // this.storage.set('member', response.member);
+    // this.storage.set('accessToken', decodeURIComponent(response.accessToken));
+    // if (response.orgBoards != null) {
+    //   response.orgBoards.forEach(board => {
+    //     console.log(board);
+    //     if (board.type === 'board') {
+    //       this.storage.set('board', board);
+    //     }
+    //   });
+    // } else {
+    //   this.storage.set('board', {
+    //     id: 'SVCBoard_481477478793500'
+    //   });
+    // }
+
+    return response || {};
+
+  }
 
   private handleLoginResponse(response: any) {
+    console.log('로그인 : ',response);
     this.handleData(response);
     this.storage.set('member', response.member);
     this.storage.set('accessToken', decodeURIComponent(response.accessToken));
@@ -66,17 +97,36 @@ export class M5MemberService extends M5Service {
     }
 
     return response || {};
+
   }
 
-
+  
+  //자체 서버가 필요없음으로 삭제해야 될 부분
   public login(member: Member): Observable<M5ResultMember> {
 
-    console.log('LOGIN');
+    console.log('LOGIN : ', member);
     const body = ObjectUtils.copy(member);
     body.fetchOrgBoards = true;
     return this.http.post(this.url.login(), body)
       .pipe(
         map(res => this.handleLoginResponse(res)),
+        catchError(this.handleError)
+      );
+  }
+
+  public loginB(username, password){
+    console.log('loginB', username);
+    const options = {
+      headers :{
+        'X-Auth-New-Token': 'true',
+        'x-storage-user': 'doctorkeeper:'+username,
+        'x-storage-pass': password
+      }
+    }
+    return this.http.get(environment.AUTH_URL, options)
+      .pipe(
+        map(res => this.getLoginToken(res)),
+        //this.getLoginToken(res),
         catchError(this.handleError)
       );
   }
@@ -90,6 +140,7 @@ export class M5MemberService extends M5Service {
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
   private handleSignupResponse(response: any) {
+    console.log('사용자등록');
     this.handleData(response);
     this.storage.set('member', response.member);
     this.storage.set('accessToken', decodeURIComponent(response.accessToken));
@@ -102,6 +153,7 @@ export class M5MemberService extends M5Service {
 
   public signup(member: Member): Observable<M5Result> {
 
+    console.log('사용자등록-> signup');
     const formData = new FormData();
     formData.append('username', member.username);
     formData.append('password', member.password);

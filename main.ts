@@ -1,4 +1,13 @@
 import { isFormattedError } from "@angular/compiler";
+import {environment} from './src/environments/environment';
+//import {LOCAL_STORAGE, StorageService} from 'ngx-webstorage-service';
+//import {M5MemberService} from './src/app/services/m5/m5.member.service';
+//import {Component, Inject, OnInit} from '@angular/core';
+
+// constructor(
+//   @Inject(LOCAL_STORAGE) private storageService: StorageService) {
+// }
+
 
 const {app, BrowserWindow, ipcMain} = require("electron");
 const fs = require("fs");
@@ -24,8 +33,11 @@ const Menu = require('electron').Menu;
 const dialog = electron.dialog;
 const log = require('electron-log');
 const updater = require('electron-simple-updater');
+//kimcy
+const reqestProm = require('request-promise-native')
 
 var AutoLaunch = require('auto-launch');
+
 
 let isQuiting = false;
 
@@ -271,15 +283,18 @@ try {
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
  ipcMain.on("GETFOLDERTREE", (event, arg) => {
-
+  console.log('22..앱이실행중이라 업로드');
   console.log('GETFOLDERTREE', arg);
   if (arg.path == null) {
+    console.log('arg.path == null');
     return;
   }
   diretoryTreeToObj(arg.path, function (err, res) {
+      console.log(res);
       if (err) {
         console.error(err);
       } else {
+        console.log('33..앱이실행중이라 업로드 res : ',res);
         mainWindow.webContents.send("GETFOLDERTREE", {
           folderIndex: arg.folderIndex,
           tree: res
@@ -357,9 +372,9 @@ var diretoryTreeToObj = function (dir, done) {
 
 
 ipcMain.on("SENDFILE", (event, arg) => {
-  //console.log(arg);
+  console.log('SENDFILE => token:', arg.accessToken);
   try {
-    sendFile(arg.index, arg.url, arg.formData, arg.file, arg.accessToken, arg.apiKey);
+    sendFile(arg.index, arg.url, arg.formData, arg.file, arg.accessToken, arg.apiKey, arg.username, arg.pwd);
   } catch (e) {
     console.log(e);
   }
@@ -441,79 +456,140 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  *  FILE을 M5에 전송
+ *  KT Storage 서버에 사용자 키를 가져오고 저장한다. promise로 구현
+ *  container명은 로그인시 id로...
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
-var sendFile = function (index, url, formData, file, accessToken, apiKey) {
-  let paths = path.dirname(file.fullpath).split(path.sep);
+// const account = 'doctorkeeper';
+// const colon = ':';
+// const userpw = 'inno1234'; //로그인시 값으로..
 
+var sendFile = function (index, url, formData, file, accessToken, apiKey, containerName, pwd) {
+
+  console.log("accessToken:", accessToken);
+  console.log("fullpath:", file.fullpath);
+  console.log("path.sep:", path.sep);
+  let paths = path.dirname(file.fullpath).split(path.sep);
+  console.log("업로드파일패스:", paths);  //패스가 배열로 들어오고 각각을 연결시켜야..[ '', 'Users', 'kimcy', 'safebackup', 'p1' ]
+  console.log("url:", url);
 
   let startTime = new Date().getTime();
   formData.count = file.size;
   formData.userData = JSON.stringify(formData.userData);
 
-  if (formData.subtype == 'file') {
-    formData['attachments[]'] = encodeURIComponent(JSON.stringify(
-      {
-        fileName: file.filename,
-        fileType: file.type,
-        fileSize: file.size,
-        fullpath: file.fullpath,
-        parentPath: formData.userData.parentPath
-      }));
-  }
+  console.log("formData:", formData);
+  console.log("file:", file);
+  console.log("11..containerName :",containerName);
+  
 
-  if (file.type == 'file') {
-    formData['files[]'] = [fs.createReadStream(file.fullpath)];
-  }
-
-
-  var r = request({
-      method: 'POST',
-      uri: url,
-      json: true,
-      timeout: 0,
-      headers: {
-        'X-Madamfive-APIKey': apiKey
-      },
-      formData: formData
-    },
-    function (error, response, body) {
-      // if (q != null) {
-      //   clearInterval(q);
-      // }
-      if (error != null) {
-        console.log('ERROR', error);
-        mainWindow.webContents.send("SENDFILE", {error: error});
-      } else {
-        console.log('SUCCESS', index);
-        mainWindow.webContents.send("SENDFILE", {
+  //const storageUrl = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3';
+  //const authUrl = 'https://ssproxy.ucloudbiz.olleh.com/auth/v1.0';
+  // const account = 'doctorkeeper';
+  // const colon = ':';
+  // let userToken, container;
+  
+  function cbUpload(error, response, body) {
+    console.log(response);
+    if (!error && response.statusCode == 201) {
+      console.log('cbUpload file successfully');
+      mainWindow.webContents.send("SENDFILE", {
           error: null,
           body: body,
           index: index,
           startTime: startTime,
           endTime: new Date().getTime()
         });
-        console.log('SUCCESS', response);
-      }
+    }else{
+         console.log('cbUpload file error!!!');
+         mainWindow.webContents.send("SENDFILE", {error: error});
+  
     }
-  );
-  // try {
-  //   var q = setInterval(function () {
-  //     if (r.req == null || r.req.connection == null) {
-  //       return;
-  //     }
-  //     var dispatched = r.req.connection._bytesDispatched;
-  //     let percent = dispatched * 100 / file.size;
-  //     /* TODO : ??? */
-  //     if (percent >= 100) {
-  //       percent = 100;
-  //     }
-  //     console.dir("Uploaded: " + percent + "%");
-  //     mainWindow.webContents.send("SENDING.PROGRESS", {percent: percent});
-  //   }, 250);
-  // } catch (e) {
-  //   console.log(e);
+  }
+
+  console.log("Token:", accessToken);
+  var options = {  
+		method: 'PUT',
+		uri: environment.STORAGE_URL+'/'+containerName+'/'+file.fullpath,
+		headers:{
+				'X-Auth-Token': accessToken,
+			  'X-Object-Meta-ctime': startTime
+		}
+	};
+	var upload = fs.createReadStream(file.fullpath);
+	var r = reqestProm(options, cbUpload);
+	
+	upload.pipe(r);
+
+
+
+
+
+  // if (formData.subtype == 'file') {
+  //   formData['attachments[]'] = encodeURIComponent(JSON.stringify(
+  //     {
+  //       fileName: file.filename,
+  //       fileType: file.type,
+  //       fileSize: file.size,
+  //       fullpath: file.fullpath,
+  //       parentPath: formData.userData.parentPath
+  //     }));
   // }
+
+  //  console.log("file:", file);
+  // if (file.type == 'file') {
+  //   formData['files[]'] = [fs.createReadStream(file.fullpath)];
+  // }
+
+  // var r = request({
+  //       method: 'POST',
+  //       uri: url,
+  //       json: true,
+  //       timeout: 0,
+  //       headers: {
+  //         'X-Madamfive-APIKey': apiKey
+  //       },
+  //       formData: formData
+  //     },
+  //     function (error, response, body) {
+  //       // if (q != null) {
+  //       //   clearInterval(q);
+  //       // }
+  //       if (error != null) {
+  //         console.log('ERROR', error);
+  //         mainWindow.webContents.send("SENDFILE", {error: error});
+  //       } else {
+  //         console.log('SUCCESS', index);
+  //         mainWindow.webContents.send("SENDFILE", {
+  //           error: null,
+  //           body: body,
+  //           index: index,
+  //           startTime: startTime,
+  //           endTime: new Date().getTime()
+  //         });
+  //         console.log('SUCCESS', response);
+  //       }
+  //     }
+  //   );
+  
+  
+  //   try {
+  //     var q = setInterval(function () {
+  //       if (r.req == null || r.req.connection == null) {
+  //         return;
+  //       }
+  //       var dispatched = r.req.connection._bytesDispatched;
+  //       let percent = dispatched * 100 / file.size;
+  //       /* TODO : ??? */
+  //       if (percent >= 100) {
+  //         percent = 100;
+  //       }
+  //       console.dir("Uploaded: " + percent + "%");
+  //       mainWindow.webContents.send("SENDING.PROGRESS", {percent: percent});
+  //     }, 250);
+  //   } catch (e) {
+  //     console.log(e);
+  //   }
+
 };
 
 function handleSquirrelEvent(application) {

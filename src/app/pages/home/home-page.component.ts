@@ -66,6 +66,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
 
   onLogout() {
+    console.log('로그아웃버튼 눌림');
     this.memberAPI.logout();
     this.router.navigateByUrl('/');
   }
@@ -75,6 +76,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
    *  탭이 선택됨
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   onTab(tabIndex) {
+    console.log('탭이 선택됨', tabIndex);
     this.selectedFolderIndex = tabIndex;
     const folderKey = this.getFolderKey(tabIndex);
     const folder = this.storageService.get(folderKey);
@@ -111,6 +113,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
 
   onRequestFolderData(folderIndex) {
+    console.log('onRequestFolderData');
     if (this.deviceResource == null) {
       this.deviceResource = {macaddress: 'MAC'};
     }
@@ -124,7 +127,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     }).subscribe(
       response => {
         {
-          this.logger.debug('*******', response);
+          this.logger.debug('음***', response);
 
           if (ObjectUtils.isNotEmpty(response.posts)) {
             this.rootFolderData = response.posts[0];
@@ -132,12 +135,14 @@ export class HomePageComponent implements OnInit, OnDestroy {
               switch (this.rootFolderData.userData.error) {
                 case '10days' :
                 case '5days' :
+                  console.log('5일경과');
                   this.rootFolderData.userData.errorMessage = '5일경과';
                   break;
                 // case '3days' :
                 //   this.rootFolderData.userData.errorMessage = '3일점검';
                 //   break;
                 case 'nozip' :
+                    console.log('긴급점검');
                   this.rootFolderData.userData.errorMessage = '긴급점검';
                   break;
               }
@@ -158,7 +163,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
    *  Get FileTree from server
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   onRequestFolderPosts(folderIndex, gotoPath, files) {
-
+    console.log('onRequestFolderPosts', folderIndex, gotoPath, files);
     if (gotoPath === undefined) {
       return;
     }
@@ -178,6 +183,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     }).subscribe(
       response => {
         {
+          console.log('서버응답');
           for (const p in response.posts) {
             if (response.posts.hasOwnProperty(p)) {
               // const folder = path.dirname(response.posts[p].code);
@@ -191,6 +197,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
         }
       },
       error => {
+        console.log('서버응답 에러');
         if (error.code != null) {
           this.konsoleService.sendMessage({cmd: 'LOG', message: JSON.stringify(error)});
         } else {
@@ -206,17 +213,18 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
 
   onStartUploadFolder(folderIndex, after) {
-
+    console.log('onStartUploadFolder');
     if (after == null) {
       after = 5;
     }
     const folderKey = this.getFolderKey(folderIndex);
     const folder = this.storageService.get(folderKey);
+    console.log(folderKey);
 
     setTimeout(() => {
       this.uploading = true;
       this.uploadFiletreeService.upload(folderIndex, folder);
-    }, after * 1000);
+    }, after * 1000);  //1초후에 업로드 시작
   }
 
   fillFolders() {
@@ -237,7 +245,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.version = environment.VERSION;
     this.electronService.ipcRenderer.send('PCRESOURCE', null);
-    this.logger.debug('-=-=-=HOMEPAGE : ', this.version);
+    this.logger.debug('- HOMEPAGE ngOnInit: ', this.version);
     this.board = this.storageService.get('board');
     this.member = this.memberAPI.getLoggedin();
     this.accessToken = this.storageService.get('accessToken');
@@ -262,6 +270,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
         /*---------------------------------------------------------------
               파일전송 시작 로그
          ----------------------------------------------------------------*/
+         console.log('home => 파일전송시작 로그');
         this.konsoleService.sendMessage(message);
       } else if (message.cmd === 'SENDING.PROGRESS') {
         /*---------------------------------------------------------------
@@ -276,7 +285,9 @@ export class HomePageComponent implements OnInit, OnDestroy {
         /*---------------------------------------------------------------
               폴더 전송 완료
          ----------------------------------------------------------------*/
+         console.log('폴더전송완료');
         this.logger.debug(new Date(), message);
+        console.log('homepage => folderIndex : ',message.folderIndex);
         if (this.MAXFOLDERLENGTH - 1 > message.folderIndex) {
 
           // update
@@ -287,7 +298,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
         } else {
           this.uploading = false;
 
-          const minutes = 60 * getRandomInt(1, 4);
+          const minutes = 60 * getRandomInt(1, 4); //1분부터 4분까지 랜덤
           const interval = 1000 * 60 * minutes;
           const next = moment().add(interval);
           const str = next.format('MM월DD일 HH시 mm분');
@@ -317,8 +328,10 @@ export class HomePageComponent implements OnInit, OnDestroy {
            등록된 폴더에 대해 업로드를 실행  (현재는 모두 다시 올림)
      ----------------------------------------------------------------*/
     setTimeout(() => {
+      console.log('등록된 폴더에 대해 업로드를 실행');
       for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
         if (this.storedFolders[i] != null) {
+          console.log('등록된 폴더에 대해 업로드를 실행', this.storedFolders[i].length);
           this.uploadFiletreeService.upload(i, this.storedFolders[i]);
           break;
         }
