@@ -153,7 +153,7 @@ export class M5MemberService extends M5Service {
 
   public signup(member: Member): Observable<M5Result> {
 
-    console.log('사용자등록-> signup');
+    console.log('m5.member.service-> signup');
     const formData = new FormData();
     formData.append('username', member.username);
     formData.append('password', member.password);
@@ -179,12 +179,12 @@ export class M5MemberService extends M5Service {
 
 
   private handleMemberDetailResponse(response: any) {
-    console.log('>>>', response);
+    console.log('>>> handleMemberDetailResponse', response);
     return response;
   }
 
   private handleUserDataResponse(response: any) {
-    console.log('>>>', response);
+    console.log('>>> handleUserDataResponse', response);
     return response;
   }
 

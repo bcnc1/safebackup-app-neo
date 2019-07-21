@@ -146,6 +146,7 @@ export class LoginPageComponent implements OnInit {
     this.memberAPI.login(member).subscribe(
       response => {
         {
+          console.log('loginpage, 로그인성공');
           this.loggingin = true;
           this.logger.debug('로그인하면..', response);
           if (ObjectUtils.isNotEmpty(this.oldPaths[0])) {
@@ -164,6 +165,7 @@ export class LoginPageComponent implements OnInit {
         }
       },
       error => {
+        console.log('loginpage, 로그인실패');
         this.loggingin = true;
         if (error.code != null) {
           if (error.code === 1040) {
@@ -240,7 +242,11 @@ export class LoginPageComponent implements OnInit {
     /*---------------------------------------------------------------
          이전 버전 (v1.0.xx) 인지 체크
      --------------------------------------------------------------*/
+<<<<<<< Updated upstream
      console.log('login-page.component ');
+=======
+     console.log('login in ngOnInit');
+>>>>>>> Stashed changes
 
     setTimeout(() => {
       let username = localStorage.getItem('username');

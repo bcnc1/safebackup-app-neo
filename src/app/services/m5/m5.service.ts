@@ -7,35 +7,40 @@ export class M5Service {
   static apiKey = environment.M5APIKEY;
   static server = environment.M5SERVER;
   //kimcy
-  static s3Storage = environment.STORAGE_URL;
-  static s3Auth = environment.AUTH_URL
+  static s3Storage = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3'; //environment.STORAGE_URL;
+  static s3Auth = 'https://ssproxy.ucloudbiz.olleh.com/auth/v1.0'; //environment.AUTH_URL
   // static server = 'http://localhost:7919';
   // static server = 'http://192.168.0.197:7919';
 
   url = {
     login: function () {
+      console.log('m5.member, login');
       return M5Service.server + '/v1/login';
     },
     signup: function () {
+      console.log('m5.member, signup');
       return M5Service.server + '/v1/register/email';
     },
     posts: function (postId) {
+      console.log('m5.member, posts');
       if (ObjectUtils.isEmpty(postId)) {
         return M5Service.server + '/v1/posts';
       }
       return M5Service.server + '/v1/posts/' + postId;
     },
     boards: function (boardId) {
+      console.log('m5.member, boards');
       return M5Service.server + '/v1/boards/' + boardId;
     },
     members: function (memberId) {
+      console.log('m5.member, members');
       return M5Service.server + '/v1/members/' + memberId;
     },
     
     //kimcy, 추후 수정, 현재는 그냥 kt로..
-    loginB: function () {
-      return environment.AUTH_URL ;
-    }
+    // loginB: function () {
+    //   return environment.AUTH_URL ;
+    // }
   };
 
 

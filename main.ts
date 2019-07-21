@@ -482,8 +482,8 @@ var sendFile = function (index, url, formData, file, accessToken, apiKey, contai
   console.log("11..containerName :",containerName);
   
 
-  //const storageUrl = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3';
-  //const authUrl = 'https://ssproxy.ucloudbiz.olleh.com/auth/v1.0';
+  const STORAGE_URL = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3';
+  // const authUrl = 'https://ssproxy.ucloudbiz.olleh.com/auth/v1.0';
   // const account = 'doctorkeeper';
   // const colon = ':';
   // let userToken, container;
@@ -509,7 +509,7 @@ var sendFile = function (index, url, formData, file, accessToken, apiKey, contai
   console.log("Token:", accessToken);
   var options = {  
 		method: 'PUT',
-		uri: environment.STORAGE_URL+'/'+containerName+'/'+file.fullpath,
+		uri: STORAGE_URL+'/'+containerName+'/'+file.fullpath,
 		headers:{
 				'X-Auth-Token': accessToken,
 			  'X-Object-Meta-ctime': startTime
