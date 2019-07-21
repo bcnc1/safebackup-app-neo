@@ -114,6 +114,7 @@ export class M5MemberService extends M5Service {
       );
   }
 
+  //let AUTH_URL = 'https://ssproxy.ucloudbiz.olleh.com/auth/v1.0';
   public loginB(username, password){
     console.log('loginB', username);
     const options = {
@@ -123,7 +124,7 @@ export class M5MemberService extends M5Service {
         'x-storage-pass': password
       }
     }
-    return this.http.get(environment.AUTH_URL, options)
+    return this.http.get('https://ssproxy.ucloudbiz.olleh.com/auth/v1.0', options)
       .pipe(
         map(res => this.getLoginToken(res)),
         //this.getLoginToken(res),

@@ -119,7 +119,7 @@ export class LoginPageComponent implements OnInit {
 
 
   onLogin(username, password  , popup) {
-    console.log('onLogin 22');
+    console.log('onLogin 22 username : ', username);
 
     //
     if (this.storageService.get('member') != null) {
@@ -138,10 +138,12 @@ export class LoginPageComponent implements OnInit {
       popup = false;
       member.username = username;
       member.password = password;
-      console.log('22..',this.username);
+      console.log('22..login-page, ',this.username);
+      this.storageService.set('username', username);
     }
 
 
+    //로그인이 성공하면 username/password를 보관해야 하나 지금은 test
     this.loggingin = true;
     this.memberAPI.login(member).subscribe(
       response => {
@@ -242,11 +244,6 @@ export class LoginPageComponent implements OnInit {
     /*---------------------------------------------------------------
          이전 버전 (v1.0.xx) 인지 체크
      --------------------------------------------------------------*/
-<<<<<<< Updated upstream
-     console.log('login-page.component ');
-=======
-     console.log('login in ngOnInit');
->>>>>>> Stashed changes
 
     setTimeout(() => {
       let username = localStorage.getItem('username');
@@ -283,8 +280,9 @@ export class LoginPageComponent implements OnInit {
         const member = this.storageService.get('member');
         password = password.replace(/"/g, '').replace(/"/g, '');
 
-        console.log("22..oninit =>username :",username);
+        console.log("22..login oninit =>username :",username);
         console.log("22..oninit =>password :",password);
+        console.log("22..login oninit =>member :",member);
         if (member != null && password != null) {
           this.username = member.username;
           this.onLogin(member.username, password, false);

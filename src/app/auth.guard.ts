@@ -12,7 +12,7 @@ export class NeedAuthGuard implements CanActivate {
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
 
     if (this.m5MemberService.isLoggedin()!=null) {
-      console.log('LOGIN??');
+      console.log('auth, LOGIN??');
       return true;
     }
 
