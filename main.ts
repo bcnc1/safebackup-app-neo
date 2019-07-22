@@ -510,7 +510,7 @@ var sendFile = function (index, url, formData, file, accessToken, apiKey, contai
   console.log("Token:", accessToken);
   var options = {  
 		method: 'PUT',
-		uri: STORAGE_URL+'/'+containerName+'/'+ encodeURIComponent(file.fullpath),
+		uri: STORAGE_URL+'/'+containerName+'/'+ encodeURI(file.fullpath), //encodeURI(encodeURIComponent(file.fullpath)),
 		headers:{
 				'X-Auth-Token': accessToken,
 			  'X-Object-Meta-ctime': startTime
