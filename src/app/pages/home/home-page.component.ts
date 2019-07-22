@@ -59,6 +59,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
 
   private getFolderKey(folderIndex) {
+    console.log('home-page, getFolderKey => folderIndex ',folderIndex);
     const key = 'folder:' + this.member.id + ':' + folderIndex;
     this.logger.debug('FOLDERKEY', key);
     return key;
