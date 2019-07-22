@@ -165,6 +165,7 @@ export class UploadFiletreeService {
           }
         }
         if (fileSortList.length > 5) {
+          console.log('5개이상');
           fileSortList.sort((a, b) => {
             if (a.sortDate.isBefore(b.sortDate)) {
               return 1;
@@ -298,10 +299,11 @@ export class UploadFiletreeService {
         });
       }else{
         message = ' : 파일 업로드 실패 ';
-        console.log(message);
+        console.log(message, this.filesToSend[response.index]);
         this.notification.next({
              cmd: 'LOG',
-             message: '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[response.index].file.filename + message
+             //message: '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[response.index].file.filename + message
+             message: '[' + (this.folderIndex + 1) + '] ' +  message
           });
       }
       // if (response.body != null && response.body.header != null && response.body.header.code === 200) {
@@ -441,6 +443,7 @@ export class UploadFiletreeService {
     console.log('패스워드: ',password);
 
     if (item.file.type === 'folder') {
+      console.log('folder 타입: ',this.storageService.get('userToken'));
       post = {
         index: item.index,
         file: file,
@@ -470,7 +473,7 @@ export class UploadFiletreeService {
         pwd:password
       };
     } else {
-
+      console.log('file  타입: ',this.storageService.get('userToken'));
       post = {
         index: item.index,
         file: file,
@@ -514,6 +517,7 @@ export class UploadFiletreeService {
 
         if (ObjectUtils.isNotEmpty(response.posts)) {
           existPost = response.posts[0];
+          console.log('목록체크 :', existPost);
         }
 
       },
@@ -525,6 +529,7 @@ export class UploadFiletreeService {
         업로드 제외 파일
       ----------------------------------------------------------------*/
     if (this.filesToSend[item.index].doNotSend === true) {
+      console.log('업로드제외파일');
       const message = '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[item.index].file.filename;
       this.notification.next({
         cmd: 'LOG',
@@ -554,7 +559,7 @@ export class UploadFiletreeService {
       ----------------------------------------------------------------*/
     else {
 
-      console.log('-=-=-=', this.deviceResource.macaddress + '##' + code);
+      console.log('업로드해야할 파일', this.deviceResource.macaddress + '##' + code);
 
       if (existPost == null) {
         const pipe = new BytesPipe();
@@ -616,7 +621,7 @@ export class UploadFiletreeService {
     } else {
       this.folders[folderIndex].path = fullpath;
       if (this.electronService.isElectronApp) { //앱이 실행중이라면..
-        console.log('11..앱이실행중이라 업로드');
+        console.log('11..upload ->앱이실행중이라 업로드');
         this.notification.next({cmd: 'LOG', message: this.folders[folderIndex].path + ' 업로드를 시작합니다.'});
         this.electronService.ipcRenderer.send('GETFOLDERTREE', {
           folderIndex: folderIndex,

@@ -119,13 +119,14 @@ export class LoginPageComponent implements OnInit {
 
 
   onLogin(username, password  , popup) {
-    console.log('onLogin 22 username : ', username);
+    console.log('onLogin 22');
 
-    //
-    if (this.storageService.get('member') != null) {
-      this.router.navigateByUrl('/home');
-      return;
-    }
+    //현재는 무조건 로그인과정이 다시 필요 kimcy
+    // if (this.storageService.get('member') != null) {
+    //   console.log('login-oage, 그냥 홈으로..');
+    //   this.router.navigateByUrl('/home');
+    //   return;
+    // }
     const member = new Member();
 
     if (username == null && password == null) {
@@ -138,17 +139,16 @@ export class LoginPageComponent implements OnInit {
       popup = false;
       member.username = username;
       member.password = password;
-      console.log('22..login-page, ',this.username);
-      this.storageService.set('username', username);
+      console.log('22..',this.username);
     }
 
+    //kimcy
+    this.onLoginB(member.username, member.password, false, this.storageService);
 
-    //로그인이 성공하면 username/password를 보관해야 하나 지금은 test
     this.loggingin = true;
     this.memberAPI.login(member).subscribe(
       response => {
         {
-          console.log('loginpage, 로그인성공');
           this.loggingin = true;
           this.logger.debug('로그인하면..', response);
           if (ObjectUtils.isNotEmpty(this.oldPaths[0])) {
@@ -167,7 +167,6 @@ export class LoginPageComponent implements OnInit {
         }
       },
       error => {
-        console.log('loginpage, 로그인실패');
         this.loggingin = true;
         if (error.code != null) {
           if (error.code === 1040) {
@@ -244,6 +243,7 @@ export class LoginPageComponent implements OnInit {
     /*---------------------------------------------------------------
          이전 버전 (v1.0.xx) 인지 체크
      --------------------------------------------------------------*/
+     console.log('login-page.component ');
 
     setTimeout(() => {
       let username = localStorage.getItem('username');
@@ -252,6 +252,11 @@ export class LoginPageComponent implements OnInit {
       this.logger.debug('ONINIT', username, password);
 
       //kimcy add kt login
+      if(username == null && password == null){
+        console.log('처음실행 앱 안죽게');
+        return;
+      }
+
 
 
 
@@ -280,9 +285,8 @@ export class LoginPageComponent implements OnInit {
         const member = this.storageService.get('member');
         password = password.replace(/"/g, '').replace(/"/g, '');
 
-        console.log("22..login oninit =>username :",username);
+        console.log("22..oninit =>username :",username);
         console.log("22..oninit =>password :",password);
-        console.log("22..login oninit =>member :",member);
         if (member != null && password != null) {
           this.username = member.username;
           this.onLogin(member.username, password, false);

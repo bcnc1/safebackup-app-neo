@@ -478,7 +478,8 @@ var sendFile = function (index, url, formData, file, accessToken, apiKey, contai
   formData.userData = JSON.stringify(formData.userData);
 
   console.log("formData:", formData);
-  console.log("file:", file);
+  console.log("file:", file.fullpath);
+  console.log("main, json:", JSON.stringify(file.fullpath));
   console.log("11..containerName :",containerName);
   
 
@@ -509,7 +510,7 @@ var sendFile = function (index, url, formData, file, accessToken, apiKey, contai
   console.log("Token:", accessToken);
   var options = {  
 		method: 'PUT',
-		uri: STORAGE_URL+'/'+containerName+'/'+file.fullpath,
+		uri: STORAGE_URL+'/'+containerName+'/'+ encodeURIComponent(file.fullpath),
 		headers:{
 				'X-Auth-Token': accessToken,
 			  'X-Object-Meta-ctime': startTime

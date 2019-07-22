@@ -163,7 +163,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
    *  Get FileTree from server
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   onRequestFolderPosts(folderIndex, gotoPath, files) {
-    console.log('onRequestFolderPosts', folderIndex, gotoPath, files);
+    console.log('homepage => onRequestFolderPosts', folderIndex, gotoPath, files);
     if (gotoPath === undefined) {
       return;
     }
@@ -224,7 +224,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.uploading = true;
       this.uploadFiletreeService.upload(folderIndex, folder);
-    }, after * 1000);  //1초후에 업로드 시작
+    }, after * 500);  //0.5초후에 업로드 시작
   }
 
   fillFolders() {
@@ -243,6 +243,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
 
   ngOnInit() {
+    console.log('home-page, ngOnInit');
     this.version = environment.VERSION;
     this.electronService.ipcRenderer.send('PCRESOURCE', null);
     this.logger.debug('- HOMEPAGE ngOnInit: ', this.version);
@@ -285,7 +286,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
         /*---------------------------------------------------------------
               폴더 전송 완료
          ----------------------------------------------------------------*/
-         console.log('폴더전송완료');
+         console.log('homepage -> 폴더전송완료');
         this.logger.debug(new Date(), message);
         console.log('homepage => folderIndex : ',message.folderIndex);
         if (this.MAXFOLDERLENGTH - 1 > message.folderIndex) {
