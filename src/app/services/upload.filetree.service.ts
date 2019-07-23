@@ -458,7 +458,7 @@ export class UploadFiletreeService {
     let userToken = this.member.token.replace(/"/g, '').replace(/"/g, '');
     console.log('사용자이름: ',username);
     console.log('패스워드: ',password);
-    console.log('token: ',password);
+    console.log('token: ',userToken);
 
 
     if (item.file.type === 'folder') {
@@ -625,7 +625,10 @@ export class UploadFiletreeService {
     this.uploading = true;
     this.folderIndex = folderIndex;
 
-    if (this.folders[folderIndex] == null) {
+    console.log('this.folders[folderIndex]',folderIndex, this.folders[folderIndex]);
+    //kimcy
+   // if (this.folders[folderIndex] == null) {
+    if (this.folders[folderIndex] == undefined) {
       console.log('폴더가 mull');
       this.folders[folderIndex] = [];
       console.log('폴더가 ', this.folders[folderIndex]);

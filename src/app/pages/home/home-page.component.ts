@@ -1,17 +1,17 @@
-import {Component, Inject, OnDestroy, OnInit} from '@angular/core';
-import {Router} from '@angular/router';
-import {M5MemberService} from '../../services/m5/m5.member.service';
-import {LOCAL_STORAGE, StorageService} from 'ngx-webstorage-service';
-import {ElectronService} from 'ngx-electron';
-import {M5PostService} from '../../services/m5/m5.post.service';
-import {UploadFiletreeService} from '../../services/upload.filetree.service';
-import {BsModalRef, BsModalService, ModalModule} from 'ngx-bootstrap';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { M5MemberService } from '../../services/m5/m5.member.service';
+import { LOCAL_STORAGE, StorageService } from 'ngx-webstorage-service';
+import { ElectronService } from 'ngx-electron';
+import { M5PostService } from '../../services/m5/m5.post.service';
+import { UploadFiletreeService } from '../../services/upload.filetree.service';
+import { BsModalRef, BsModalService, ModalModule } from 'ngx-bootstrap';
 import * as path from 'path';
-import {KonsoleService} from '../../services/konsole.service';
+import { KonsoleService } from '../../services/konsole.service';
 import * as moment from 'moment';
-import {ObjectUtils} from '../../utils/ObjectUtils';
-import {NGXLogger} from 'ngx-logger';
-import {environment} from '../../../environments/environment';
+import { ObjectUtils } from '../../utils/ObjectUtils';
+import { NGXLogger } from 'ngx-logger';
+import { environment } from '../../../environments/environment';
 
 
 @Component({
@@ -61,7 +61,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
   private getFolderKey(folderIndex) {
     //console.log('home-page, getFolderKey => folderIndex ',folderIndex, this.member.username);
     const key = 'folder:' + this.member.username + ':' + folderIndex;
-    this.logger.debug('FOLDERKEY', key, 'username = '+this.member.username);
+    this.logger.debug('FOLDERKEY', key, 'username = ' + this.member.username);
     return key;
   }
 
@@ -81,11 +81,13 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.selectedFolderIndex = tabIndex;
     const folderKey = this.getFolderKey(tabIndex);
     const folder = this.storageService.get(folderKey);
-    
-    console.log('folderKey = ',folderKey,'folder = ',folder);
+
+    console.log('folderKey = ', folderKey, 'folder = ', folder);
 
     this.logger.debug('FOLDERNAME', folder, folderKey);
-    if (folder != null) {
+    //kimcy
+    //if (folder != null) {
+    if (folder != undefined) {
       this.rootFolderName = folder;
       this.showingFolderName = folder;
       this.onRequestFolderPosts(this.selectedFolderIndex, folder, null);
@@ -98,6 +100,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
       }
     } else {
       //설정한 폴더가 없다면??
+      console.log('살정한 폴더가 없음');
       this.rootFolderName = '';
       this.showingFolderName = '';
       this.showingFolderList = [];
@@ -120,7 +123,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
   onRequestFolderData(folderIndex) {
     console.log('onRequestFolderData');
     if (this.deviceResource == null) {
-      this.deviceResource = {macaddress: 'MAC'};
+      this.deviceResource = { macaddress: 'MAC' };
     }
     const folderKey = this.getFolderKey(folderIndex);
     const folder = this.storageService.get(folderKey);
@@ -180,6 +183,9 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.parentFolder = paths.slice(0, paths.length).join('/');
 
     this.logger.debug('SUBFOLDER', gotoPath, this.parentFolder);
+    //kimcy: 이걸보여주면? 무엇이?
+    this.showingFolderList.push(this.parentFolder); //test code
+
     //kimcy: 추후 새로..
     // this.postAPI.list(this.board.id, {
     //   type: 'item',
@@ -224,15 +230,15 @@ export class HomePageComponent implements OnInit, OnDestroy {
       after = 5;
     }
     const folderKey = this.getFolderKey(folderIndex);
-    console.log('home-page folderKey = ',folderKey);
+    console.log('home-page folderKey = ', folderKey);
 
     const folder = this.storageService.get(folderKey);
-    console.log('home-page folder = ' ,folder, 'folderKey = ',folderKey);
+    console.log('home-page folder = ', folder, 'folderKey = ', folderKey);
 
     setTimeout(() => {
       this.uploading = true;
       this.uploadFiletreeService.upload(folderIndex, folder);
-    }, after * 500);  //0.5초후에 업로드 시작
+    }, after * 1000);  
   }
 
   fillFolders() {
@@ -257,8 +263,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
     console.log('보냄 home-page, PCRESOURCE');
     this.logger.debug('- HOMEPAGE ngOnInit: ', this.version);
     // this.board = this.storageService.get('board');
-     this.member = this.memberAPI.getLoggedin();
-    
+    this.member = this.memberAPI.getLoggedin();
+
     // this.accessToken = this.storageService.get('accessToken');
 
     // console.log('board : ',this.board);
@@ -283,7 +289,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
         /*---------------------------------------------------------------
               파일전송 시작 로그
          ----------------------------------------------------------------*/
-         console.log('home => 파일전송시작 로그');
+        console.log('home => 파일전송시작 로그');
         this.konsoleService.sendMessage(message);
       } else if (message.cmd === 'SENDING.PROGRESS') {
         /*---------------------------------------------------------------
@@ -298,14 +304,16 @@ export class HomePageComponent implements OnInit, OnDestroy {
         /*---------------------------------------------------------------
               폴더 전송 완료
          ----------------------------------------------------------------*/
-         console.log('homepage -> 폴더전송완료');
+        console.log('homepage -> 폴더전송완료');
         this.logger.debug(new Date(), message);
-        console.log('homepage => 전송완료된 폴더 folderIndex : ',message.folderIndex);
+        console.log('homepage => 전송완료된 폴더 folderIndex : ', message.folderIndex);
         if (this.MAXFOLDERLENGTH - 1 > message.folderIndex) {
 
-          console.log('homepage -> 다음폴더');
+          console.log('homepage -> this.storedFolders[message.folderIndex]', this.storedFolders[message.folderIndex]);
+          console.log('homepage -> this.selectedFolderIndex', this.selectedFolderIndex);
           // update
           if (this.storedFolders[message.folderIndex] !== undefined && (message.folderIndex === this.selectedFolderIndex)) {
+            console.log('여긴??, 업로드된 폴더의 결과를 확인??');
             this.onRequestFolderPosts(message.folderIndex, this.storedFolders[message.folderIndex], null);
           }
           this.onStartUploadFolder(message.folderIndex + 1, 5);
@@ -346,8 +354,11 @@ export class HomePageComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       console.log('등록된 폴더에 대해 업로드를 실행');
       for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
-        if (this.storedFolders[i] != null) {
-          console.log('등록된 폴더에 대해 업로드를 실행', this.storedFolders[i].length);
+        //kimcy 
+        console.log('this.storedFolders[i]', i, this.storedFolders[i]);
+        //if (this.storedFolders[i] != null) {
+        if (this.storedFolders[i] != undefined) {
+          console.log('등록된 폴더에 대해 업로드를 실행', this.storedFolders[i].length); //폴더의 길이
           this.uploadFiletreeService.upload(i, this.storedFolders[i]);
           break;
         }
@@ -377,7 +388,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
         console.log('home-page, SELECTFOLDER => folderKey', folderKey);
 
 
-//        this.storedFolders[response.folderIndex] = response.directory[0];
+        //        this.storedFolders[response.folderIndex] = response.directory[0];
         this.storageService.set(folderKey, response.directory[0]); //key: folder:pharmbase:0
         this.fillFolders();
 

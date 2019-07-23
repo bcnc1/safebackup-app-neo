@@ -167,7 +167,7 @@ export class LoginPageComponent implements OnInit {
     //                 this.migrating = false;
     //                 // alert(signupError);
     //               }
-    //             });
+    //             });npm
     //         } else {
     //           if (popup === true) {
     //             // alert('아이디를 확인하세요. 가입을 원하시면 관리자에게 연락하시기 바랍니다.');
