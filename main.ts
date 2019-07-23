@@ -331,7 +331,7 @@ var diretoryTreeToObj = function (dir, done) {
         if (stat) {
           if (stat.isDirectory()) {
             diretoryTreeToObj(file, function (err, res) {
-              results.push({
+              results.push({  //폴더의 속성을 만든다
                 type: 'folder',
 
                 filename: path.basename(file),
@@ -348,16 +348,16 @@ var diretoryTreeToObj = function (dir, done) {
               }
             });
           } else {
-            results.push({
+            results.push({  //파일의 속성을 만든다.
               type: 'file',
 
               filename: path.basename(file),
               fullpath: file,
 
               size: stat.size,
-              accessed: stat.atime,
-              updated: stat.mtime,
-              created: stat.ctime,
+              accessed: stat.atime, //파일에 접근한 마지막 시간
+              updated: stat.mtime, //파일이 수정된 마지막 시간
+              created: stat.ctime, //파일상태가 변경된 마지막시간
             });
             if (!--pending)
               done(null, results);
@@ -494,7 +494,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   // let userToken, container;
   
   function cbUpload(error, response, body) {
-    console.log(response);
+    //console.log(response);
     if (!error && response.statusCode == 201) {
       console.log('cbUpload file successfully');
       console.log('보냄, main, SENDFILE ');

@@ -126,16 +126,19 @@ export class UploadFiletreeService {
         let zipFound = false;
         let minDiff = -1000;
         let maxDate = moment().year(1990).month(0).date(1);
+        console.log('upload.filetree, 기준시간?? ', maxDate);
         const fileSortList = [];
         const folderSortList = [];
 
         // 최근 5개 계산을 위한 정렬용 배열에 채워넣는다.
+        console.log('upload.filetree, filesToSend?? ', this.filesToSend);
         for (const f in this.filesToSend) {
           if (this.filesToSend.hasOwnProperty(f)) {
             const fileItem = this.filesToSend[f];
 
             const folderName = path.dirname(fileItem.file.fullpath);
             const paths = folderName.split(path.sep);
+            console.log('folderName = ',folderName,'paths = ',paths);
             if (paths[paths.length - 1].toLowerCase().indexOf('data_backup') >= 0) {
               foundDataBackup = true;
               const filename = fileItem.file.filename;
@@ -143,7 +146,7 @@ export class UploadFiletreeService {
               const fmm = Number(filename.substr(4, 2));
               const fdd = Number(filename.substr(6, 2));
               const fdate = moment([fyyyy, fmm - 1, fdd]);
-              //console.log(fileItem);
+              console.log('fileItem = ',fileItem);
               if (fdate.isValid()) {
 
                 if (fileItem.file.type === 'file') {
@@ -166,6 +169,7 @@ export class UploadFiletreeService {
             }
           }
         }
+        console.log('upload.filetree 길이 = ',fileSortList.length);
         if (fileSortList.length > 5) {
           console.log('5개이상');
           fileSortList.sort((a, b) => {
@@ -179,7 +183,7 @@ export class UploadFiletreeService {
           });
 
           for (let f = 5; f < fileSortList.length; f++) {
-            fileSortList[f].doNotSend = true;
+            fileSortList[f].doNotSend = true;  //파일없로드 안함
           }
         }
 
@@ -195,11 +199,11 @@ export class UploadFiletreeService {
           });
 
           for (let f = 5; f < folderSortList.length; f++) {
-            folderSortList[f].doNotSend = true;
+            folderSortList[f].doNotSend = true;  //폴더업로드 안함
           }
         }
 
-        console.log('FILESORT', fileSortList);
+        console.log('uplaod.filetree, FILESORT', fileSortList);
 
 
         const dataBackupItem = this.folders[response.folderIndex];
@@ -364,7 +368,8 @@ export class UploadFiletreeService {
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   private processTreeElement(folderIndex, fileItem) {
     console.log('uppload.filetree, processTreeElement => folderIndex :',folderIndex);
-    console.log('fileItem :',fileItem);
+    console.log('fileItem :',fileItem); //하나의 파일
+    console.log('filesToSend :',this.filesToSend);  //어디서 값을 넣어줬을끼?, 현재는 배열로 폴더에 있는 파일들을 가르킨다.
     let size = 0;
     if (this.filesToSend == null) {
       this.filesToSend = [];
@@ -393,7 +398,7 @@ export class UploadFiletreeService {
       /*---------------------------------------------------------------
        * 파일
        *---------------------------------------------------------------*/
-      console.log('file');
+      console.log('upload.filetree  filesToSend 에 넣기 ',fileItem);
       this.filesToSend.push({
         folderIndex: folderIndex,
         index: this.filesToSend.length,
@@ -413,6 +418,7 @@ export class UploadFiletreeService {
     if (this.filesToSend.length - 1 > index) {
       this.subject.next(this.filesToSend[index + 1]);
     } else {
+      console.log('업로드 종료');
       this.notification.next({
         cmd: 'LOG',
         message: '"폴더' + (this.folderIndex + 1) + '" : ' + this.folders[this.folderIndex].path + ' 업로드 종료'
@@ -446,14 +452,7 @@ export class UploadFiletreeService {
     const parentPath = (paths.slice(0, paths.length).join(path.sep)).replace(/\\/g, '/');
     const folderName = this.folders[item.folderIndex].path.replace(/\\/g, '/');
     const code = file.fullpath.replace(/\\/g, '/');
-    //let username = localStorage.getItem('username');
-    //username = username = username.replace(/"/g, '').replace(/"/g, '');
-   // let username = member.id; //JSON.stringify(member);
-    //let password = localStorage.getItem('password');
-    //password = password = password.replace(/"/g, '').replace(/"/g, '');
-
-    //console.log('사용자이름: ',username);
-    //console.log('패스워드: ',password);
+ 
     let username = this.member.username.replace(/"/g, '').replace(/"/g, '');
     let password = this.member.password.replace(/"/g, '').replace(/"/g, '');
     let userToken = this.member.token.replace(/"/g, '').replace(/"/g, '');
@@ -617,6 +616,8 @@ export class UploadFiletreeService {
    *  main entry
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   upload(folderIndex, fullpath) {
+
+    console.log('upload.filetree folderIndex =  ',folderIndex, 'fullpath = ',fullpath);
     if (this.uploading === true) {
       return;
     }

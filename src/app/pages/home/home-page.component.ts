@@ -59,7 +59,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
 
   private getFolderKey(folderIndex) {
-    console.log('home-page, getFolderKey => folderIndex ',folderIndex, this.member.username);
+    //console.log('home-page, getFolderKey => folderIndex ',folderIndex, this.member.username);
     const key = 'folder:' + this.member.username + ':' + folderIndex;
     this.logger.debug('FOLDERKEY', key, 'username = '+this.member.username);
     return key;
@@ -97,6 +97,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
         this.onRequestFolderData(this.selectedFolderIndex);
       }
     } else {
+      //설정한 폴더가 없다면??
       this.rootFolderName = '';
       this.showingFolderName = '';
       this.showingFolderList = [];
@@ -299,15 +300,18 @@ export class HomePageComponent implements OnInit, OnDestroy {
          ----------------------------------------------------------------*/
          console.log('homepage -> 폴더전송완료');
         this.logger.debug(new Date(), message);
-        console.log('homepage => folderIndex : ',message.folderIndex);
+        console.log('homepage => 전송완료된 폴더 folderIndex : ',message.folderIndex);
         if (this.MAXFOLDERLENGTH - 1 > message.folderIndex) {
 
+          console.log('homepage -> 다음폴더');
           // update
           if (this.storedFolders[message.folderIndex] !== undefined && (message.folderIndex === this.selectedFolderIndex)) {
             this.onRequestFolderPosts(message.folderIndex, this.storedFolders[message.folderIndex], null);
           }
           this.onStartUploadFolder(message.folderIndex + 1, 5);
         } else {
+
+          console.log('homepage -> 모두완료 다음시간설정');
           this.uploading = false;
 
           const minutes = 60 * getRandomInt(1, 4); //1분부터 4분까지 랜덤
@@ -361,7 +365,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
     /*---------------------------------------------------------------
            LISTENER : SELECTFOLDER의 리스너
-     ----------------------------------------------------------------*/
+     ----------------------------------------------------------------*/62
 
     this.electronService.ipcRenderer.on('SELECTFOLDER', (event: Electron.IpcMessageEvent, response: any) => {
       this.logger.debug('SELECTFOLDER', response, this.uploading);
