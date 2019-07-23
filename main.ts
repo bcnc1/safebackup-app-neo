@@ -285,6 +285,7 @@ try {
  ipcMain.on("GETFOLDERTREE", (event, arg) => {
   console.log('22..앱이실행중이라 업로드');
   console.log('GETFOLDERTREE', arg);
+  console.log('받음, GETFOLDERTREE, main');
   if (arg.path == null) {
     console.log('arg.path == null');
     return;
@@ -295,6 +296,7 @@ try {
         console.error(err);
       } else {
         console.log('33..앱이실행중이라 업로드 res : ',res);
+        console.log('보냄, GETFOLDERTREE, main');
         mainWindow.webContents.send("GETFOLDERTREE", {
           folderIndex: arg.folderIndex,
           tree: res
@@ -311,6 +313,7 @@ try {
 
 
 var diretoryTreeToObj = function (dir, done) {
+  console.log('main,  diretoryTreeToObj dir = ',dir, done);
   var results = [];
 
   fs.readdir(dir, function (err, list) {
@@ -372,9 +375,9 @@ var diretoryTreeToObj = function (dir, done) {
 
 
 ipcMain.on("SENDFILE", (event, arg) => {
-  console.log('SENDFILE => token:', arg.accessToken);
+  console.log('받음, main, SENDFILE => token:', arg.accessToken);
   try {
-    sendFile(arg.index, arg.url, arg.formData, arg.file, arg.accessToken, arg.apiKey, arg.username, arg.pwd);
+    sendFile(arg.index, arg.formData, arg.file, arg.accessToken, arg.username);
   } catch (e) {
     console.log(e);
   }
@@ -400,6 +403,7 @@ ipcMain.on("ALERT", (event, arg) => {
 
 ipcMain.on('PCRESOURCE', (event, arg) => {
 
+  console.log('받음 main, PCRESOURCE');
   var interfaces = os.networkInterfaces();
   var maps = Object.keys(interfaces)
     .map(x => interfaces[x].filter(x => x.family === 'IPv4' && !x.internal)[0])
@@ -419,6 +423,7 @@ ipcMain.on('PCRESOURCE', (event, arg) => {
   const path = os.platform() === 'win32' ? 'C:/' : '/';
 
   checkDiskSpace(path).then((diskSpace) => {
+    console.log('보냄 main, PCRESOURCE');
     mainWindow.webContents.send("PCRESOURCE", {
       cpus: cpus,
       disk: diskSpace,
@@ -442,10 +447,11 @@ ipcMain.on('PCRESOURCE', (event, arg) => {
 
 
 ipcMain.on('SELECTFOLDER', (event, arg) => {
-
+  console.log('받음,main, SELECTFOLDER');
   var directory = dialog.showOpenDialog(mainWindow, {
     properties: ['openDirectory']
   });
+  console.log('보냄,main, SELECTFOLDER');
   mainWindow.webContents.send("SELECTFOLDER", {
     error: null,
     folderIndex: arg.folderIndex,
@@ -460,18 +466,16 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
  *  container명은 로그인시 id로...
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
-// const account = 'doctorkeeper';
-// const colon = ':';
-// const userpw = 'inno1234'; //로그인시 값으로..
 
-var sendFile = function (index, url, formData, file, accessToken, apiKey, containerName, pwd) {
+//var sendFile = function (index, url, formData, file, accessToken, apiKey, containerName, pwd) {
+  var sendFile = function (index, formData, file, accessToken, containerName) {
 
   console.log("accessToken:", accessToken);
   console.log("fullpath:", file.fullpath);
   console.log("path.sep:", path.sep);
   let paths = path.dirname(file.fullpath).split(path.sep);
   console.log("업로드파일패스:", paths);  //패스가 배열로 들어오고 각각을 연결시켜야..[ '', 'Users', 'kimcy', 'safebackup', 'p1' ]
-  console.log("url:", url);
+  //console.log("url:", url);
 
   let startTime = new Date().getTime();
   formData.count = file.size;
@@ -493,6 +497,7 @@ var sendFile = function (index, url, formData, file, accessToken, apiKey, contai
     console.log(response);
     if (!error && response.statusCode == 201) {
       console.log('cbUpload file successfully');
+      console.log('보냄, main, SENDFILE ');
       mainWindow.webContents.send("SENDFILE", {
           error: null,
           body: body,
@@ -502,6 +507,7 @@ var sendFile = function (index, url, formData, file, accessToken, apiKey, contai
         });
     }else{
          console.log('cbUpload file error!!!');
+         console.log('보냄, main, SENDFILE ');
          mainWindow.webContents.send("SENDFILE", {error: error});
   
     }

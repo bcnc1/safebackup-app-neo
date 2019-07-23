@@ -27,6 +27,7 @@ export class LoginPageComponent implements OnInit {
   private oldPaths = new Array(2);
   private migrateFromV1 = false;
   public migrating = false;
+  private member;
   //public userToken;
 
   
@@ -41,35 +42,7 @@ export class LoginPageComponent implements OnInit {
 
     @Inject(LOCAL_STORAGE) private storageService: StorageService) {
   }
-  
-  //kimcy add. 등록된 사용자의 토큰을 얻어온다.
-  // onLoginB(username, password, popup){
-  //   console.log(username, password);
-  //   const optGetUserToken = {
-  //     uri: M5MemberService.s3Auth,
-  //     headers:{
-  //         'X-Auth-New-Token': 'true',
-  //         'x-storage-user': 'doctorkeeper'+':'+username,
-  //         'x-storage-pass': password
-  //     }
-  //   }
 
-  //   function cbGetUserToken(error, response) {
-  //     console.log('11..response:',response);
-  //     if (!error && response.statusCode == 200) {
-    
-  //       var userToken = response.headers['x-auth-token'];
-        
-  //       //storageService.set('userToken', userToken);
-  //       return reqestProm(userToken);
-  //     }
-  //   }
-
-  //   reqestProm(optGetUserToken, cbGetUserToken).then(function(response) {
-  //     console.log('11..사용자토큰:',response);
-  //   });
-
-  // }
       initialize(username, password) {
         // Setting URL and headers for request
         var options = {
@@ -85,38 +58,35 @@ export class LoginPageComponent implements OnInit {
           // Do async job
             request.get(options, function(err, resp, body) {
                 if (err) {
+                  console.log('로그인실패');
                     reject(err);
                 } else {
                     if(resp.statusCode == 200){
                       resolve(resp.headers['x-auth-token']);
                     }
-                    //resolve(JSON.parse(body));
                 }
             });
         });
 
     }
     
-    onLoginB(username, password, popup, storage, router){
-      var initializePromise = this.initialize(username, password);
+    onLoginB(member, popup, storage, router){
+      var initializePromise = this.initialize(member.username, member.password);
 
       initializePromise.then(function(result) {
           var userToken = result;
           console.log("userToken :",userToken);
-          storage.set('userToken', userToken);
-          storage.set('password', password);
-          storage.set('username', username);
+          member.token = userToken;
+          //storage.set('userToken', userToken);
+          // storage.set('password', password);
+          // storage.set('username', username);
+          storage.set('member',member);
           router.navigateByUrl('/home');
       }, function(err) {
           console.log(err);
       })
     }
 
-  // onLoginB(username, password, popup){
-  //   this.memberAPI.loginB(username, password).subscribe((res)=>{
-  //     console.log(res);
-  //   });
-  // }
 
 
 
@@ -129,6 +99,8 @@ export class LoginPageComponent implements OnInit {
     //   this.router.navigateByUrl('/home');
     //   return;
     // }
+
+    //로그인하고 토큰 재활용은 추후에..kimcy
     const member = new Member();
 
     if (username == null && password == null) {
@@ -144,16 +116,10 @@ export class LoginPageComponent implements OnInit {
       console.log('22..',this.username);
     }
 
-    //kimcy
-    this.onLoginB(member.username, member.password, false, this.storageService, this.router);
+    //kimcy: 토큰은 여기서 넣어준다..
+    this.onLoginB(member, false, this.storageService, this.router);
 
     // this.loggingin = true;
-    // this.memberAPI.loginB(username, password).subscribe(response =>{
-    //   this.storageService.set('password', password);
-    //   this.storageService.set('username', username);
-    //   this.router.navigateByUrl('/home');
-
-    // });
     // this.memberAPI.login(member).subscribe(
     //   response => {
     //     {
@@ -254,16 +220,29 @@ export class LoginPageComponent implements OnInit {
      console.log('login-page.component ');
 
     setTimeout(() => {
-      let username = localStorage.getItem('username');
-      let password = localStorage.getItem('password');
+      // let username = localStorage.getItem('username');
+      // let password = localStorage.getItem('password');
+      this.member = this.memberAPI.isLoggedin();
+      let username, password;
 
-      this.logger.debug('ONINIT', username, password);
-
-      //kimcy add kt login
-      if(username == null && password == null){
+      console.log('this.member : ',this.member);
+      if(this.member === undefined){
         console.log('처음실행 앱 안죽게');
         return;
+      }else{
+        username = this.member.username;
+        password = this.member.password;
       }
+      // let username = this.member.username;
+      // let password = this.member.password;
+
+      // this.logger.debug('ONINIT', this.member.username, this.password);
+
+      // //kimcy add kt login
+      // if(username == null && password == null){
+      //   console.log('처음실행 앱 안죽게');
+      //   return;
+      // }
 
 
 

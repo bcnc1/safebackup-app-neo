@@ -59,9 +59,9 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
 
   private getFolderKey(folderIndex) {
-    console.log('home-page, getFolderKey => folderIndex ',folderIndex);
-    const key = 'folder:' + this.member.id + ':' + folderIndex;
-    this.logger.debug('FOLDERKEY', key);
+    console.log('home-page, getFolderKey => folderIndex ',folderIndex, this.member.username);
+    const key = 'folder:' + this.member.username + ':' + folderIndex;
+    this.logger.debug('FOLDERKEY', key, 'username = '+this.member.username);
     return key;
   }
 
@@ -81,6 +81,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.selectedFolderIndex = tabIndex;
     const folderKey = this.getFolderKey(tabIndex);
     const folder = this.storageService.get(folderKey);
+    
+    console.log('folderKey = ',folderKey,'folder = ',folder);
 
     this.logger.debug('FOLDERNAME', folder, folderKey);
     if (folder != null) {
@@ -107,6 +109,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   onChangeFolder(folderIndex) {
     this.selectedFolderIndex = folderIndex;
+    console.log('보냄,home-page, SELECTFOLDER');
     this.electronService.ipcRenderer.send('SELECTFOLDER', {
       folderIndex: folderIndex
     });
@@ -120,44 +123,44 @@ export class HomePageComponent implements OnInit, OnDestroy {
     }
     const folderKey = this.getFolderKey(folderIndex);
     const folder = this.storageService.get(folderKey);
+    //kimcy: 추후
+    // this.postAPI.list(this.board.id, {
+    //   type: 'folderData',
+    //   andFields: JSON.stringify({code: this.member.id + '##' + this.deviceResource.macaddress + '##' + folder}),
+    //   fetchMode: 'admin'
+    // }).subscribe(
+    //   response => {
+    //     {
+    //       this.logger.debug('음***', response);
 
-    this.postAPI.list(this.board.id, {
-      type: 'folderData',
-      andFields: JSON.stringify({code: this.member.id + '##' + this.deviceResource.macaddress + '##' + folder}),
-      fetchMode: 'admin'
-    }).subscribe(
-      response => {
-        {
-          this.logger.debug('음***', response);
-
-          if (ObjectUtils.isNotEmpty(response.posts)) {
-            this.rootFolderData = response.posts[0];
-            if (ObjectUtils.isNotEmpty(this.rootFolderData.userData.error)) {
-              switch (this.rootFolderData.userData.error) {
-                case '10days' :
-                case '5days' :
-                  console.log('5일경과');
-                  this.rootFolderData.userData.errorMessage = '5일경과';
-                  break;
-                // case '3days' :
-                //   this.rootFolderData.userData.errorMessage = '3일점검';
-                //   break;
-                case 'nozip' :
-                    console.log('긴급점검');
-                  this.rootFolderData.userData.errorMessage = '긴급점검';
-                  break;
-              }
-            }
-          }
-        }
-      },
-      error => {
-        if (error.code != null) {
-        } else {
-          this.logger.debug('에러', error);
-        }
-      }
-    );
+    //       if (ObjectUtils.isNotEmpty(response.posts)) {
+    //         this.rootFolderData = response.posts[0];
+    //         if (ObjectUtils.isNotEmpty(this.rootFolderData.userData.error)) {
+    //           switch (this.rootFolderData.userData.error) {
+    //             case '10days' :
+    //             case '5days' :
+    //               console.log('5일경과');
+    //               this.rootFolderData.userData.errorMessage = '5일경과';
+    //               break;
+    //             // case '3days' :
+    //             //   this.rootFolderData.userData.errorMessage = '3일점검';
+    //             //   break;
+    //             case 'nozip' :
+    //                 console.log('긴급점검');
+    //               this.rootFolderData.userData.errorMessage = '긴급점검';
+    //               break;
+    //           }
+    //         }
+    //       }
+    //     }
+    //   },
+    //   error => {
+    //     if (error.code != null) {
+    //     } else {
+    //       this.logger.debug('에러', error);
+    //     }
+    //   }
+    // );
   }
 
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -176,40 +179,41 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.parentFolder = paths.slice(0, paths.length).join('/');
 
     this.logger.debug('SUBFOLDER', gotoPath, this.parentFolder);
-    this.postAPI.list(this.board.id, {
-      type: 'item',
-      status: this.uploadFiletreeService.getFolderPath(folderIndex),
-      andFields: JSON.stringify({'userData.parentPath': gotoPath.replace(/\\/g, '/')}),
-      fetchMode: 'admin'
-    }).subscribe(
-      response => {
-        {
-          console.log('서버응답');
-          for (const p in response.posts) {
-            if (response.posts.hasOwnProperty(p)) {
-              // const folder = path.dirname(response.posts[p].code);
-              if (response.posts[p].subtype === 'folder') {
-                this.showingFolderList.push(response.posts[p]);
-              } else {
-                this.showingFileList.push(response.posts[p]);
-              }
-            }
-          }
-        }
-      },
-      error => {
-        console.log('서버응답 에러');
-        if (error.code != null) {
-          this.konsoleService.sendMessage({cmd: 'LOG', message: JSON.stringify(error)});
-        } else {
-          this.konsoleService.sendMessage({cmd: 'LOG', message: JSON.stringify(error)});
-        }
-        /** RETRY **/
-        setTimeout(() => {
-          this.onRequestFolderPosts(folderIndex, gotoPath, files);
-        }, 2000);
-      }
-    );
+    //kimcy: 추후 새로..
+    // this.postAPI.list(this.board.id, {
+    //   type: 'item',
+    //   status: this.uploadFiletreeService.getFolderPath(folderIndex),
+    //   andFields: JSON.stringify({'userData.parentPath': gotoPath.replace(/\\/g, '/')}),
+    //   fetchMode: 'admin'
+    // }).subscribe(
+    //   response => {
+    //     {
+    //       console.log('서버응답');
+    //       for (const p in response.posts) {
+    //         if (response.posts.hasOwnProperty(p)) {
+    //           // const folder = path.dirname(response.posts[p].code);
+    //           if (response.posts[p].subtype === 'folder') {
+    //             this.showingFolderList.push(response.posts[p]);
+    //           } else {
+    //             this.showingFileList.push(response.posts[p]);
+    //           }
+    //         }
+    //       }
+    //     }
+    //   },
+    //   error => {
+    //     console.log('서버응답 에러');
+    //     if (error.code != null) {
+    //       this.konsoleService.sendMessage({cmd: 'LOG', message: JSON.stringify(error)});
+    //     } else {
+    //       this.konsoleService.sendMessage({cmd: 'LOG', message: JSON.stringify(error)});
+    //     }
+    //     /** RETRY **/
+    //     setTimeout(() => {
+    //       this.onRequestFolderPosts(folderIndex, gotoPath, files);
+    //     }, 2000);
+    //   }
+    // );
   }
 
 
@@ -219,8 +223,10 @@ export class HomePageComponent implements OnInit, OnDestroy {
       after = 5;
     }
     const folderKey = this.getFolderKey(folderIndex);
+    console.log('home-page folderKey = ',folderKey);
+
     const folder = this.storageService.get(folderKey);
-    console.log(folderKey);
+    console.log('home-page folder = ' ,folder, 'folderKey = ',folderKey);
 
     setTimeout(() => {
       this.uploading = true;
@@ -247,10 +253,14 @@ export class HomePageComponent implements OnInit, OnDestroy {
     console.log('home-page, ngOnInit');
     this.version = environment.VERSION;
     this.electronService.ipcRenderer.send('PCRESOURCE', null);
+    console.log('보냄 home-page, PCRESOURCE');
     this.logger.debug('- HOMEPAGE ngOnInit: ', this.version);
-    this.board = this.storageService.get('board');
-    this.member = this.memberAPI.getLoggedin();
-    this.accessToken = this.storageService.get('accessToken');
+    // this.board = this.storageService.get('board');
+     this.member = this.memberAPI.getLoggedin();
+    
+    // this.accessToken = this.storageService.get('accessToken');
+
+    // console.log('board : ',this.board);
 
     function getRandomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -344,6 +354,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
        *  IPC Response : Get FileTree
        ----------------------------------------------------*/
     this.electronService.ipcRenderer.on('PCRESOURCE', (event: Electron.IpcMessageEvent, response: any) => {
+      console.log('받음 home-page, PCRESOURCE');
       this.deviceResource = response;
     });
 
@@ -354,15 +365,20 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
     this.electronService.ipcRenderer.on('SELECTFOLDER', (event: Electron.IpcMessageEvent, response: any) => {
       this.logger.debug('SELECTFOLDER', response, this.uploading);
+      console.log('받음,home-page, SELECTFOLDER');
       if (response.directory != null) {
+        console.log('home-page, directory', response.directory);
         const folderKey = this.getFolderKey(response.folderIndex);
+
+        console.log('home-page, SELECTFOLDER => folderKey', folderKey);
 
 
 //        this.storedFolders[response.folderIndex] = response.directory[0];
-        this.storageService.set(folderKey, response.directory[0]);
+        this.storageService.set(folderKey, response.directory[0]); //key: folder:pharmbase:0
         this.fillFolders();
 
         this.uploadFiletreeService.fillFollders();
+        console.log('home-page, uploading?? ', this.uploading)
         if (this.uploading === false) {
           this.onStartUploadFolder(response.folderIndex, 3);
         }

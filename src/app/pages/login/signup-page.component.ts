@@ -41,6 +41,7 @@ export class SignupPageComponent implements OnInit {
 
 
   onSubmit() {
+    console.log('signup-page => onSubmit');
     this.memberAPI.signup(this.registerForm.value).subscribe(
       response => {
         {

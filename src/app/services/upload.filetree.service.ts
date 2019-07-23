@@ -69,7 +69,8 @@ export class UploadFiletreeService {
      ----------------------------------------------------*/
     this.electronService.ipcRenderer.on('PCRESOURCE', (event: Electron.IpcMessageEvent, response: any) => {
       this.deviceResource = response;
-      console.log('PCRESOURCE deviceResource : ', this.deviceResource);
+      //console.log('PCRESOURCE deviceResource : ', this.deviceResource);
+      console.log('받음 upload.filetree, PCRESOURCE');
     });
     /*----------------------------------------------------
        *  IPC Response : Get FileTree
@@ -92,13 +93,14 @@ export class UploadFiletreeService {
         console.log('44..앱이실행중이라 업로드 fileTree : ',fileTree);
         console.log(this.folderIndex);
         console.log(fileTree.length);
+        console.log('받음, GETFOLDERTREE, upload-filetree');
         //파일이 없으면?
         //if(typeof fileTree.length == 'undefined')
         if(fileTree.length == undefined){
           console.log('백업할 파일이 없음');
           this.notification.next({cmd: 'LOG', message: '백업할 파일이 없습니다.'});
           this.gotoNextFile(this.folderIndex);
-          return; //이게 맞나?
+          return; 
         }
 
         
@@ -141,7 +143,7 @@ export class UploadFiletreeService {
               const fmm = Number(filename.substr(4, 2));
               const fdd = Number(filename.substr(6, 2));
               const fdate = moment([fyyyy, fmm - 1, fdd]);
-              console.log(fileItem);
+              //console.log(fileItem);
               if (fdate.isValid()) {
 
                 if (fileItem.file.type === 'file') {
@@ -232,19 +234,22 @@ export class UploadFiletreeService {
         dataBackupItem.deviceResource = this.deviceResource;
 
         this.member = this.memberAPI.isLoggedin();
-        this.memberAPI.detail(this.member).subscribe(res => {
-          this.logger.debug('##MEMBER', res.member);
-          this.member = res.member;
-          this.memberAPI.updateFolderData(dataBackupItem, this.member).subscribe(updateRes => {
-              {
-                this.logger.debug(updateRes);
-              }
-            },
-            error => {
-              this.logger.debug(error);
-            }
-          );
-        });
+        //kimcy 추후.
+        // this.memberAPI.detail(this.member).subscribe(res => {
+        //   this.logger.debug('##MEMBER', res.member);
+        //   this.member = res.member;
+        //   this.memberAPI.updateFolderData(dataBackupItem, this.member).subscribe(updateRes => {
+        //       {
+        //         console.log('upload.filetree updateFolderData 성공');
+        //         this.logger.debug(updateRes);
+        //       }
+        //     },
+        //     error => {
+        //       console.log('upload.filetree updateFolderData 실패');
+        //       this.logger.debug(error);
+        //     }
+        //   );
+        // });
 
 
         if (this.deviceResource == null) {
@@ -253,29 +258,34 @@ export class UploadFiletreeService {
           };
         }
 
+        //kimcy: dataBackupItem 이란? 마지막 업로드. 에러(10일, 5일, nozip), 마지막zip, count, 디바이스리소스
         dataBackupItem.version = environment.VERSION;
+        //kimcy
         const post = {
           type: 'folderData',
           title: dataBackupItem.path,
           categories: [this.deviceResource.macaddress],
-          code: this.member.id + '##' + this.deviceResource.macaddress + '##' + dataBackupItem.path,
+          code: this.member.username + '##' + this.deviceResource.macaddress + '##' + dataBackupItem.path,
           userData: JSON.stringify(dataBackupItem),
           checkCode: 'true',
           checkCodeAction: 'update',
         };
 
         this.logger.debug('###################', post);
-        this.postAPI.save(this.board.id, post,
-          null
-        ).subscribe(saveResponse => {
-            {
-              this.logger.debug(saveResponse);
-            }
-          },
-          error => {
-            this.logger.debug(error);
-          }
-        );
+        //kimcy 일단 추후 구현
+        // this.postAPI.save(this.board.id, post,
+        //   null
+        // ).subscribe(saveResponse => {
+        //     {
+        //       console.log('upload.filetree postAPI.save 성공');
+        //       this.logger.debug(saveResponse);
+        //     }
+        //   },
+        //   error => {
+        //     console.log('upload.filetree postAPI.save 실패');
+        //     this.logger.debug(error);
+        //   }
+        // );
         this.subject.next(this.filesToSend[0]);
       }
     );
@@ -286,6 +296,7 @@ export class UploadFiletreeService {
      *  다음 파일을 보내도록 next에 밀어넣기
      ----------------------------------------------------*/
     this.electronService.ipcRenderer.on('SENDFILE', (event: Electron.IpcMessageEvent, response: any) => {
+      console.log('받음, upload.filetree, SENDFILE ');
       this.logger.debug('FILE', response, this.filesToSend);
       let message = '';
       console.log(response);
@@ -342,7 +353,9 @@ export class UploadFiletreeService {
     if (this.member == null) {
       this.member = this.memberAPI.isLoggedin();
     }
-    return 'folder:' + this.member.id + ':' + folderIndex;
+    //kimcy
+    //return 'folder:' + this.member.id + ':' + folderIndex;
+    return 'folder:' + this.member.username + ':' + folderIndex;
   }
 
 
@@ -350,7 +363,7 @@ export class UploadFiletreeService {
    *  Process Tree to File list to send
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   private processTreeElement(folderIndex, fileItem) {
-    console.log('folderIndex :',folderIndex);
+    console.log('uppload.filetree, processTreeElement => folderIndex :',folderIndex);
     console.log('fileItem :',fileItem);
     let size = 0;
     if (this.filesToSend == null) {
@@ -433,21 +446,29 @@ export class UploadFiletreeService {
     const parentPath = (paths.slice(0, paths.length).join(path.sep)).replace(/\\/g, '/');
     const folderName = this.folders[item.folderIndex].path.replace(/\\/g, '/');
     const code = file.fullpath.replace(/\\/g, '/');
-    let username = localStorage.getItem('username');
-    username = username = username.replace(/"/g, '').replace(/"/g, '');
+    //let username = localStorage.getItem('username');
+    //username = username = username.replace(/"/g, '').replace(/"/g, '');
    // let username = member.id; //JSON.stringify(member);
-    let password = localStorage.getItem('password');
+    //let password = localStorage.getItem('password');
     //password = password = password.replace(/"/g, '').replace(/"/g, '');
 
+    //console.log('사용자이름: ',username);
+    //console.log('패스워드: ',password);
+    let username = this.member.username.replace(/"/g, '').replace(/"/g, '');
+    let password = this.member.password.replace(/"/g, '').replace(/"/g, '');
+    let userToken = this.member.token.replace(/"/g, '').replace(/"/g, '');
     console.log('사용자이름: ',username);
     console.log('패스워드: ',password);
+    console.log('token: ',password);
+
 
     if (item.file.type === 'folder') {
-      console.log('folder 타입: ',this.storageService.get('userToken'));
+      //console.log('folder 타입: ',this.storageService.get('userToken'));
+      let uertoken = 
       post = {
         index: item.index,
         file: file,
-        url: M5Service.server + '/v1/boards/' + this.board.id + '/posts?accessToken=' + encodeURI(this.accessToken),
+        //url: M5Service.server + '/v1/boards/' + this.board.id + '/posts?accessToken=' + encodeURI(this.accessToken),
         formData: {
           type: 'item',
           categories: [parentPath],                     // 파일이 포함된 path
@@ -467,17 +488,17 @@ export class UploadFiletreeService {
           }
         },
        // accessToken: this.storageService.get('accessToken'),
-        accessToken: this.storageService.get('userToken'),
-        apiKey: M5Service.apiKey,
+        accessToken: userToken,
+       // apiKey: M5Service.apiKey,
         username:username,
-        pwd:password
+       // pwd:password
       };
     } else {
       console.log('file  타입: ',this.storageService.get('userToken'));
       post = {
         index: item.index,
         file: file,
-        url: M5Service.server + '/v1/boards/' + this.board.id + '/posts?accessToken=' + encodeURI(this.accessToken),
+      //  url: M5Service.server + '/v1/boards/' + this.board.id + '/posts?accessToken=' + encodeURI(this.accessToken),
         formData: {
           type: 'item',
           categories: [parentPath],                     // 파일이 포함된 path
@@ -497,10 +518,10 @@ export class UploadFiletreeService {
           }
         },
        // accessToken: this.storageService.get('accessToken'),
-       accessToken: this.storageService.get('userToken'),
-        apiKey: M5Service.apiKey,
+        accessToken: userToken,
+        //apiKey: M5Service.apiKey,
         username:username,
-        pwd:password
+      //  pwd:password
       };
     }
 
@@ -508,22 +529,23 @@ export class UploadFiletreeService {
           이미 존재하는지 체크
         ----------------------------------------------------------------*/
     let existPost = null;
-    this.postAPI.list(this.board.id, {
-      type: 'item',
-      andFields: JSON.stringify({code: this.member.id + '##' + this.deviceResource.macaddress + '##' + code}),
-      fetchMode: 'admin'
-    }).subscribe(
-      response => {
+    //kimcy: 추후
+    // this.postAPI.list(this.board.id, {
+    //   type: 'item',
+    //   andFields: JSON.stringify({code: this.member.id + '##' + this.deviceResource.macaddress + '##' + code}),
+    //   fetchMode: 'admin'
+    // }).subscribe(
+    //   response => {
 
-        if (ObjectUtils.isNotEmpty(response.posts)) {
-          existPost = response.posts[0];
-          console.log('목록체크 :', existPost);
-        }
+    //     if (ObjectUtils.isNotEmpty(response.posts)) {
+    //       existPost = response.posts[0];
+    //       console.log('목록체크 :', existPost);
+    //     }
 
-      },
-      error => {
-        console.log('CHECK EXITS ERROR', error);
-      });
+    //   },
+    //   error => {
+    //     console.log('CHECK EXITS ERROR', error);
+    //   });
 
     /*---------------------------------------------------------------
         업로드 제외 파일
@@ -568,7 +590,7 @@ export class UploadFiletreeService {
           cmd: 'SENDING.STARTED',
           message: '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[item.index].file.filename + ' 업로딩...' + size + '토큰..'+post.accessToken
         });
-
+        console.log('보냄, upload.filetree, SENDFILE ');
         this.electronService.ipcRenderer.send('SENDFILE', post);
       } else {
         this.logger.debug('이미 업로드된 파일', code);
@@ -623,6 +645,7 @@ export class UploadFiletreeService {
       if (this.electronService.isElectronApp) { //앱이 실행중이라면..
         console.log('11..upload ->앱이실행중이라 업로드');
         this.notification.next({cmd: 'LOG', message: this.folders[folderIndex].path + ' 업로드를 시작합니다.'});
+        console.log('보냄, GETFOLDERTREE, upload-filetree');
         this.electronService.ipcRenderer.send('GETFOLDERTREE', {
           folderIndex: folderIndex,
           path: this.folders[folderIndex].path

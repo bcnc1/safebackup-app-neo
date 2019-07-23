@@ -23,14 +23,16 @@ export class M5MemberService extends M5Service {
   }
 
   public getLoggedin() {
+    //kimcy
     return this.storage.get('member');
+    //return this.storage.get('username');
   }
 
   public isLoggedin() {
     console.log('m5.member.service => isLoggedin');
     //kimcy
-    return this.storage.get('username');
-   // return this.storage.get('member');
+    //return this.storage.get('username');
+    return this.storage.get('member');
   }
 
 
@@ -117,23 +119,6 @@ export class M5MemberService extends M5Service {
       );
   }
 
-  //let AUTH_URL = 'https://ssproxy.ucloudbiz.olleh.com/auth/v1.0';
-  public loginB(username, password){
-    console.log('loginB', username);
-    const options = {
-      headers :{
-        'X-Auth-New-Token': 'true',
-        'x-storage-user': 'doctorkeeper:'+username,
-        'x-storage-pass': password
-      }
-    }
-    return this.http.get('https://ssproxy.ucloudbiz.olleh.com/auth/v1.0', options)
-      .pipe(
-        map(res => this.getLoginToken(res)),
-        //this.getLoginToken(res),
-        catchError(this.handleError)
-      );
-  }
 
 
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -198,7 +183,7 @@ export class M5MemberService extends M5Service {
       accessToken: this.storage.get('accessToken')
     });
 
-    return this.http.get(this.url.members(member.id) + '?' + params)
+    return this.http.get(this.url.members(member.username) + '?' + params)
       .pipe(
         map(res => this.handleMemberDetailResponse(res)),
         catchError(this.handleError)
