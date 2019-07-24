@@ -184,7 +184,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
     this.logger.debug('SUBFOLDER', gotoPath, this.parentFolder);
     //kimcy: 이걸보여주면? 무엇이?
-    //this.showingFolderList.push(this.parentFolder); //test code
+    //this.showingFolderList.push(this.parentFolder); //test code, 이거넣어주면 화면에 폴더 내용이 보이나 값이 없어서 죽는다.
 
     //kimcy: 추후 새로..
     // this.postAPI.list(this.board.id, {

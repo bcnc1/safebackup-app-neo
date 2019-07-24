@@ -36,11 +36,7 @@ export class M5Service {
       console.log('m5.member, members');
       return M5Service.server + '/v1/members/' + memberId;
     },
-    
-    //kimcy, 추후 수정, 현재는 그냥 kt로..
-    // loginB: function () {
-    //   return environment.AUTH_URL ;
-    // }
+ 
   };
 
 

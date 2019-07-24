@@ -627,8 +627,7 @@ export class UploadFiletreeService {
 
     console.log('this.folders[folderIndex]',folderIndex, this.folders[folderIndex]);
     //kimcy
-   // if (this.folders[folderIndex] == null) {
-    if (this.folders[folderIndex] == undefined) {
+    if (this.folders[folderIndex] == null) {
       console.log('폴더가 mull');
       this.folders[folderIndex] = [];
       console.log('폴더가 ', this.folders[folderIndex]);
