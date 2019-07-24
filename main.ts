@@ -514,9 +514,10 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   }
 
   console.log("Token:", accessToken);
+  //kimcy: mac에서는 STORAGE_URL+'/'+containerName+'/'+ encodeURI(file.fullpath)하면 한글도 되나 WINDOW에서는 안됨
   var options = {  
 		method: 'PUT',
-		uri: STORAGE_URL+'/'+containerName+'/'+ encodeURI(file.fullpath), //encodeURI(encodeURIComponent(file.fullpath)),
+		uri: STORAGE_URL+'/'+containerName+'/'+ file.fullpath, //encodeURI(encodeURIComponent(file.fullpath)),
 		headers:{
 				'X-Auth-Token': accessToken,
 			  'X-Object-Meta-ctime': startTime
