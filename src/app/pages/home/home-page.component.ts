@@ -240,6 +240,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
     const folder = this.storageService.get(folderKey);
     console.log('home-page folder = ', folder, 'folderKey = ', folderKey);
 
+    //kimcy: 일단은 여기서 목록을 만들어서 저장한다.
+
     setTimeout(() => {
       this.uploading = true;
       this.uploadFiletreeService.upload(folderIndex, folder);
@@ -324,6 +326,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
           this.onStartUploadFolder(message.folderIndex + 1, 5);
         } else {
 
+          //kimcy: 기존의 목록을 지워야 한다.
+          //this.storageService.remove('list');
           console.log('homepage -> 모두완료 다음시간설정');
           this.uploading = false;
 
