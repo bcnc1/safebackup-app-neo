@@ -283,7 +283,7 @@ try {
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
  ipcMain.on("GETFOLDERTREE", (event, arg) => {
-  console.log('22..앱이실행중이라 업로드');
+  //console.log('22..앱이실행중이라 업로드');
   console.log('GETFOLDERTREE', arg);
   console.log('받음, GETFOLDERTREE, main');
   if (arg.path == null) {
@@ -524,9 +524,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
     console.log('업로드 시작');
     upload.pipe(r);
   }
-  
 
-  //console.log("Token:", accessToken);
   //kimcy: mac에서는 STORAGE_URL+'/'+containerName+'/'+ encodeURI(file.fullpath)하면 한글도 되나 WINDOW에서는 안됨
   
 

@@ -313,7 +313,7 @@ export class UploadFiletreeService {
         //     this.logger.debug(error);
         //   }
         // );
-        this.subject.next(this.filesToSend[0]);
+        this.subject.next(this.filesToSend[0]); //processFile 호출??
       }
     );
 
@@ -420,21 +420,13 @@ export class UploadFiletreeService {
     const STORAGE_URL = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3';
     this.member = this.storageService.get('member');
     var contaniername = this.member.username.replace(/"/g, '').replace(/"/g, '');
-    //var token = this.member.token.replace(/"/g, '').replace(/"/g, '');
     var initializePromise = this.initialize(contaniername, this.member.token);
 
     console.log('getContainerList');
     initializePromise.then(function(result) {
-         //for(i = 0; result.length; )
-       //  existPost = result;
-        //console.log("결과 헤더값 :",existPost[0]);
-        //console.log("결과 body :",existPost[1]);
         storage.set('list',result);
         console.log("11..결과 body :",storage.get('list'));
-        //checkup
-        // member.token = userToken;
-        // storage.set('member',member);
-        // router.navigateByUrl('/home');
+
     }, function(err) {
         console.log(err);
     })
@@ -528,21 +520,24 @@ export class UploadFiletreeService {
     let post;
     this.member = this.memberAPI.isLoggedin();
 
+    console.log('업로드 file: ',file);
     /*---------------------------------------------------------------
         폴더도 Post를 하나 추가해놓아야함
      ----------------------------------------------------------------*/
 
-    const paths = path.dirname(file.fullpath).split(path.sep);
+    const paths = path.dirname(file.fullpath).split(path.sep);  //fullpath를 /로 분리하여 저장
+    console.log('업로드 paths: ',paths);  
     const parentPath = (paths.slice(0, paths.length).join(path.sep)).replace(/\\/g, '/');
+    console.log('업로드 parentPath: ',parentPath);
     const folderName = this.folders[item.folderIndex].path.replace(/\\/g, '/');
-    const code = file.fullpath.replace(/\\/g, '/');
+    console.log('업로드 folderName: ',folderName);
+    const code = file.fullpath.replace(/\\/g, '/');  //비교대상
+    console.log('업로드 code: ',code);
  
     let username = this.member.username.replace(/"/g, '').replace(/"/g, '');
-    let password = this.member.password.replace(/"/g, '').replace(/"/g, '');
+   // let password = this.member.password.replace(/"/g, '').replace(/"/g, '');
     let userToken = this.member.token.replace(/"/g, '').replace(/"/g, '');
-    // console.log('사용자이름: ',username);
-    // console.log('패스워드: ',password);
-    // console.log('token: ',userToken);
+
 
 
     if (item.file.type === 'folder') {
@@ -612,10 +607,28 @@ export class UploadFiletreeService {
           이미 존재하는지 체크
         ----------------------------------------------------------------*/
     let existPost = null;
-    this.getContainerList(this.storageService);
+    var listObj = this.storageService.get('list');
+    //console.log('upload.filetree, 리스트목록 = ',listObj);
+
+    let jsonExitPost = JSON.parse(listObj);
+
+    for(var ele in jsonExitPost){
+      //console.log(jsonExitPost[ele].name);
+      //동일한 이름값이면 filesize체크해서 변경유무 파악
+      if(jsonExitPost[ele].name === code){
+        if(jsonExitPost[ele].bytes === file.size){
+          existPost = 'update-already';
+          console.log('업데이트된 파일');
+          break;
+        }
+      }
+    }
+
+   // console.log('특정값 = ',jsonExitPost[0].name);
+
     
-    existPost = this.storageService.get('list');
-    console.log('22..existPost = ',existPost);
+    //existPost = this.storageService.get('list');
+    
     //console.log('existPost[1][0].name = ',existPost[0].name);
     //kimcy: 추후
    //  this.postAPI.list(this.board.id, {
@@ -665,6 +678,7 @@ export class UploadFiletreeService {
       // }
       //else 
       {
+        console.log('upload.filetree, item.index = ',item.index);
         this.gotoNextFile(item.index);
       }
 
