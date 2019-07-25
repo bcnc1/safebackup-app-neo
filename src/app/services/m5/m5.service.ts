@@ -36,6 +36,11 @@ export class M5Service {
       console.log('m5.member, members');
       return M5Service.server + '/v1/members/' + memberId;
     },
+    //kimcy
+    list: function (username) {
+      console.log('m5.member, list');
+      return M5Service.s3Storage + '/'+ username;
+    },
  
   };
 

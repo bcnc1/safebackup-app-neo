@@ -128,6 +128,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     const folderKey = this.getFolderKey(folderIndex);
     const folder = this.storageService.get(folderKey);
     //kimcy: 추후
+
     // this.postAPI.list(this.board.id, {
     //   type: 'folderData',
     //   andFields: JSON.stringify({code: this.member.id + '##' + this.deviceResource.macaddress + '##' + folder}),
@@ -167,6 +168,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     // );
   }
 
+
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    *  Get FileTree from server
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
@@ -184,7 +186,10 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
     this.logger.debug('SUBFOLDER', gotoPath, this.parentFolder);
     //kimcy: 이걸보여주면? 무엇이?
-    //this.showingFolderList.push(this.parentFolder); //test code, 이거넣어주면 화면에 폴더 내용이 보이나 값이 없어서 죽는다.
+    //this.showingFolderList.push(this.parentFolder); //test code html line95에서 폴더 타이틀 찾는 부분에서 죽는다.
+
+    
+ 
 
     //kimcy: 추후 새로..
     // this.postAPI.list(this.board.id, {

@@ -17,6 +17,9 @@ import * as moment from 'moment';
 
 export class M5PostService extends M5Service {
 
+  private member;
+  private username;
+
   constructor(
     protected http: HttpClient,
     @Inject(LOCAL_STORAGE) private storage: StorageService) {
@@ -35,21 +38,33 @@ export class M5PostService extends M5Service {
   }
 
 
-  list(boardId: string, parameters: any): Observable<M5ResultPosts> {
-    parameters.accessToken = this.storage.get('accessToken');
-    const params = this.getFormUrlEncoded(parameters);
+  // list(username: string, parameters: any): Observable<M5ResultPosts> {
+  //   const url = this.url.list(username);
+  //   this.member = this.storage.get('member');
+  //   //this.username = this.
+
+  //   const httpOptions = {
+  //     headers: new HttpHeaders({
+  //       'X-Auth-Token':  this.member.token
+  //     })
+  //   };
+
+  //   parameters.accessToken = this.storage.get('accessToken');
+  //   const params = this.getFormUrlEncoded(parameters);
 
 
-    const url = this.url.boards(boardId) + '/my/posts?' + params;
-    console.log('PARAMS', url);
-    return this.http.get<string>(url, {})
-      .pipe(
-        map(res => this.handleResponse(res)),
-        catchError(this.handleError)
-      );
-  }
+  //   const url = this.url.boards(boardId) + '/my/posts?' + params;
+  //   console.log('PARAMS', url);
+  //   return this.http.get<string>(url, {})
+  //     .pipe(
+  //       map(res => this.handleResponse(res)),
+  //       catchError(this.handleError)
+  //     );
+
+  // }
 
 
+  
   save(boardId, post, parameters): Observable<M5Result> {
 
     let params = Object.assign(post, parameters);

@@ -14,6 +14,7 @@ import {ObjectUtils} from '../utils/ObjectUtils';
 import {NGXLogger} from 'ngx-logger';
 import {BytesPipe} from 'angular-pipes';
 import {environment} from '../../environments/environment';
+const request = require('request');
 
 
 @Injectable()
@@ -139,7 +140,8 @@ export class UploadFiletreeService {
             const folderName = path.dirname(fileItem.file.fullpath);
             const paths = folderName.split(path.sep);
             console.log('folderName = ',folderName,'paths = ',paths);
-            if (paths[paths.length - 1].toLowerCase().indexOf('data_backup') >= 0) {
+            if (paths[paths.length - 1].toLowerCase().indexOf('data_backup') >= 0) { //데이터백업폴더명(대소문자는조금씩다름): DATA_BACKUP
+              console.log('백업폴더가 있다');
               foundDataBackup = true;
               const filename = fileItem.file.filename;
               const fyyyy = Number(filename.substr(0, 4));
@@ -147,35 +149,51 @@ export class UploadFiletreeService {
               const fdd = Number(filename.substr(6, 2));
               const fdate = moment([fyyyy, fmm - 1, fdd]);
               console.log('fileItem = ',fileItem);
-              if (fdate.isValid()) {
+              console.log('fdate = ',fdate);
+              if (fdate.isValid()) {  //fdate가 시간문자열형태라면 참
 
+                console.log('fileItem.file.type = ',fileItem.file.type);
+                console.log('filename = ',filename);
                 if (fileItem.file.type === 'file') {
+                  console.log('data_backup/파일');
                   if (filename.toLowerCase().indexOf('.zip') > 0) {
+                    console.log('data_backup/zip파일');
                     zipFound = true;
                     fileItem.sortDate = fdate;
-                    fileSortList.push(fileItem);
+                    fileSortList.push(fileItem);  //zip파일이 발견되면 증가함
                     if (maxDate.isBefore(fdate)) {
+                      console.log('maxDate 변경');
                       maxDate = fdate;
+                    }else{
+                      console.log('maxDate 변경안함');
                     }
                   }
+                  // else{
+                  //   console.log('data_backup/zip파일이 아님');
+                  // }
                 } else if (fileItem.file.type === 'folder') {
+                  console.log('data_backup/서브폴더');
                   fileItem.sortDate = fdate;
                   folderSortList.push(fileItem);
                   // if (maxDate.isBefore(fdate)) {
                   //   maxDate = fdate;
                   // }
                 }
+              }else{
+                console.log('fdate false  ');
               }
             }
           }
         }
         console.log('upload.filetree 길이 = ',fileSortList.length);
         if (fileSortList.length > 5) {
-          console.log('5개이상');
-          fileSortList.sort((a, b) => {
+          console.log('5개이상  ');
+          fileSortList.sort((a, b) => {  //소팅을 해서 가장 최근것만 올리게 ..
             if (a.sortDate.isBefore(b.sortDate)) {
+              console.log('시간이 이전');
               return 1;
             } else if (a.sortDate.isSame(b.sortDate)) {
+              console.log('시간이 동일');
               return 0;
             } else {
               return -1;
@@ -183,34 +201,39 @@ export class UploadFiletreeService {
           });
 
           for (let f = 5; f < fileSortList.length; f++) {
-            fileSortList[f].doNotSend = true;  //파일없로드 안함
+            console.log('upload.filetree , 11..파일업로드 안함, fileSortList[f] = ',f, fileSortList[f])
+            fileSortList[f].doNotSend = true;  //파일업로드 안함, 업로드 안할놈은 배열의 5번째 이후임
           }
         }
+        console.log('upload.filetree , 정렬된 값, fileSortList = ',fileSortList);
+        //kimcy 동일한 루틴이라 삭제
+        // if (folderSortList.length > 5) {
+        //   folderSortList.sort((a, b) => {
+        //     if (a.sortDate.isBefore(b.sortDate)) {
+        //       return 1;
+        //     } else if (a.sortDate.isSame(b.sortDate)) {
+        //       return 0;
+        //     } else {
+        //       return -1;
+        //     }
+        //   });
 
-        if (folderSortList.length > 5) {
-          folderSortList.sort((a, b) => {
-            if (a.sortDate.isBefore(b.sortDate)) {
-              return 1;
-            } else if (a.sortDate.isSame(b.sortDate)) {
-              return 0;
-            } else {
-              return -1;
-            }
-          });
-
-          for (let f = 5; f < folderSortList.length; f++) {
-            folderSortList[f].doNotSend = true;  //폴더업로드 안함
-          }
-        }
+        //   for (let f = 5; f < folderSortList.length; f++) {
+        //     console.log('upload.filetree , 22..파일업로드 안함, fileSortList[f] = ',f, fileSortList[f])
+        //     folderSortList[f].doNotSend = true;  //폴더업로드 안함
+        //   }
+        // }
 
         console.log('uplaod.filetree, FILESORT', fileSortList);
 
 
         const dataBackupItem = this.folders[response.folderIndex];
+        console.log('upload.filetree foundDataBackup = ', foundDataBackup, 'folderIndex = ',this.folderIndex);
+        console.log('dataBackupItem = ',dataBackupItem, 'response.folderIndex = ',response.folderIndex);
         if (foundDataBackup === true && this.folderIndex < 2) {
           minDiff = moment().diff(maxDate, 'days') + 1;
           this.logger.debug('STARTCHECK', minDiff);
-          // 에러 저장 : 폴더1, 폴더2에 대해서만 체크
+          //에러 저장 : 폴더1, 폴더2에 대해서만 체크
           if (dataBackupItem != null) {
             let message = '';
             if (minDiff >= 10) {
@@ -361,6 +384,65 @@ export class UploadFiletreeService {
     //return 'folder:' + this.member.id + ':' + folderIndex;
     return 'folder:' + this.member.username + ':' + folderIndex;
   }
+  
+  private initialize(containername, token) {
+    // Setting URL and headers for request
+    console.log('initialize => containername = ',containername);
+    console.log('initialize => token = ',token);
+    var options = {
+        uri: M5MemberService.s3Storage+'/'+containername+'?format=json',
+        headers: {
+          'X-Auth-Token': token
+        }
+    };
+    // Return new promise 
+    return new Promise(function(resolve, reject) {
+      // Do async job
+        request.get(options, function(err, resp, body) {
+            if (err) {
+              console.log('목록얻어오기 실패 = ',err);
+                reject(err);
+            } else {
+                if(resp.statusCode == 200){
+                  console.log('목록얻어오기 성공');
+                  console.log(resp.statusCode);
+                  console.log(body);
+                  //resolve([resp.headers,body]);  //배열로 멀티값전달
+                  resolve(body);
+                }
+            }
+        });
+    });
+  }
+  
+  //kimcy
+  getContainerList(storage){
+    const STORAGE_URL = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3';
+    this.member = this.storageService.get('member');
+    var contaniername = this.member.username.replace(/"/g, '').replace(/"/g, '');
+    //var token = this.member.token.replace(/"/g, '').replace(/"/g, '');
+    var initializePromise = this.initialize(contaniername, this.member.token);
+
+    console.log('getContainerList');
+    initializePromise.then(function(result) {
+         //for(i = 0; result.length; )
+       //  existPost = result;
+        //console.log("결과 헤더값 :",existPost[0]);
+        //console.log("결과 body :",existPost[1]);
+        storage.set('list',result);
+        console.log("11..결과 body :",storage.get('list'));
+        //checkup
+        // member.token = userToken;
+        // storage.set('member',member);
+        // router.navigateByUrl('/home');
+    }, function(err) {
+        console.log(err);
+    })
+
+  }
+
+  //kimcy: 추후 목록조회 실패시 서버에게 토큰 요청하는 루틴을 만들어 놓아야 하는 자리임
+  //console.log("결과 body :",existPost[1]);
 
 
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -431,6 +513,8 @@ export class UploadFiletreeService {
     }
   }
 
+
+
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   *  send a file
   -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
@@ -456,9 +540,9 @@ export class UploadFiletreeService {
     let username = this.member.username.replace(/"/g, '').replace(/"/g, '');
     let password = this.member.password.replace(/"/g, '').replace(/"/g, '');
     let userToken = this.member.token.replace(/"/g, '').replace(/"/g, '');
-    console.log('사용자이름: ',username);
-    console.log('패스워드: ',password);
-    console.log('token: ',userToken);
+    // console.log('사용자이름: ',username);
+    // console.log('패스워드: ',password);
+    // console.log('token: ',userToken);
 
 
     if (item.file.type === 'folder') {
@@ -474,7 +558,7 @@ export class UploadFiletreeService {
           subtype: file.type,
           title: file.filename,
           status: folderName,                           // 사용자가 선택한 폴더
-          code: this.member.id + '##' + this.deviceResource.macaddress + '##' + code,                                   // 파일의 fullpath
+          code: this.member.username + '##' + this.deviceResource.macaddress + '##' + code,                                   // 파일의 fullpath
           subtitle: code,
           checkCode: 'true',
           checkCodeAction: 'update',
@@ -493,7 +577,7 @@ export class UploadFiletreeService {
        // pwd:password
       };
     } else {
-      console.log('file  타입: ',this.storageService.get('userToken'));
+     // console.log('file  타입: ',this.storageService.get('userToken'));
       post = {
         index: item.index,
         file: file,
@@ -504,7 +588,7 @@ export class UploadFiletreeService {
           subtype: file.type,
           title: file.filename,
           status: folderName,                           // 사용자가 선택한 폴더
-          code: this.member.id + '##' + this.deviceResource.macaddress + '##' + code,                                   // 파일의 fullpath
+          code: this.member.username + '##' + this.deviceResource.macaddress + '##' + code,                                   // 파일의 fullpath
           subtitle: code,
           checkCode: 'true',
           checkCodeAction: 'update',
@@ -528,15 +612,20 @@ export class UploadFiletreeService {
           이미 존재하는지 체크
         ----------------------------------------------------------------*/
     let existPost = null;
+    this.getContainerList(this.storageService);
+    
+    existPost = this.storageService.get('list');
+    console.log('22..existPost = ',existPost);
+    //console.log('existPost[1][0].name = ',existPost[0].name);
     //kimcy: 추후
-    // this.postAPI.list(this.board.id, {
+   //  this.postAPI.list(this.board.id, {
     //   type: 'item',
     //   andFields: JSON.stringify({code: this.member.id + '##' + this.deviceResource.macaddress + '##' + code}),
     //   fetchMode: 'admin'
     // }).subscribe(
     //   response => {
 
-    //     if (ObjectUtils.isNotEmpty(response.posts)) {
+     //    if (ObjectUtils.isNotEmpty(response.posts)) {
     //       existPost = response.posts[0];
     //       console.log('목록체크 :', existPost);
     //     }
@@ -549,6 +638,7 @@ export class UploadFiletreeService {
     /*---------------------------------------------------------------
         업로드 제외 파일
       ----------------------------------------------------------------*/
+    //data_backup/zip파일을 날짜별로 소팅해서 오래된것에는 doNotSend flag를 셋팅했음
     if (this.filesToSend[item.index].doNotSend === true) {
       console.log('업로드제외파일');
       const message = '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[item.index].file.filename;
@@ -556,21 +646,25 @@ export class UploadFiletreeService {
         cmd: 'LOG',
         message: message + ' : 업로드 제외 파일입니다. (' + (item.index + 1) + '/' + this.filesToSend.length + ')'
       });
-      if (existPost != null) {
-        this.notification.next({
-          cmd: 'LOG',
-          message: message + ' : 클라우드에서 삭제됩니다. (' + (item.index + 1) + '/' + this.filesToSend.length + ')'
-        });
-        this.postAPI.delete(existPost.id, {}).subscribe(
-          response => {
-            this.gotoNextFile(item.index);
-          },
-          error => {
-            this.gotoNextFile(item.index);
-          }
-        );
-      }
-      else {
+      
+
+      //kimcy: 서버에 data_backup/zip파일(이전) 삭제에 관한 것 더 논의하여 작업
+      // if (existPost != null) {
+      //   this.notification.next({
+      //     cmd: 'LOG',
+      //     message: message + ' : 클라우드에서 삭제됩니다. (' + (item.index + 1) + '/' + this.filesToSend.length + ')'
+      //   });
+      //   this.postAPI.delete(existPost.id, {}).subscribe(
+      //     response => {
+      //       this.gotoNextFile(item.index);
+      //     },
+      //     error => {
+      //       this.gotoNextFile(item.index);
+      //     }
+      //   );
+      // }
+      //else 
+      {
         this.gotoNextFile(item.index);
       }
 
@@ -587,7 +681,7 @@ export class UploadFiletreeService {
         const size = pipe.transform(this.filesToSend[item.index].file.size);
         this.notification.next({
           cmd: 'SENDING.STARTED',
-          message: '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[item.index].file.filename + ' 업로딩...' + size + '토큰..'+post.accessToken
+          message: '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[item.index].file.filename + ' 업로딩...' + size 
         });
         console.log('보냄, upload.filetree, SENDFILE ');
         this.electronService.ipcRenderer.send('SENDFILE', post);

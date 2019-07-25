@@ -470,11 +470,11 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
 //var sendFile = function (index, url, formData, file, accessToken, apiKey, containerName, pwd) {
   var sendFile = function (index, formData, file, accessToken, containerName) {
 
-  console.log("accessToken:", accessToken);
+  //console.log("accessToken:", accessToken);
   console.log("fullpath:", file.fullpath);
-  console.log("path.sep:", path.sep);
+  //console.log("path.sep:", path.sep);
   let paths = path.dirname(file.fullpath).split(path.sep);
-  console.log("업로드파일패스:", paths);  //패스가 배열로 들어오고 각각을 연결시켜야..[ '', 'Users', 'kimcy', 'safebackup', 'p1' ]
+ // console.log("업로드파일패스:", paths);  //패스가 배열로 들어오고 각각을 연결시켜야..[ '', 'Users', 'kimcy', 'safebackup', 'p1' ]
   //console.log("url:", url);
 
   let startTime = new Date().getTime();
@@ -482,17 +482,13 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   formData.userData = JSON.stringify(formData.userData);
 
   console.log("formData:", formData);
-  console.log("file:", file.fullpath);
-  console.log("main, json:", JSON.stringify(file.fullpath));
-  console.log("11..containerName :",containerName);
+  //console.log("file:", file.fullpath);
+  //console.log("main, json:", JSON.stringify(file.fullpath));
+ // console.log("11..containerName :",containerName);
   
 
   const STORAGE_URL = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3';
-  // const authUrl = 'https://ssproxy.ucloudbiz.olleh.com/auth/v1.0';
-  // const account = 'doctorkeeper';
-  // const colon = ':';
-  // let userToken, container;
-  
+
   function cbUpload(error, response, body) {
     //console.log(response);
     if (!error && response.statusCode == 201) {
@@ -512,21 +508,27 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   
     }
   }
+  
+  if(formData.subtype === 'file'){
+    var options = {  
+      method: 'PUT',
+      uri: STORAGE_URL+'/'+containerName+'/'+ file.fullpath, //encodeURI(encodeURIComponent(file.fullpath)),
+      headers:{
+          'X-Auth-Token': accessToken,
+          'X-Object-Meta-ctime': startTime
+      }
+    };
+    var upload = fs.createReadStream(file.fullpath);
+    var r = reqestProm(options, cbUpload);
+    
+    console.log('업로드 시작');
+    upload.pipe(r);
+  }
+  
 
-  console.log("Token:", accessToken);
+  //console.log("Token:", accessToken);
   //kimcy: mac에서는 STORAGE_URL+'/'+containerName+'/'+ encodeURI(file.fullpath)하면 한글도 되나 WINDOW에서는 안됨
-  var options = {  
-		method: 'PUT',
-		uri: STORAGE_URL+'/'+containerName+'/'+ file.fullpath, //encodeURI(encodeURIComponent(file.fullpath)),
-		headers:{
-				'X-Auth-Token': accessToken,
-			  'X-Object-Meta-ctime': startTime
-		}
-	};
-	var upload = fs.createReadStream(file.fullpath);
-	var r = reqestProm(options, cbUpload);
-	
-	upload.pipe(r);
+  
 
 
 

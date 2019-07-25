@@ -77,9 +77,6 @@ export class LoginPageComponent implements OnInit {
           var userToken = result;
           console.log("userToken :",userToken);
           member.token = userToken;
-          //storage.set('userToken', userToken);
-          // storage.set('password', password);
-          // storage.set('username', username);
           storage.set('member',member);
           router.navigateByUrl('/home');
       }, function(err) {
