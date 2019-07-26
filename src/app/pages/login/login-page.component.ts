@@ -86,7 +86,8 @@ export class LoginPageComponent implements OnInit {
           router.navigateByUrl('/home');
       }, function(err) {
           console.log(err);
-          alert('ID/패스워드를 확인하세요.');
+          //kimcy:windows 릴리즈 모드에서 팝업뜬다음 에디트텍스트가 입력안되는 현상이 발생
+          //alert('ID/패스워드를 확인하세요.');
       })
     }
 

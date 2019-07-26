@@ -133,19 +133,20 @@ function createWindow() {
      })
    );
  
- 
+   //kimcy: release 할때는 해당 부부을 false, 개발할때는 true
    function isDev() {
-     return true;//process.mainModule.filename.indexOf('app.asar') === -1;
+     return false;//process.mainModule.filename.indexOf('app.asar') === -1;
    };
  
    // The following is optional and will open the DevTools:
    if (isDev()) {
      mainWindow.webContents.openDevTools();
    } else {
-     setTimeout(function () {
-       mainWindow.minimize();
-       log.warn('MINIMIZE');
-     }, 3000);
+     //kimcy: 3초후에 사라지게 되서 막음
+    //  setTimeout(function () {
+    //    mainWindow.minimize();
+    //    log.warn('MINIMIZE');
+    //  }, 3000);
  
    }
  
