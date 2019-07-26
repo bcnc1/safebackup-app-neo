@@ -63,6 +63,10 @@ export class LoginPageComponent implements OnInit {
                 } else {
                     if(resp.statusCode == 200){
                       resolve(resp.headers['x-auth-token']);
+                    }else{
+                      console.log('로그인실패');
+                      //resolve(resp.headers['x-auth-token']);
+                      reject(resp.headers);
                     }
                 }
             });
@@ -82,6 +86,7 @@ export class LoginPageComponent implements OnInit {
           router.navigateByUrl('/home');
       }, function(err) {
           console.log(err);
+          alert('ID/패스워드를 확인하세요.');
       })
     }
 
@@ -173,7 +178,7 @@ export class LoginPageComponent implements OnInit {
     //         }
     //       } else if (error.code === 1070) {
     //         if (popup === true) {
-    //           // alert('비밀번호를 확인하세요.');
+    //            alert('비밀번호를 확인하세요.');
     //         }
     //       }
     //     } else if (error.message != null) {
