@@ -326,7 +326,7 @@ export class UploadFiletreeService {
       console.log('받음, upload.filetree, SENDFILE ');
       this.logger.debug('FILE', response, this.filesToSend);
       let message = '';
-      console.log(response);
+      //console.log(response);
       if(response.error === null ){
         message = ' : 파일 업로드 완료 (' + (response.index + 1) + '/' + this.filesToSend.length + ')';
         console.log(message);
@@ -541,7 +541,6 @@ export class UploadFiletreeService {
 
 
     if (item.file.type === 'folder') {
-      //console.log('folder 타입: ',this.storageService.get('userToken'));
       let uertoken = 
       post = {
         index: item.index,
@@ -613,8 +612,8 @@ export class UploadFiletreeService {
     let jsonExitPost = JSON.parse(listObj);
 
     for(var ele in jsonExitPost){
-      //console.log(jsonExitPost[ele].name);
       //동일한 이름값이면 filesize체크해서 변경유무 파악
+      console.log('jsonExitPost[ele].name = ',ele, jsonExitPost[ele].name);
       if(jsonExitPost[ele].name === code){
         if(jsonExitPost[ele].bytes === file.size){
           existPost = 'update-already';
@@ -624,29 +623,6 @@ export class UploadFiletreeService {
       }
     }
 
-   // console.log('특정값 = ',jsonExitPost[0].name);
-
-    
-    //existPost = this.storageService.get('list');
-    
-    //console.log('existPost[1][0].name = ',existPost[0].name);
-    //kimcy: 추후
-   //  this.postAPI.list(this.board.id, {
-    //   type: 'item',
-    //   andFields: JSON.stringify({code: this.member.id + '##' + this.deviceResource.macaddress + '##' + code}),
-    //   fetchMode: 'admin'
-    // }).subscribe(
-    //   response => {
-
-     //    if (ObjectUtils.isNotEmpty(response.posts)) {
-    //       existPost = response.posts[0];
-    //       console.log('목록체크 :', existPost);
-    //     }
-
-    //   },
-    //   error => {
-    //     console.log('CHECK EXITS ERROR', error);
-    //   });
 
     /*---------------------------------------------------------------
         업로드 제외 파일

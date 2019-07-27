@@ -135,7 +135,7 @@ function createWindow() {
  
    //kimcy: release 할때는 해당 부부을 false, 개발할때는 true
    function isDev() {
-     return false;//process.mainModule.filename.indexOf('app.asar') === -1;
+     return true;//process.mainModule.filename.indexOf('app.asar') === -1;
    };
  
    // The following is optional and will open the DevTools:
@@ -467,34 +467,35 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
  *  container명은 로그인시 id로...
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
-
-//var sendFile = function (index, url, formData, file, accessToken, apiKey, containerName, pwd) {
   var sendFile = function (index, formData, file, accessToken, containerName) {
 
-  //console.log("accessToken:", accessToken);
-  console.log("fullpath:", file.fullpath);
-  //console.log("path.sep:", path.sep);
+  const STORAGE_URL = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3';
+ // console.log("fullpath:", file.fullpath);
   let paths = path.dirname(file.fullpath).split(path.sep);
- // console.log("업로드파일패스:", paths);  //패스가 배열로 들어오고 각각을 연결시켜야..[ '', 'Users', 'kimcy', 'safebackup', 'p1' ]
-  //console.log("url:", url);
+
 
   let startTime = new Date().getTime();
   formData.count = file.size;
   formData.userData = JSON.stringify(formData.userData);
 
-  console.log("formData:", formData);
-  //console.log("file:", file.fullpath);
+  //console.log("formData:", formData);
+  console.log("file:", file.fullpath);
+  console.log("encodeURIComponent(file.fullpath):", encodeURIComponent(file.fullpath));
+  console.log("encodeURI(file.fullpath):", encodeURI(file.fullpath));
+  console.log("encodeURIComponent(file.fullpath):", encodeURIComponent(STORAGE_URL+'/'+containerName+'/'+ file.fullpath));
+  console.log("encodeURI(file.fullpath):", encodeURI(STORAGE_URL+'/'+containerName+'/'+ file.fullpath));
+
   //console.log("main, json:", JSON.stringify(file.fullpath));
  // console.log("11..containerName :",containerName);
-  
+ 
 
-  const STORAGE_URL = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3';
+ 
 
   function cbUpload(error, response, body) {
-    //console.log(response);
+   // console.log(response);
     if (!error && response.statusCode == 201) {
       console.log('cbUpload file successfully');
-      console.log('보냄, main, SENDFILE ');
+      console.log('보냄, main, SENDFILE index = ',index);
       mainWindow.webContents.send("SENDFILE", {
           error: null,
           body: body,
@@ -513,7 +514,8 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   if(formData.subtype === 'file'){
     var options = {  
       method: 'PUT',
-      uri: STORAGE_URL+'/'+containerName+'/'+ file.fullpath, //encodeURI(encodeURIComponent(file.fullpath)),
+      //uri: STORAGE_URL+'/'+containerName+'/'+ file.fullpath, //encodeURI(encodeURIComponent(file.fullpath)),
+      uri: STORAGE_URL+'/'+containerName+'/'+ encodeURI(file.fullpath.replace(/\\/g, '/')), //encodeURI(encodeURIComponent(file.fullpath)),
       headers:{
           'X-Auth-Token': accessToken,
           'X-Object-Meta-ctime': startTime
