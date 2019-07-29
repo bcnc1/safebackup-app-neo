@@ -493,10 +493,10 @@ export class UploadFiletreeService {
       this.subject.next(this.filesToSend[index + 1]);
     } else {
       console.log('업로드 종료');
-      this.notification.next({
-        cmd: 'LOG',
-        message: '"폴더' + (this.folderIndex + 1) + '" : ' + this.folders[this.folderIndex].path + ' 업로드 종료'
-      });
+      // this.notification.next({
+      //   cmd: 'LOG',
+      //   message: '"폴더' + (this.folderIndex + 1) + '" : ' + this.folders[this.folderIndex].path + ' 업로드 종료'
+      // });
       this.notification.next({
         cmd: 'FOLDER.SENT',
         folderIndex: this.folderIndex
