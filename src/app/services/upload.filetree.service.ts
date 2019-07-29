@@ -404,11 +404,18 @@ export class UploadFiletreeService {
                 reject(err);
             } else {
                 if(resp.statusCode == 200){
-                  console.log('목록얻어오기 성공');
-                  console.log(resp.statusCode);
-                  console.log(body);
+                   console.log('목록얻어오기 성공');
+                  // console.log(resp.statusCode);
+                   console.log(body);
                   //resolve([resp.headers,body]);  //배열로 멀티값전달
                   resolve(body);
+                }else if(resp.statusCode == 204){
+                  console.log('처음 목록얻어오기 성공');
+                  resolve("No Content");
+                }
+                else{
+                  console.log('목록얻어오기 실패');
+                  reject(resp);
                 }
             }
         });
@@ -608,20 +615,29 @@ export class UploadFiletreeService {
     let existPost = null;
     var listObj = this.storageService.get('list');
     //console.log('upload.filetree, 리스트목록 = ',listObj);
+    if(listObj != undefined && listObj != 'No Content'){
+      let jsonExitPost = JSON.parse(listObj);
 
-    let jsonExitPost = JSON.parse(listObj);
-
-    for(var ele in jsonExitPost){
-      //동일한 이름값이면 filesize체크해서 변경유무 파악
-      console.log('jsonExitPost[ele].name = ',ele, jsonExitPost[ele].name);
-      if(jsonExitPost[ele].name === code){
-        if(jsonExitPost[ele].bytes === file.size){
-          existPost = 'update-already';
-          console.log('업데이트된 파일');
-          break;
+      for(var ele in jsonExitPost){
+        //동일한 이름값이면 filesize체크해서 변경유무 파악
+        console.log('목록있음,,,jsonExitPost[ele].name = ',ele, jsonExitPost[ele].name);
+        console.log('한글 = ', code);
+        if(jsonExitPost[ele].name === code){
+          if(jsonExitPost[ele].bytes === file.size){
+            existPost = 'update-already';
+            console.log('업데이트된 파일');
+            break;
+          }
         }
       }
+    }else if(listObj != undefined && listObj === 'No Content'){
+      console.log('맨 처음 올리는것임');
+    }else{
+      console.log('에러');
+      this.gotoNextFile(this.filesToSend.length);
     }
+
+    
 
 
     /*---------------------------------------------------------------
@@ -720,6 +736,7 @@ export class UploadFiletreeService {
     if (this.folders[folderIndex].path === undefined) {
       this.uploading = false;
       if (this.electronService.isElectronApp) {
+        //kimcy: 지정되지 않음이 계속나와 this.folderIndex를 +1시킴 -> 다음폴더이동, 했더니 문제가 있어서 원복
         this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
         this.notification.next({
           cmd: 'FOLDER.SENT',

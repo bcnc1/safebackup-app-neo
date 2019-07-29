@@ -231,7 +231,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
   //kimcy: folderIndex 가 0이면 처음부터 시작
   onStartUploadFolder(folderIndex, after) {
-    console.log('onStartUploadFolder');
+    console.log('onStartUploadFolder, folderIndex = ',folderIndex, 'after = ',after);
     if (after == null) {
       after = 5;
     }
@@ -327,8 +327,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
             console.log('여긴??, 업로드된 폴더의 결과를 확인??');
             this.onRequestFolderPosts(message.folderIndex, this.storedFolders[message.folderIndex], null);
           }
-          //kimcy
-          //var isList = this.storageService.get('list');
 
           this.onStartUploadFolder(message.folderIndex + 1, 5);
         } else {
@@ -346,9 +344,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
             cmd: 'LOG',
             message: str + '에 백업이 재실행됩니다.'
           });
-
-          //kimcy: 전체폴더에 대해 다시
-          //var isList = this.storageService.get('list');
 
           this.logger.debug(new Date(), '다음 백업 대기');
           this.onStartUploadFolder(0, interval / 1000);
