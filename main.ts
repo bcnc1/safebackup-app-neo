@@ -479,11 +479,11 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   formData.userData = JSON.stringify(formData.userData);
 
   //console.log("formData:", formData);
-  console.log("file:", file.fullpath);
-  console.log("encodeURIComponent(file.fullpath):", encodeURIComponent(file.fullpath));
-  console.log("encodeURI(file.fullpath):", encodeURI(file.fullpath));
-  console.log("encodeURIComponent(file.fullpath):", encodeURIComponent(STORAGE_URL+'/'+containerName+'/'+ file.fullpath));
-  console.log("encodeURI(file.fullpath):", encodeURI(STORAGE_URL+'/'+containerName+'/'+ file.fullpath));
+  // console.log("file:", file.fullpath);
+  // console.log("encodeURIComponent(file.fullpath):", encodeURIComponent(file.fullpath));
+  // console.log("encodeURI(file.fullpath):", encodeURI(file.fullpath));
+  // console.log("encodeURIComponent(file.fullpath):", encodeURIComponent(STORAGE_URL+'/'+containerName+'/'+ file.fullpath));
+  // console.log("encodeURI(file.fullpath):", encodeURI(STORAGE_URL+'/'+containerName+'/'+ file.fullpath));
 
   //console.log("main, json:", JSON.stringify(file.fullpath));
  // console.log("11..containerName :",containerName);
