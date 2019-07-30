@@ -615,7 +615,7 @@ export class UploadFiletreeService {
     let existPost = null;
     var listObj = this.storageService.get('list');
     //console.log('upload.filetree, 리스트목록 = ',listObj);
-    if(listObj != undefined && listObj != 'No Content'){
+    if(listObj != '[]' && listObj != 'No Content'){
       let jsonExitPost = JSON.parse(listObj);
 
       for(var ele in jsonExitPost){
@@ -630,7 +630,7 @@ export class UploadFiletreeService {
           }
         }
       }
-    }else if(listObj != undefined && listObj === 'No Content'){
+    }else if(listObj != '[]' || listObj === 'No Content'){
       console.log('맨 처음 올리는것임');
     }else{
       console.log('에러');
