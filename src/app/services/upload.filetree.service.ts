@@ -733,6 +733,7 @@ export class UploadFiletreeService {
       console.log('폴더가 ', this.folders[folderIndex]);
     }
 
+    console.log('this.folders[folderIndex].path = ',this.folders[folderIndex].path);
     if (this.folders[folderIndex].path === undefined) {
       this.uploading = false;
       if (this.electronService.isElectronApp) {

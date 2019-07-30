@@ -242,14 +242,16 @@ export class HomePageComponent implements OnInit, OnDestroy {
     console.log('home-page folder = ', folder, 'folderKey = ', folderKey);
 
     //kimcy: 일단은 여기서 목록을 만들어서 저장한다.
-    if(folderIndex == 0){
+    console.log('folderIndex = ',folderIndex,'uploading = ',this.uploading);
+    if(folderIndex == 0 && (this.uploading === false)){
+      console.log('업로딩 시작으로 목록갱신');
       this.uploadFiletreeService.getContainerList(this.storageService);
     }
 
     setTimeout(() => {
       this.uploading = true;
       this.uploadFiletreeService.upload(folderIndex, folder);
-    }, after * 1000);  
+    }, after * 1000);  //여기서 시간값을 바꾸면 시작값이 안 맞는다.
   }
 
   fillFolders() {
@@ -345,8 +347,12 @@ export class HomePageComponent implements OnInit, OnDestroy {
             message: str + '에 백업이 재실행됩니다.'
           });
 
-          this.logger.debug(new Date(), '다음 백업 대기');
+          this.logger.debug(new Date(), '다음 백업 대기 업로딩? ', this.uploading);
           this.onStartUploadFolder(0, interval / 1000);
+          // setTimeout(() => {
+          //   this.uploading = true;
+          //   this.uploadFiletreeService.upload(folderIndex, folder);
+          // }, after * 1000);  //여기서 시간값을 바꾸면 시작값이 안 맞는다.
         }
 
 
