@@ -135,7 +135,7 @@ function createWindow() {
  
    //kimcy: release 할때는 해당 부부을 false, 개발할때는 true
    function isDev() {
-     return true;//process.mainModule.filename.indexOf('app.asar') === -1;
+     return false;//process.mainModule.filename.indexOf('app.asar') === -1;
    };
  
    // The following is optional and will open the DevTools:
@@ -521,7 +521,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
           'X-Object-Meta-ctime': startTime
       }
     };
-    var upload = fs.createReadStream(file.fullpath);
+    var upload = fs.createReadStream(file.fullpath,{highWaterMark : 256*1024});
     var r = reqestProm(options, cbUpload);
     
     console.log('업로드 시작');
