@@ -251,13 +251,13 @@ export class HomePageComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.uploading = true;
       this.uploadFiletreeService.upload(folderIndex, folder);
-    }, after * 1000);  //여기서 시간값을 바꾸면 시작값이 안 맞는다.
+    }, after * 1000);  //여기서 시간값을 바꾸면 시작값이 안 맞는다.(다음폴더는 5초후에), 백업시작버튼누르면 3초후에, 다음번은 1~4시간안에
   }
 
   fillFolders() {
     for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
       const folderKey = this.getFolderKey(i);
-      this.storedFolders[i] = this.storageService.get(folderKey);
+      this.storedFolders[i] = this.storageService.get(folderKey); //선택한폴더
       if (this.selectedFolderIndex === i) {
         this.showingFolderName = this.storedFolders[i];
       }
@@ -322,13 +322,14 @@ export class HomePageComponent implements OnInit, OnDestroy {
         console.log('homepage => 전송완료된 폴더 folderIndex : ', message.folderIndex);
         if (this.MAXFOLDERLENGTH - 1 > message.folderIndex) {
 
-          console.log('homepage -> this.storedFolders[message.folderIndex]', this.storedFolders[message.folderIndex]);
-          console.log('homepage -> this.selectedFolderIndex', this.selectedFolderIndex);
+          console.log('다음 폴더 homepage -> this.storedFolders[message.folderIndex]', this.storedFolders[message.folderIndex]);
+          console.log('다음 폴더 homepage -> this.selectedFolderIndex', this.selectedFolderIndex);
           // update
-          if (this.storedFolders[message.folderIndex] !== undefined && (message.folderIndex === this.selectedFolderIndex)) {
-            console.log('여긴??, 업로드된 폴더의 결과를 확인??');
-            this.onRequestFolderPosts(message.folderIndex, this.storedFolders[message.folderIndex], null);
-          }
+          //kimcy: 없어도 될듯해서.
+          // if (this.storedFolders[message.folderIndex] !== undefined && (message.folderIndex === this.selectedFolderIndex)) {
+          //   console.log('여긴??, 업로드된 폴더의 결과를 확인??');
+          //   this.onRequestFolderPosts(message.folderIndex, this.storedFolders[message.folderIndex], null);
+          // }
 
           this.onStartUploadFolder(message.folderIndex + 1, 5);
         } else {

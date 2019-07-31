@@ -135,7 +135,7 @@ function createWindow() {
  
    //kimcy: release 할때는 해당 부부을 false, 개발할때는 true
    function isDev() {
-     return false;//process.mainModule.filename.indexOf('app.asar') === -1;
+     return true;//process.mainModule.filename.indexOf('app.asar') === -1;
    };
  
    // The following is optional and will open the DevTools:
@@ -317,11 +317,35 @@ var diretoryTreeToObj = function (dir, done) {
   console.log('main,  diretoryTreeToObj dir = ',dir, done);
   var results = [];
 
+//   fs.readdirSync(dir).forEach(function (name) {
+//     var filePath = path.join(dir, name);
+//     var stat = fs.statSync(filePath);
+//     if (stat.isFile()) {
+//        // callback(filePath, stat);
+//        results.push({  //파일의 속성을 만든다.
+//               type: 'file',
+
+//               filename: path.basename(file),
+//               fullpath: file,
+
+//               size: stat.size,
+//               accessed: stat.atime, //파일에 접근한 마지막 시간
+//               updated: stat.mtime, //파일이 수정된 마지막 시간
+//               created: stat.ctime, //파일상태가 변경된 마지막시간
+//           });
+//     } else if (stat.isDirectory()) {
+//       diretoryTreeToObj(filePath, res);
+//     }
+// });
+//kimcy: test
   fs.readdir(dir, function (err, list) {
+ // fs.readdirSync(dir, function (err, list) {
     if (err)
       return done(err);
 
     var pending = list.length;
+    console.log('diretoryTreeToObj => list.length = ',list.length);
+    console.log('diretoryTreeToObj => pending = ',pending);
 
     if (!pending)
       return done(null, {name: path.basename(dir), type: 'folder', children: results});
