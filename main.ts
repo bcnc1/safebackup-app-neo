@@ -7,6 +7,8 @@ import {environment} from './src/environments/environment';
 // constructor(
 //   @Inject(LOCAL_STORAGE) private storageService: StorageService) {
 // }
+//const { sleep } = require('sleep');
+
 
 
 const {app, BrowserWindow, ipcMain} = require("electron");
@@ -296,7 +298,7 @@ try {
       if (err) {
         console.error(err);
       } else {
-        console.log('33..앱이실행중이라 업로드 res : ',res);
+        //console.log('33..앱이실행중이라 업로드 res : ',res);
         console.log('보냄, GETFOLDERTREE, main');
         mainWindow.webContents.send("GETFOLDERTREE", {
           folderIndex: arg.folderIndex,
@@ -351,6 +353,7 @@ var diretoryTreeToObj = function (dir, done) {
       return done(null, {name: path.basename(dir), type: 'folder', children: results});
 
     list.forEach(function (file) {
+      //sleep.msleep(100); //kimcy
       file = path.resolve(dir, file);
       fs.stat(file, function (err, stat) {
         if (stat) {
@@ -550,6 +553,14 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
     
     console.log('업로드 시작');
     upload.pipe(r);
+  }else{
+    mainWindow.webContents.send("SENDFILE", {
+      error: null,
+      body: 'folder',
+      index: index,
+      startTime: startTime,
+      endTime: new Date().getTime()
+    });
   }
 
   //kimcy: mac에서는 STORAGE_URL+'/'+containerName+'/'+ encodeURI(file.fullpath)하면 한글도 되나 WINDOW에서는 안됨

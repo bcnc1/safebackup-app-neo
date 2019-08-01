@@ -59,7 +59,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
 
   private getFolderKey(folderIndex) {
-    //console.log('home-page, getFolderKey => folderIndex ',folderIndex, this.member.username);
+    console.log('home-page, getFolderKey => folderIndex ',folderIndex, this.member.username);
     const key = 'folder:' + this.member.username + ':' + folderIndex;
     this.logger.debug('FOLDERKEY', key, 'username = ' + this.member.username);
     return key;
@@ -90,12 +90,15 @@ export class HomePageComponent implements OnInit, OnDestroy {
     if (folder != undefined) {
       this.rootFolderName = folder;
       this.showingFolderName = folder;
+      console.log('this.deviceResource = ',this.deviceResource);
       this.onRequestFolderPosts(this.selectedFolderIndex, folder, null);
       if (this.deviceResource == null) {
         setTimeout(() => {
+          console.log('2초후 , onRequestFolderData');
           this.onRequestFolderData(this.selectedFolderIndex);
         }, 2000);
       } else {
+        console.log('onRequestFolderData');
         this.onRequestFolderData(this.selectedFolderIndex);
       }
     } else {
@@ -113,7 +116,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   onChangeFolder(folderIndex) {
     this.selectedFolderIndex = folderIndex;
-    console.log('보냄,home-page, SELECTFOLDER');
+    console.log('보냄,home-page, onChangeFolder, SELECTFOLDER');
     this.electronService.ipcRenderer.send('SELECTFOLDER', {
       folderIndex: folderIndex
     });
@@ -121,7 +124,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
 
   onRequestFolderData(folderIndex) {
-    console.log('onRequestFolderData');
+    console.log('home-page, onRequestFolderData');
     if (this.deviceResource == null) {
       this.deviceResource = { macaddress: 'MAC' };
     }
@@ -231,7 +234,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
   //kimcy: folderIndex 가 0이면 처음부터 시작
   onStartUploadFolder(folderIndex, after) {
-    console.log('onStartUploadFolder, folderIndex = ',folderIndex, 'after = ',after);
+    console.log('home-page, onStartUploadFolder, folderIndex = ',folderIndex, 'after = ',after);
     if (after == null) {
       after = 5;
     }
@@ -255,6 +258,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
   }
 
   fillFolders() {
+    console.log('home-page, fillFolders');
     for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
       const folderKey = this.getFolderKey(i);
       this.storedFolders[i] = this.storageService.get(folderKey); //선택한폴더
@@ -265,6 +269,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    console.log('home-page, ngOnDestroy');
     this.uploadSubscribe.unsubscribe();
   }
 
@@ -275,14 +280,11 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.electronService.ipcRenderer.send('PCRESOURCE', null);
     console.log('보냄 home-page, PCRESOURCE');
     this.logger.debug('- HOMEPAGE ngOnInit: ', this.version);
-    // this.board = this.storageService.get('board');
+
     this.member = this.memberAPI.getLoggedin();
 
-    // this.accessToken = this.storageService.get('accessToken');
-
-    // console.log('board : ',this.board);
-
     function getRandomInt(min, max) {
+      console.log('home-page, getRandomInt');
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
@@ -350,10 +352,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
           this.logger.debug(new Date(), '다음 백업 대기 업로딩? ', this.uploading);
           this.onStartUploadFolder(0, interval / 1000);
-          // setTimeout(() => {
-          //   this.uploading = true;
-          //   this.uploadFiletreeService.upload(folderIndex, folder);
-          // }, after * 1000);  //여기서 시간값을 바꾸면 시작값이 안 맞는다.
+
         }
 
 
@@ -365,21 +364,25 @@ export class HomePageComponent implements OnInit, OnDestroy {
               Storage로부터 값을 받아와서  this.storedFolders를 초기화
     ----------------------------------------------------------------*/
     for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
+      console.log('Storage로부터 값을 받아와서  this.storedFolders를 초기화');
       const folderKey = this.getFolderKey(i);
       this.storedFolders[i] = this.storageService.get(folderKey);
     }
 
     /*---------------------------------------------------------------
            등록된 폴더에 대해 업로드를 실행  (현재는 모두 다시 올림)
+           로그아웃 후 로그안 하는 경우
      ----------------------------------------------------------------*/
     setTimeout(() => {
-      console.log('등록된 폴더에 대해 업로드를 실행');
+
+      console.log('5초후 등록된 폴더에 대해 업로드를 실행 ??');
+      //this.uploadFiletreeService.upload(0, this.storedFolders[0]);
       for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
         //kimcy 
-        console.log('this.storedFolders[i]', i, this.storedFolders[i]);
+        //console.log('this.storedFolders[i]', i, this.storedFolders[i]);
         //if (this.storedFolders[i] != null) {
         if (this.storedFolders[i] != undefined) {
-          console.log('등록된 폴더에 대해 업로드를 실행', this.storedFolders[i].length); //폴더의 길이
+          console.log('등록된 폴더에 대해 업로드를 실행', this.storedFolders[i].length); //폴더의 이름 길이
           this.uploadFiletreeService.upload(i, this.storedFolders[i]);
           break;
         }
@@ -390,7 +393,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
        *  IPC Response : Get FileTree
        ----------------------------------------------------*/
     this.electronService.ipcRenderer.on('PCRESOURCE', (event: Electron.IpcMessageEvent, response: any) => {
-      console.log('받음 home-page, PCRESOURCE');
+      console.log('받음 home-page, PCRESOURCE, response = ',response);
       this.deviceResource = response;
     });
 

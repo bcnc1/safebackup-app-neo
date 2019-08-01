@@ -84,6 +84,11 @@ export class LoginPageComponent implements OnInit {
           storage.set('member',member);
           
           router.navigateByUrl('/home');
+
+          // this.notification.next({
+          //   cmd: 'LOGIN-SUCCESS',
+          //   message: '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[item.index].file.filename + ' 업로딩...' + size 
+          // });
       }, function(err) {
           console.log(err);
           //kimcy:windows 릴리즈 모드에서 팝업뜬다음 에디트텍스트가 입력안되는 현상이 발생
@@ -237,19 +242,6 @@ export class LoginPageComponent implements OnInit {
         username = this.member.username;
         password = this.member.password;
       }
-      // let username = this.member.username;
-      // let password = this.member.password;
-
-      // this.logger.debug('ONINIT', this.member.username, this.password);
-
-      // //kimcy add kt login
-      // if(username == null && password == null){
-      //   console.log('처음실행 앱 안죽게');
-      //   return;
-      // }
-
-
-
 
       if (username != null && password != null) {
 
@@ -270,14 +262,14 @@ export class LoginPageComponent implements OnInit {
        //this.onLoginB(username, password, false, this.storageService);
 
         this.onLogin(username, password, false);
-        console.log("지우고..username :",username);
+       // console.log("지우고..username :",username);
 
       } else {
         const member = this.storageService.get('member');
         password = password.replace(/"/g, '').replace(/"/g, '');
 
-        console.log("22..oninit =>username :",username);
-        console.log("22..oninit =>password :",password);
+        // console.log("22..oninit =>username :",username);
+        // console.log("22..oninit =>password :",password);
         if (member != null && password != null) {
           this.username = member.username;
           this.onLogin(member.username, password, false);

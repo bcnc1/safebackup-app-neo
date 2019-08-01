@@ -29,9 +29,8 @@ export class M5MemberService extends M5Service {
   }
 
   public isLoggedin() {
-    console.log('m5.member.service => isLoggedin');
-    //kimcy
-    //return this.storage.get('username');
+    //console.log('m5.member.service => isLoggedin');
+
     return this.storage.get('member');
   }
 

@@ -91,7 +91,7 @@ export class UploadFiletreeService {
         let folderSize = 0;
         this.folderIndex = response.folderIndex;
         this.filesToSend = [];
-        console.log('44..앱이실행중이라 업로드 fileTree : ',fileTree);
+        //console.log('44..앱이실행중이라 업로드 fileTree : ',fileTree);
         console.log(this.folderIndex);
         console.log(fileTree.length);
         console.log('받음, GETFOLDERTREE, upload-filetree');
@@ -103,12 +103,22 @@ export class UploadFiletreeService {
           this.gotoNextFile(this.folderIndex);
           return; 
         }
-
+        //this.folders[folderIndex].path
         
         fileTree.forEach(element => {
           folderSize += this.processTreeElement(this.folderIndex, element);
 
         });
+        //kimcy
+        // var getSize = require('get-folder-size');
+
+        // getSize(this.getFolderPath(this.folderIndex), function(err, folderSize) {
+        //   if (err) { throw err; }
+
+        //   //console.log(size + ' bytes');
+        //   console.log((folderSize / 1024 / 1024).toFixed(2) + ' Mb');
+        // });
+
 
         this.logger.debug('GETFOLDERTREE***********', folderSize);
         this.notification.next({
@@ -326,7 +336,7 @@ export class UploadFiletreeService {
       console.log('받음, upload.filetree, SENDFILE ');
       this.logger.debug('FILE', response, this.filesToSend);
       let message = '';
-      //console.log(response);
+      console.log(response);
       if(response.error === null ){
         message = ' : 파일 업로드 완료 (' + (response.index + 1) + '/' + this.filesToSend.length + ')';
         console.log(message);
@@ -432,7 +442,7 @@ export class UploadFiletreeService {
     console.log('getContainerList');
     initializePromise.then(function(result) {
         storage.set('list',result);
-        console.log("11..결과 body :",storage.get('list'));
+       //console.log("11..결과 body :",storage.get('list'));
 
     }, function(err) {
         console.log(err);
@@ -450,6 +460,7 @@ export class UploadFiletreeService {
   private processTreeElement(folderIndex, fileItem) {
     console.log('uppload.filetree, processTreeElement => folderIndex :',folderIndex);
     console.log('fileItem :',fileItem); //하나의 파일
+    console.log('fileItem 타입 :',fileItem.type); //하나의 파일
     console.log('filesToSend :',this.filesToSend);  //어디서 값을 넣어줬을끼?, 현재는 배열로 폴더에 있는 파일들을 가르킨다.
     let size = 0;
     if (this.filesToSend == null) {
@@ -458,6 +469,7 @@ export class UploadFiletreeService {
 
     if (fileItem.type === 'folder') {
       console.log('folder');
+      const getSize = require('get-folder-size');
       /*---------------------------------------------------------------
        * 폴더
        *---------------------------------------------------------------*/
@@ -466,6 +478,13 @@ export class UploadFiletreeService {
           size += this.processTreeElement(folderIndex, fileItem.children[c]);
         }
       }
+      //kimcy
+      // getSize(this.getFolderPath(this.folderIndex), function(err, size) {
+      //   if (err) { throw err; }
+      
+      //   //console.log(size + ' bytes');
+      //   console.log((size / 1024 / 1024).toFixed(2) + ' Mb');
+      // });
 
       this.filesToSend.push({
         folderIndex: folderIndex,
@@ -615,13 +634,13 @@ export class UploadFiletreeService {
     let existPost = null;
     var listObj = this.storageService.get('list');
     //console.log('upload.filetree, 리스트목록 = ',listObj);
-    if(listObj != '[]' && listObj != 'No Content'){
+    if(listObj != '[]' && listObj != 'No Content' && file.type != 'folder'){
       let jsonExitPost = JSON.parse(listObj);
 
       for(var ele in jsonExitPost){
         //동일한 이름값이면 filesize체크해서 변경유무 파악
-        console.log('목록있음,,,jsonExitPost[ele].name = ',ele, jsonExitPost[ele].name);
-        console.log('한글 = ', code);
+        // console.log('목록있음,,,jsonExitPost[ele].name = ',ele, jsonExitPost[ele].name);
+         console.log('한글 = ', code);
         if(jsonExitPost[ele].name === code){
           if(jsonExitPost[ele].bytes === file.size){
             existPost = 'update-already';
@@ -630,11 +649,11 @@ export class UploadFiletreeService {
           }
         }
       }
-    }else if(listObj != '[]' || listObj === 'No Content'){
+    }else if(listObj === '[]' || listObj === 'No Content'){
       console.log('맨 처음 올리는것임');
     }else{
       console.log('에러');
-      this.gotoNextFile(this.filesToSend.length);
+     // this.gotoNextFile(this.filesToSend.length);
     }
 
     
@@ -682,7 +701,7 @@ export class UploadFiletreeService {
 
       console.log('업로드해야할 파일', this.deviceResource.macaddress + '##' + code);
 
-      if (existPost == null) {
+      if (existPost == null && file.type != 'folder') {
         const pipe = new BytesPipe();
         const size = pipe.transform(this.filesToSend[item.index].file.size);
         this.notification.next({
@@ -691,6 +710,9 @@ export class UploadFiletreeService {
         });
         console.log('보냄, upload.filetree, SENDFILE ');
         this.electronService.ipcRenderer.send('SENDFILE', post);
+      } else if(existPost == null && file.type === 'folder'){
+        console.log('폴더는 업로드 하지 않음');
+        this.gotoNextFile(item.index);
       } else {
         this.logger.debug('이미 업로드된 파일', code);
         const message = '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[item.index].file.filename + ' (' + (item.index + 1) + '/' + this.filesToSend.length + ')';
@@ -702,11 +724,14 @@ export class UploadFiletreeService {
       }
 
 
-      if (this.filesToSend.length - 1 > item.index) {
-        this.subject.next(this.filesToSend[item.index + 1]);
-      } else {
-        this.gotoNextFile(item.index);
-      }
+      console.log('11..filesToSend.length = ',this.filesToSend.length,'item.index = ',item.index);
+      //kimcy: 왜 다음파일을 보낼려고 하지?
+      // if (this.filesToSend.length - 1 > item.index) {
+      //   console.log('this.subject.next');
+      //   this.subject.next(this.filesToSend[item.index + 1]);
+      // } else {
+      //   this.gotoNextFile(item.index);
+      // }
 
     }
 
@@ -719,6 +744,7 @@ export class UploadFiletreeService {
 
     console.log('upload.filetree folderIndex =  ',folderIndex, 'fullpath = ',fullpath);
     if (this.uploading === true) {
+      console.log('업로딩중이라 리턴');
       return;
     }
 
