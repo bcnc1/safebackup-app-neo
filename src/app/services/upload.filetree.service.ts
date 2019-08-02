@@ -560,9 +560,14 @@ export class UploadFiletreeService {
     const code = file.fullpath.replace(/\\/g, '/');  //비교대상
     console.log('업로드 code: ',code);
  
-    let username = this.member.username.replace(/"/g, '').replace(/"/g, '');
+    //let username = this.member.username.replace(/"/g, '').replace(/"/g, '');
    // let password = this.member.password.replace(/"/g, '').replace(/"/g, '');
-    let userToken = this.member.token.replace(/"/g, '').replace(/"/g, '');
+   // let userToken = this.member.token.replace(/"/g, '').replace(/"/g, '');
+   let userToken = this.member.token;
+   let username = this.member.username;
+
+  //  console.log('userToken = ',userToken);
+  //  console.log('username = ',username);
 
 
 

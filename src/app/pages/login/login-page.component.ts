@@ -223,6 +223,7 @@ export class LoginPageComponent implements OnInit {
     
     console.log('loginin ngOnInit, 여기가 시작인듯');
     this.loggingin = false;
+
     /*---------------------------------------------------------------
          이전 버전 (v1.0.xx) 인지 체크
      --------------------------------------------------------------*/

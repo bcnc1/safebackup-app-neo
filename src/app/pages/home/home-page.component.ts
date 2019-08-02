@@ -68,6 +68,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
   onLogout() {
     console.log('로그아웃버튼 눌림');
+    this.uploading = false;
     this.memberAPI.logout();
     this.router.navigateByUrl('/');
   }
@@ -381,6 +382,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
         //kimcy 
         //console.log('this.storedFolders[i]', i, this.storedFolders[i]);
         //if (this.storedFolders[i] != null) {
+        this.uploading = false;
         if (this.storedFolders[i] != undefined) {
           console.log('등록된 폴더에 대해 업로드를 실행', this.storedFolders[i].length); //폴더의 이름 길이
           this.uploadFiletreeService.upload(i, this.storedFolders[i]);
