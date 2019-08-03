@@ -469,7 +469,7 @@ export class UploadFiletreeService {
 
     if (fileItem.type === 'folder') {
       console.log('folder');
-      const getSize = require('get-folder-size');
+      //const getSize = require('get-folder-size');
       /*---------------------------------------------------------------
        * 폴더
        *---------------------------------------------------------------*/
@@ -650,6 +650,10 @@ export class UploadFiletreeService {
           if(jsonExitPost[ele].bytes === file.size){
             existPost = 'update-already';
             console.log('업데이트된 파일');
+            jsonExitPost.splice(ele,1);
+            var list = JSON.stringify(jsonExitPost);
+            console.log('list = ', list);
+            this.storageService.set('list',list);
             break;
           }
         }
