@@ -46,25 +46,37 @@ export class LoginPageComponent implements OnInit {
       initialize(username, password) {
         // Setting URL and headers for request
         var options = {
-            uri: M5MemberService.s3Auth,
-            headers: {
-              'X-Auth-New-Token': 'true',
-              'x-storage-user': 'doctorkeeper'+':'+username,
-              'x-storage-pass': password
-            }
+            // uri: M5MemberService.s3Auth,
+            // headers: {
+            //   'X-Auth-New-Token': 'true',
+            //   'x-storage-user': 'doctorkeeper'+':'+username,
+            //   'x-storage-pass': password
+            // }
+            uri: M5MemberService.apiServer,
+            method: 'POST',
+             headers: {
+              'Content-Type': 'application/json'
+            },
+            body:{
+              id:username,
+              pwd:password
+            },
+            json : true
         };
         // Return new promise 
         return new Promise(function(resolve, reject) {
           // Do async job
-            request.get(options, function(err, resp, body) {
+           // request.get(options, function(err, resp, body) {
+            request.post(options, function(err, resp, body) {
                 if (err) {
-                  console.log('로그인실패');
+                  console.log('11..로그인실패');
                     reject(err);
                 } else {
                     if(resp.statusCode == 200){
-                      resolve(resp.headers['x-auth-token']);
+                     // resolve(resp.headers['x-auth-token']);
+                     resolve(body.token);
                     }else{
-                      console.log('로그인실패');
+                      console.log('22..로그인실패');
                       //resolve(resp.headers['x-auth-token']);
                       reject(resp.headers);
                     }
@@ -91,6 +103,7 @@ export class LoginPageComponent implements OnInit {
           // });
       }, function(err) {
           console.log(err);
+          storage.remove(member);
           //kimcy:windows 릴리즈 모드에서 팝업뜬다음 에디트텍스트가 입력안되는 현상이 발생
           //alert('ID/패스워드를 확인하세요.');
       })
@@ -117,12 +130,12 @@ export class LoginPageComponent implements OnInit {
       member.password = this.password;
       popup = true;
 
-      console.log('11..',this.username);
+      console.log('11..',this.username, this.password);
     } else {
       popup = false;
       member.username = username;
       member.password = password;
-      console.log('22..',this.username);
+      console.log('22..',this.username, this.password);
     }
 
     //kimcy: 토큰은 여기서 넣어준다..
@@ -252,7 +265,9 @@ export class LoginPageComponent implements OnInit {
         console.log("11..oninit =>username :",username);
         console.log("11..oninit =>password :",password);
         // 이전버전은 삭제
-        this.migrating = true;
+        //this.migrating = true;
+        //kimcy
+        this.migrating = false;
         this.migrateFromV1 = true;
         this.username = username;
         this.oldPaths[0] = localStorage.getItem('uploadPath[0]:' + username);

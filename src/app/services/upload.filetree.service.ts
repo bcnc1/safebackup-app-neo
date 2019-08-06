@@ -70,7 +70,6 @@ export class UploadFiletreeService {
      ----------------------------------------------------*/
     this.electronService.ipcRenderer.on('PCRESOURCE', (event: Electron.IpcMessageEvent, response: any) => {
       this.deviceResource = response;
-      //console.log('PCRESOURCE deviceResource : ', this.deviceResource);
       console.log('받음 upload.filetree, PCRESOURCE');
     });
     /*----------------------------------------------------
@@ -582,7 +581,8 @@ export class UploadFiletreeService {
           subtype: file.type,
           title: file.filename,
           status: folderName,                           // 사용자가 선택한 폴더
-          code: this.member.username + '##' + this.deviceResource.macaddress + '##' + code,                                   // 파일의 fullpath
+          //code: this.member.username + '##' + this.deviceResource.macaddress + '##' + code,                                   // 파일의 fullpath
+          code: this.deviceResource.macaddress + '/' + code,                                   // 파일의 fullpath
           subtitle: code,
           checkCode: 'true',
           checkCodeAction: 'update',
@@ -612,7 +612,8 @@ export class UploadFiletreeService {
           subtype: file.type,
           title: file.filename,
           status: folderName,                           // 사용자가 선택한 폴더
-          code: this.member.username + '##' + this.deviceResource.macaddress + '##' + code,                                   // 파일의 fullpath
+          //code: this.member.username + '##' + this.deviceResource.macaddress + '##' + code,                                   // 파일의 fullpath
+          code: this.deviceResource.macaddress + '/' + code,                                   
           subtitle: code,
           checkCode: 'true',
           checkCodeAction: 'update',
@@ -637,8 +638,9 @@ export class UploadFiletreeService {
         ----------------------------------------------------------------*/
     let existPost = null;
     var listObj = this.storageService.get('list');
-    //console.log('upload.filetree, 리스트목록 = ',listObj);
-    if(listObj != '[]' && listObj != 'No Content' && file.type != 'folder'){
+    console.log('upload.filetree, 리스트목록 = ',listObj);
+    if(listObj != '[]' && listObj != 'No Content' && file.type != 'folder' 
+       && listObj != undefined){
       let jsonExitPost = JSON.parse(listObj);
 
       for(var ele in jsonExitPost){
@@ -717,6 +719,8 @@ export class UploadFiletreeService {
           message: '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[item.index].file.filename + ' 업로딩...' + size 
         });
         console.log('보냄, upload.filetree, SENDFILE ');
+         console.log('보냄, code =  ', post.formData.code);
+         console.log('보냄, code11 =  ', post.formData.code.replace(/\\/g, '/'));
         this.electronService.ipcRenderer.send('SENDFILE', post);
       } else if(existPost == null && file.type === 'folder'){
         console.log('폴더는 업로드 하지 않음');

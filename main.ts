@@ -37,6 +37,7 @@ const log = require('electron-log');
 const updater = require('electron-simple-updater');
 //kimcy
 const reqestProm = require('request-promise-native')
+const macAddress = require('macaddress');
 
 var AutoLaunch = require('auto-launch');
 
@@ -433,18 +434,29 @@ ipcMain.on('PCRESOURCE', (event, arg) => {
 
   console.log('받음 main, PCRESOURCE');
   var interfaces = os.networkInterfaces();
+  // console.log('interfaces = ',interfaces);
+  // var maps = Object.keys(interfaces);
+  // console.log('maps = ',maps);
   var maps = Object.keys(interfaces)
     .map(x => interfaces[x].filter(x => x.family === 'IPv4' && !x.internal)[0])
     .filter(x => x);
 
   let ipaddress = null;
-  let macaddress = null;
+   let macaddress = null;
+
+
   if(maps != null) {
     ipaddress = maps[0].address;
     macaddress = maps[0].mac;
   }
 
-  console.log(maps);
+  // console.log(maps);
+  //kimcy
+  // macAddress.one(function (err, macaddress) {
+  //   console.log("Mac address for this host: %s", macaddress);  
+
+  // });
+
   const cpus = os.cpus();
 
 
@@ -457,7 +469,7 @@ ipcMain.on('PCRESOURCE', (event, arg) => {
       disk: diskSpace,
       ipaddresses: maps,
       ipaddress: ipaddress,
-      macaddress: macaddress
+       macaddress: macaddress
     });
   });
 
@@ -529,7 +541,8 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   if(formData.subtype === 'file'){
     var options = {  
       method: 'PUT',
-      uri: STORAGE_URL+'/'+containerName+'/'+ encodeURI(file.fullpath.replace(/\\/g, '/')), //encodeURI(encodeURIComponent(file.fullpath)),
+      //uri: STORAGE_URL+'/'+containerName+'/'+ encodeURI(file.fullpath.replace(/\\/g, '/')), 
+      uri: STORAGE_URL+'/'+containerName+'/'+ encodeURI(formData.code.replace(/\\/g, '/')), 
       headers:{
           'X-Auth-Token': accessToken,
           'X-Object-Meta-ctime': startTime

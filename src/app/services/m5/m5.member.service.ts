@@ -9,6 +9,7 @@ import {LOCAL_STORAGE, StorageService} from 'ngx-webstorage-service';
 import {ObjectUtils} from '../../utils/ObjectUtils';
 import * as moment from 'moment';
 import {environment} from '../../../environments/environment';
+const request = require('request');
 
 @Injectable({
   providedIn: 'root'
@@ -56,29 +57,52 @@ export class M5MemberService extends M5Service {
    *  username
    *  password
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-   private getLoginToken(response: any) {
-    console.log('응답 : ',response.headers);
-    if(response.statusCode == 200){
-      var userToken = response.headers['x-auth-token'];
-      this.storage.set('userToken', userToken);
-    }
-     //this.handleData(response);
-    // this.storage.set('member', response.member);
-    // this.storage.set('accessToken', decodeURIComponent(response.accessToken));
-    // if (response.orgBoards != null) {
-    //   response.orgBoards.forEach(board => {
-    //     console.log(board);
-    //     if (board.type === 'board') {
-    //       this.storage.set('board', board);
-    //     }
-    //   });
-    // } else {
-    //   this.storage.set('board', {
-    //     id: 'SVCBoard_481477478793500'
-    //   });
-    // }
+   initialize(username, password) {
+    // Setting URL and headers for request
+    var options = {
+        uri: M5MemberService.apiServer,
+        method: 'POST',
+         headers: {
+          'Content-Type': 'application/json'
+        },
+        body:{
+          id:username,
+          pwd:password
+        },
+        json : true
+    };
+    // Return new promise 
+    return new Promise(function(resolve, reject) {
+        request.post(options, function(err, resp, body) {
+            if (err) {
+              console.log('m5.member.11..로그인실패');
+                reject(err);
+            } else {
+                if(resp.statusCode == 200){
+                 resolve(body.token);
+                }else{
+                  console.log('m5.member..22..로그인실패');
+                  reject(resp.headers);
+                }
+            }
+        });
+    });
 
-    return response || {};
+}
+
+   public getLoginToken(member,storage) {
+    var initializePromise = this.initialize(member.username, member.password);
+
+      initializePromise.then(function(result) {
+          var userToken = result;
+          console.log("userToken :",userToken);
+          member.token = userToken;
+          storage.set('member',member);
+      }, function(err) {
+          console.log(err);
+          storage.remove(member);
+      })
+  
 
   }
 
