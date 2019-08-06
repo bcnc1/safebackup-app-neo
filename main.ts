@@ -505,18 +505,6 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   formData.count = file.size;
   formData.userData = JSON.stringify(formData.userData);
 
-  //console.log("formData:", formData);
-  // console.log("file:", file.fullpath);
-  // console.log("encodeURIComponent(file.fullpath):", encodeURIComponent(file.fullpath));
-  // console.log("encodeURI(file.fullpath):", encodeURI(file.fullpath));
-  // console.log("encodeURIComponent(file.fullpath):", encodeURIComponent(STORAGE_URL+'/'+containerName+'/'+ file.fullpath));
-  // console.log("encodeURI(file.fullpath):", encodeURI(STORAGE_URL+'/'+containerName+'/'+ file.fullpath));
-
-  //console.log("main, json:", JSON.stringify(file.fullpath));
- // console.log("11..containerName :",containerName);
- 
-
- 
 
   function cbUpload(error, response, body) {
    // console.log(response);
@@ -541,7 +529,6 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   if(formData.subtype === 'file'){
     var options = {  
       method: 'PUT',
-      //uri: STORAGE_URL+'/'+containerName+'/'+ file.fullpath, //encodeURI(encodeURIComponent(file.fullpath)),
       uri: STORAGE_URL+'/'+containerName+'/'+ encodeURI(file.fullpath.replace(/\\/g, '/')), //encodeURI(encodeURIComponent(file.fullpath)),
       headers:{
           'X-Auth-Token': accessToken,

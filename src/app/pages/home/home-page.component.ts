@@ -341,8 +341,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
           //this.storageService.remove('list');
           console.log('homepage -> 모두완료 다음시간설정');
           this.uploading = false;
-
-          const minutes = 60 * getRandomInt(1, 4); //1분부터 4분까지 랜덤
+          //kimcy: test code
+          const minutes =  5*getRandomInt(1, 4); //60 * getRandomInt(1, 4); //1분부터 4분까지 랜덤
           const interval = 1000 * 60 * minutes;
           const next = moment().add(interval);
           const str = next.format('MM월DD일 HH시 mm분');

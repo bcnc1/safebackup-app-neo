@@ -1,14 +1,11 @@
 {
-  "name": "SafeBackup",
+  "name": "safebackup",
   "productName": "SafeBackup",
   "publishedName": "BCNC",
   "version": "3.0.0",
   "description": "with KT Cloud Storage",
   "homepage": "https://github.com/kyehyukahn/safebackup",
-  "author": {
-    "name": "ERIC K AHN",
-    "email": "erickahn@bsquarelab.com"
-  },
+  "author": "ERIC K AHN <erickahn@bsquarelab.com>",
   "keywords": [
     "angular",
     "angular 8",
@@ -126,5 +123,13 @@
     "rxjs": "^6.5.2",
     "tslib": "^1.10.0",
     "zone.js": "~0.8.26"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bsquarelab/SafeBackUp.git"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bsquarelab/SafeBackUp/issues"
   }
 }

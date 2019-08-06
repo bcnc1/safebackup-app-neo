@@ -390,8 +390,7 @@ export class UploadFiletreeService {
     if (this.member == null) {
       this.member = this.memberAPI.isLoggedin();
     }
-    //kimcy
-    //return 'folder:' + this.member.id + ':' + folderIndex;
+
     return 'folder:' + this.member.username + ':' + folderIndex;
   }
   
