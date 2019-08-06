@@ -12,7 +12,9 @@ import * as moment from 'moment';
 import { ObjectUtils } from '../../utils/ObjectUtils';
 import { NGXLogger } from 'ngx-logger';
 import { environment } from '../../../environments/environment';
-
+//import { LoginPageComponent} from '../login/login-page.component';
+// /Users/kimcy/dev/SafeBackUp/src/app/pages/login/login-page.component.ts
+// /Users/kimcy/dev/SafeBackUp/src/app/pages/home/home-page.component.ts
 
 @Component({
   selector: 'app-page',
@@ -54,6 +56,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     private logger: NGXLogger,
     @Inject(LOCAL_STORAGE) private storageService: StorageService,
     private modalService: BsModalService,
+    //private loginAPI: LoginPageComponent,
     private router: Router) {
   }
 
@@ -91,7 +94,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     if (folder != undefined) {
       this.rootFolderName = folder;
       this.showingFolderName = folder;
-      console.log('this.deviceResource = ',this.deviceResource);
+      //console.log('this.deviceResource = ',this.deviceResource);
       this.onRequestFolderPosts(this.selectedFolderIndex, folder, null);
       if (this.deviceResource == null) {
         setTimeout(() => {
@@ -351,6 +354,20 @@ export class HomePageComponent implements OnInit, OnDestroy {
             message: str + '에 백업이 재실행됩니다.'
           });
 
+          //kimcy token 갱신
+          if (this.electronService.isElectronApp){
+            this.member = this.memberAPI.isLoggedin();
+            if(this.member === undefined){
+              //로그인
+              this.router.navigateByUrl('/login');
+              return;
+            }else{
+              this.memberAPI.getLoginToken(this.member,this.storageService);
+            }
+
+          }
+
+          //this.loginAPI.login()
           this.logger.debug(new Date(), '다음 백업 대기 업로딩? ', this.uploading);
           this.onStartUploadFolder(0, interval / 1000);
 

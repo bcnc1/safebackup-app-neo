@@ -8,14 +8,14 @@ export class M5Service {
   static server = environment.M5SERVER;
   //kimcy
   static s3Storage = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3'; //environment.STORAGE_URL;
-  static s3Auth = 'https://ssproxy.ucloudbiz.olleh.com/auth/v1.0'; //environment.AUTH_URL
-  // static server = 'http://localhost:7919';
+  static s3Auth = 'https://ssproxy.ucloudbiz.olleh.com/auth/v1.0'; 
+  static apiServer = 'http://211.252.85.59:3000/api/v1/user/login';
   // static server = 'http://192.168.0.197:7919';
 
   url = {
     login: function () {
       console.log('m5.member, login');
-      return M5Service.server + '/v1/login';
+      return M5Service.apiServer;
     },
     signup: function () {
       console.log('m5.member, signup');
