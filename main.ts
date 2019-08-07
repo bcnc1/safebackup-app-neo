@@ -580,10 +580,14 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
       }
     };
     var upload = fs.createReadStream(file.fullpath,{highWaterMark : 256*1024});
-    var r = reqestProm(options, cbUpload);
+    var r = reqestProm(options, cbUpload).catch(function(err){
+      console.log('terminate11');
+    });
     
     console.log('업로드 시작');
-    upload.pipe(r);
+    upload.pipe(r).catch(function(err){
+      console.log('terminate22');
+    });
   }else{
     mainWindow.webContents.send("SENDFILE", {
       error: null,
