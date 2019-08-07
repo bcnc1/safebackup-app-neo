@@ -139,7 +139,7 @@ function createWindow() {
  
    //kimcy: release 할때는 해당 부부을 false, 개발할때는 true
    function isDev() {
-     return false;//process.mainModule.filename.indexOf('app.asar') === -1;
+     return true;//process.mainModule.filename.indexOf('app.asar') === -1;
    };
  
    // The following is optional and will open the DevTools:
@@ -580,11 +580,13 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
       }
     };
     var upload = fs.createReadStream(file.fullpath,{highWaterMark : 256*1024});
-    var r = reqestProm(options, cbUpload).catch(function(err){
-      console.log('terminate11');
-    });
+    var r = reqestProm(options, cbUpload);
+    // var r = reqestProm(options, cbUpload).catch(function(err){
+    //   console.log('terminate11');
+    // });
     
     console.log('업로드 시작');
+    //upload.pipe(r);
     upload.pipe(r).catch(function(err){
       console.log('terminate22');
     });

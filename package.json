@@ -114,7 +114,6 @@
     "get-folder-size": "^2.0.1",
     "getmac": "^1.4.6",
     "jquery": "^3.4.1",
-    "macaddress": "^0.2.9",
     "moment": "^2.24.0",
     "ngx-bootstrap": "^5.0.0",
     "ngx-electron": "^2.1.1",

@@ -644,48 +644,49 @@ export class UploadFiletreeService {
     if(listObj != '[]' && listObj != 'No Content' && file.type != 'folder' 
        && listObj != undefined){
       let jsonExitPost = JSON.parse(listObj);
-      // let diffJsonPost = jsonExitPost.filter(function (item){
-      //      console.log('deviceId = ',deviceId);
-      //      console.log('item.name = ',item.name);
-      //      //item.name.startsWith(deviceId);
-      //      item.name == '00:00:00:00:00:00//Users/kimcy/Downloads/Data_Backup/20190402/20190405_PM2000V6.INI';
-      // });
+      let diffJsonPost = jsonExitPost.filter(function (item){
+          //  console.log('deviceId = ',deviceId);
+          //  console.log('item.name = ',item.name);
+           return item.name.startsWith(deviceId);
+           
+      });
 
       // for(var ele in jsonExitPost){
 
       // }
-      // console.log('diffJsonPost = ',diffJsonPost);
-      // for(var ele in diffJsonPost){
-      //   if(diffJsonPost[ele].name === code){
-      //     if(diffJsonPost[ele].bytes === file.size){
-      //       existPost = 'update-already';
-      //       console.log('업데이트된 파일');
-      //       diffJsonPost.splice(ele,1);
-      //       var list = JSON.stringify(diffJsonPost);
-      //       console.log('list = ', list);
-      //       this.storageService.set('list',list);
-      //       break;
-      //     }
-      //   }
-      // }
-
-
-      for(var ele in jsonExitPost){
-        //동일한 이름값이면 filesize체크해서 변경유무 파악
-        // console.log('목록있음,,,jsonExitPost[ele].name = ',ele, jsonExitPost[ele].name);
-         console.log('한글 = ', code);
-        if(jsonExitPost[ele].name === post.formData.code){
-          if(jsonExitPost[ele].bytes === file.size){
+      console.log('diffJsonPost = ',diffJsonPost);
+      console.log('post.formData.code = ',post.formData.code);
+      for(var ele in diffJsonPost){
+        if(diffJsonPost[ele].name === post.formData.code){
+          if(diffJsonPost[ele].bytes === file.size){
             existPost = 'update-already';
             console.log('업데이트된 파일');
-            jsonExitPost.splice(ele,1);
-            var list = JSON.stringify(jsonExitPost);
+            diffJsonPost.splice(ele,1);
+            var list = JSON.stringify(diffJsonPost);
             console.log('list = ', list);
             this.storageService.set('list',list);
             break;
           }
         }
       }
+
+
+      // for(var ele in jsonExitPost){
+      //   //동일한 이름값이면 filesize체크해서 변경유무 파악
+      //   // console.log('목록있음,,,jsonExitPost[ele].name = ',ele, jsonExitPost[ele].name);
+      //    console.log('한글 = ', code);
+      //   if(jsonExitPost[ele].name === post.formData.code){
+      //     if(jsonExitPost[ele].bytes === file.size){
+      //       existPost = 'update-already';
+      //       console.log('업데이트된 파일');
+      //       jsonExitPost.splice(ele,1);
+      //       var list = JSON.stringify(jsonExitPost);
+      //       console.log('list = ', list);
+      //       this.storageService.set('list',list);
+      //       break;
+      //     }
+      //   }
+      // }
     }else if(listObj === '[]' || listObj === 'No Content'){
       console.log('맨 처음 올리는것임');
     }else{
