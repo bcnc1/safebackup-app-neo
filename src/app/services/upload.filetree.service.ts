@@ -551,14 +551,15 @@ export class UploadFiletreeService {
      ----------------------------------------------------------------*/
 
     const paths = path.dirname(file.fullpath).split(path.sep);  //fullpath를 /로 분리하여 저장
-    console.log('업로드 paths: ',paths);  
+    //console.log('업로드 paths: ',paths);  
     const parentPath = (paths.slice(0, paths.length).join(path.sep)).replace(/\\/g, '/');
-    console.log('업로드 parentPath: ',parentPath);
+    //console.log('업로드 parentPath: ',parentPath);
     const folderName = this.folders[item.folderIndex].path.replace(/\\/g, '/');
-    console.log('업로드 folderName: ',folderName);
+    //console.log('업로드 folderName: ',folderName);
     const code = file.fullpath.replace(/\\/g, '/');  //비교대상
-    console.log('업로드 code: ',code);
- 
+    //console.log('업로드 code: ',code);
+    const deviceId = this.deviceResource.macaddress;
+
     //let username = this.member.username.replace(/"/g, '').replace(/"/g, '');
    // let password = this.member.password.replace(/"/g, '').replace(/"/g, '');
    // let userToken = this.member.token.replace(/"/g, '').replace(/"/g, '');
@@ -643,12 +644,37 @@ export class UploadFiletreeService {
     if(listObj != '[]' && listObj != 'No Content' && file.type != 'folder' 
        && listObj != undefined){
       let jsonExitPost = JSON.parse(listObj);
+      // let diffJsonPost = jsonExitPost.filter(function (item){
+      //      console.log('deviceId = ',deviceId);
+      //      console.log('item.name = ',item.name);
+      //      //item.name.startsWith(deviceId);
+      //      item.name == '00:00:00:00:00:00//Users/kimcy/Downloads/Data_Backup/20190402/20190405_PM2000V6.INI';
+      // });
+
+      // for(var ele in jsonExitPost){
+
+      // }
+      // console.log('diffJsonPost = ',diffJsonPost);
+      // for(var ele in diffJsonPost){
+      //   if(diffJsonPost[ele].name === code){
+      //     if(diffJsonPost[ele].bytes === file.size){
+      //       existPost = 'update-already';
+      //       console.log('업데이트된 파일');
+      //       diffJsonPost.splice(ele,1);
+      //       var list = JSON.stringify(diffJsonPost);
+      //       console.log('list = ', list);
+      //       this.storageService.set('list',list);
+      //       break;
+      //     }
+      //   }
+      // }
+
 
       for(var ele in jsonExitPost){
         //동일한 이름값이면 filesize체크해서 변경유무 파악
         // console.log('목록있음,,,jsonExitPost[ele].name = ',ele, jsonExitPost[ele].name);
          console.log('한글 = ', code);
-        if(jsonExitPost[ele].name === code){
+        if(jsonExitPost[ele].name === post.formData.code){
           if(jsonExitPost[ele].bytes === file.size){
             existPost = 'update-already';
             console.log('업데이트된 파일');
@@ -710,7 +736,7 @@ export class UploadFiletreeService {
       ----------------------------------------------------------------*/
     else {
 
-      console.log('업로드해야할 파일', this.deviceResource.macaddress + '##' + code);
+      console.log('업로드해야할 파일',  code);
 
       if (existPost == null && file.type != 'folder') {
         const pipe = new BytesPipe();

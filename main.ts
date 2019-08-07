@@ -37,7 +37,7 @@ const log = require('electron-log');
 const updater = require('electron-simple-updater');
 //kimcy
 const reqestProm = require('request-promise-native')
-const macAddress = require('macaddress');
+//const macAddress = require('macaddress');
 
 var AutoLaunch = require('auto-launch');
 
@@ -139,7 +139,7 @@ function createWindow() {
  
    //kimcy: release 할때는 해당 부부을 false, 개발할때는 true
    function isDev() {
-     return true;//process.mainModule.filename.indexOf('app.asar') === -1;
+     return false;//process.mainModule.filename.indexOf('app.asar') === -1;
    };
  
    // The following is optional and will open the DevTools:
@@ -273,19 +273,19 @@ try {
   });
 
   //kimcy
-  app.on('will-quit', () => {
-    if (process.platform !== 'darwin') {
-      log.warn('will-quit ==> CLOSING????', isQuiting);
-      if (isQuiting == true) {
-        isQuiting = false;
-        event.preventDefault();
-      } else {
-        mainWindow.hide();
-        isQuiting = false;
-      }
+  // app.on('will-quit', () => {
+  //   if (process.platform !== 'darwin') {
+  //     log.warn('will-quit ==> CLOSING????', isQuiting);
+  //     if (isQuiting == true) {
+  //       isQuiting = false;
+  //       event.preventDefault();
+  //     } else {
+  //       mainWindow.hide();
+  //       isQuiting = false;
+  //     }
   
-    }
-  });
+  //   }
+  // });
 
   app.on('activate', () => {
     // On OS X it's common to re-create a window in the app when the
