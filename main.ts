@@ -273,19 +273,19 @@ try {
   });
 
   //kimcy
-  app.on('will-quit', () => {
-    if (process.platform !== 'darwin') {
-      log.warn('will-quit ==> CLOSING????', isQuiting);
-      if (isQuiting == true) {
-        isQuiting = false;
-        event.preventDefault();
-      } else {
-        mainWindow.hide();
-        isQuiting = false;
-      }
+  // app.on('will-quit', () => {
+  //   if (process.platform !== 'darwin') {
+  //     log.warn('will-quit ==> CLOSING????', isQuiting);
+  //     if (isQuiting == true) {
+  //       isQuiting = false;
+  //       event.preventDefault();
+  //     } else {
+  //       mainWindow.hide();
+  //       isQuiting = false;
+  //     }
   
-    }
-  });
+  //   }
+  // });
 
   app.on('activate', () => {
     // On OS X it's common to re-create a window in the app when the
@@ -571,12 +571,16 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
       }
     };
     var upload = fs.createReadStream(file.fullpath,{highWaterMark : 256*1024});
-    var r = reqestProm(options, cbUpload).catch(function(err){
-      console.log('terminate');
-    });
+    var r = reqestProm(options, cbUpload);
+    // var r = reqestProm(options, cbUpload).catch(function(err){
+    //   console.log('terminate11');
+    // });
     
     console.log('업로드 시작');
-    upload.pipe(r);
+    //upload.pipe(r);
+    upload.pipe(r).catch(function(err){
+      console.log('terminate22');
+    });
   }else{
     mainWindow.webContents.send("SENDFILE", {
       error: null,
