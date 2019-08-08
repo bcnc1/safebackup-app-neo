@@ -4,10 +4,6 @@ import {environment} from './src/environments/environment';
 //import {M5MemberService} from './src/app/services/m5/m5.member.service';
 //import {Component, Inject, OnInit} from '@angular/core';
 
-// constructor(
-//   @Inject(LOCAL_STORAGE) private storageService: StorageService) {
-// }
-//const { sleep } = require('sleep');
 
 
 
@@ -43,6 +39,15 @@ var AutoLaunch = require('auto-launch');
 
 
 let isQuiting = false;
+
+//kimcy
+// var shouldQuit = app.makeSingleInstance(function(commandLine, workingDirectory) {
+//   // Someone tried to run a second instance, we should focus our window.
+//   if (mainWindow) { 
+//     if (mainWindow.isMinimized()) mainWindow.restore();
+//     mainWindow.focus();
+//   }
+// });
 
 
 if (handleSquirrelEvent(app)) {
@@ -139,7 +144,7 @@ function createWindow() {
  
    //kimcy: release 할때는 해당 부부을 false, 개발할때는 true
    function isDev() {
-     return true;//process.mainModule.filename.indexOf('app.asar') === -1;
+     return false;//process.mainModule.filename.indexOf('app.asar') === -1;
    };
  
    // The following is optional and will open the DevTools:
@@ -158,7 +163,8 @@ function createWindow() {
      // Handle menu-item or keyboard shortcut quit here
      if (isQuiting == true) {
        log.warn('before-quit ===>QUIT', isQuiting);
-       tray.destroy();
+       //kimcy: 임시로 강제종료기능 막음
+       //tray.destroy();
        //e.preventDefault();
        isQuiting = false;
      } else {
@@ -177,7 +183,7 @@ function createWindow() {
      } else {
        log.warn('CLOSING?-->HIDE', isQuiting);
        mainWindow.hide();
-       //e.preventDefault();
+       e.preventDefault();
        return false;
      }
    });
@@ -339,29 +345,7 @@ var diretoryTreeToObj = function (dir, done) {
   console.log('main,  diretoryTreeToObj dir = ',dir, done);
   var results = [];
 
-//   fs.readdirSync(dir).forEach(function (name) {
-//     var filePath = path.join(dir, name);
-//     var stat = fs.statSync(filePath);
-//     if (stat.isFile()) {
-//        // callback(filePath, stat);
-//        results.push({  //파일의 속성을 만든다.
-//               type: 'file',
-
-//               filename: path.basename(file),
-//               fullpath: file,
-
-//               size: stat.size,
-//               accessed: stat.atime, //파일에 접근한 마지막 시간
-//               updated: stat.mtime, //파일이 수정된 마지막 시간
-//               created: stat.ctime, //파일상태가 변경된 마지막시간
-//           });
-//     } else if (stat.isDirectory()) {
-//       diretoryTreeToObj(filePath, res);
-//     }
-// });
-//kimcy: test
   fs.readdir(dir, function (err, list) {
- // fs.readdirSync(dir, function (err, list) {
     if (err)
       return done(err);
 
@@ -373,7 +357,6 @@ var diretoryTreeToObj = function (dir, done) {
       return done(null, {name: path.basename(dir), type: 'folder', children: results});
 
     list.forEach(function (file) {
-      //sleep.msleep(100); //kimcy
       file = path.resolve(dir, file);
       fs.stat(file, function (err, stat) {
         if (stat) {
@@ -492,11 +475,6 @@ ipcMain.on('PCRESOURCE', (event, arg) => {
     });
   });
 
-
-  // disk.check(path, function (err, info) {
-  //
-  // });
-
 });
 
 
@@ -572,9 +550,6 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
     };
     var upload = fs.createReadStream(file.fullpath,{highWaterMark : 256*1024});
     var r = reqestProm(options, cbUpload);
-    // var r = reqestProm(options, cbUpload).catch(function(err){
-    //   console.log('terminate11');
-    // });
     
     console.log('업로드 시작');
     //upload.pipe(r);
@@ -591,7 +566,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
     });
   }
 
-  //kimcy: mac에서는 STORAGE_URL+'/'+containerName+'/'+ encodeURI(file.fullpath)하면 한글도 되나 WINDOW에서는 안됨
+ 
   
 
 

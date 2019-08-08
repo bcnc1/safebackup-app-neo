@@ -653,9 +653,6 @@ export class UploadFiletreeService {
            
       });
 
-      // for(var ele in jsonExitPost){
-
-      // }
       console.log('diffJsonPost = ',diffJsonPost);
       console.log('post.formData.code = ',post.formData.code);
       for(var ele in diffJsonPost){
