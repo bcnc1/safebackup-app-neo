@@ -37,7 +37,7 @@ const log = require('electron-log');
 const updater = require('electron-simple-updater');
 //kimcy
 const reqestProm = require('request-promise-native')
-const macAddress = require('macaddress');
+//const macAddress = require('macaddress');
 
 var AutoLaunch = require('auto-launch');
 
@@ -84,6 +84,7 @@ function createWindow() {
        label: '종료',
        click: function () {
          isQuiting = true;
+         console.log('트레이종료');
          app.quit();
        }
      }
@@ -156,17 +157,19 @@ function createWindow() {
    app.on('before-quit', function (e) {
      // Handle menu-item or keyboard shortcut quit here
      if (isQuiting == true) {
-       log.warn('CLOSING===>QUIT', isQuiting);
+       log.warn('before-quit ===>QUIT', isQuiting);
+       tray.destroy();
+       //e.preventDefault();
        isQuiting = false;
      } else {
-       log.warn('CLOSING==>HIDE', isQuiting);
+       log.warn('before-quit ==>HIDE', isQuiting);
        e.preventDefault();
        mainWindow.hide();
      }
    });
  
    mainWindow.on('close', function (e) {
-     log.warn('CLOSING?', isQuiting);
+     log.warn('close ==> CLOSING?', isQuiting);
      if (isQuiting == true) {
        log.warn('CLOSING?-->QUIT', isQuiting);
        isQuiting = false;
@@ -174,13 +177,13 @@ function createWindow() {
      } else {
        log.warn('CLOSING?-->HIDE', isQuiting);
        mainWindow.hide();
-       e.preventDefault();
+       //e.preventDefault();
        return false;
      }
    });
  
    mainWindow.onbeforeunload = function (e) {
-    alert("본 프로그램은 종료가 불가능합니다.")
+    alert("onbeforeunload => 본 프로그램은 종료가 불가능합니다.")
     e.preventDefault();
     return false;
    };
@@ -188,60 +191,61 @@ function createWindow() {
  
    /*---------------------------------------------------------------
             Updater
+            kimcy: 업데이트 기능없음
     ----------------------------------------------------------------*/
-   try {
-     updater.init({
-       url: 'http://version.doctorkeeper.com/safe4.json',
-       autoDownload: false,
-       checkUpdateOnStart: true,
-       logger: {
-         info(text) {
-           logger('info', text);
-         },
-         warn(text) {
-           logger('warn', text);
-         }
-       }
-     });
+  //  try {
+  //    updater.init({
+  //      url: 'http://version.doctorkeeper.com/safe4.json',
+  //      autoDownload: false,
+  //      checkUpdateOnStart: true,
+  //      logger: {
+  //        info(text) {
+  //          logger('info', text);
+  //        },
+  //        warn(text) {
+  //          logger('warn', text);
+  //        }
+  //      }
+  //    });
  
  
-     log.warn('AUTOUPDATE initialized');
-     updater.on('update-available', meta => {
-       log.warn('[updater] update available', meta.version);
-       updater.downloadUpdate()
-     });
+  //    log.warn('AUTOUPDATE initialized');
+  //    updater.on('update-available', meta => {
+  //      log.warn('[updater] update available', meta.version);
+  //      updater.downloadUpdate()
+  //    });
  
  
-     updater.on('update-downloading', (e) => {
-       log.warn('downloading', e)
-     });
+  //    updater.on('update-downloading', (e) => {
+  //      log.warn('downloading', e)
+  //    });
  
-     updater.on('update-downloaded', () => {
-       isQuiting = true;
-       updater.quitAndInstall();
-       setTimeout(() => {
-         app.relaunch();
-         app.exit(0);
-       }, 3 * 60 * 1000);
-     });
+  //    updater.on('update-downloaded', () => {
+  //      isQuiting = true;
+  //      updater.quitAndInstall();
+  //      setTimeout(() => {
+  //        app.relaunch();
+  //        app.exit(0);
+  //      }, 3 * 60 * 1000);
+  //    });
  
-     updater.on('update-not-available', (e) => {
-       log.warn('there is no available update', e)
-     });
-     updater.on('error', err => {
-       log.warn(err)
-     });
+  //    updater.on('update-not-available', (e) => {
+  //      log.warn('there is no available update', e)
+  //    });
+  //    updater.on('error', err => {
+  //      log.warn(err)
+  //    });
  
  
-     setInterval(function () {
-       updater.checkForUpdates();
-       log.warn('CHECKED VERSION');
-     }, 60 * 60 * 1000);
+  //    setInterval(function () {
+  //      updater.checkForUpdates();
+  //      log.warn('CHECKED VERSION');
+  //    }, 60 * 60 * 1000);
  
-     updater.checkForUpdates();
-   } catch (e) {
-     log.warn(e);
-   }
+  //    updater.checkForUpdates();
+  //  } catch (e) {
+  //    log.warn(e);
+  //  }
 
 }
 
@@ -257,9 +261,24 @@ try {
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
-      log.warn('CLOSING????', isQuiting);
+      log.warn('window-all-closed ==> CLOSING????', isQuiting);
       if (isQuiting == true) {
         isQuiting = false;
+      } else {
+        mainWindow.hide();
+        isQuiting = false;
+      }
+  
+    }
+  });
+
+  //kimcy
+  app.on('will-quit', () => {
+    if (process.platform !== 'darwin') {
+      log.warn('will-quit ==> CLOSING????', isQuiting);
+      if (isQuiting == true) {
+        isQuiting = false;
+        event.preventDefault();
       } else {
         mainWindow.hide();
         isQuiting = false;
@@ -531,8 +550,11 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
           endTime: new Date().getTime()
         });
     }else{
-         console.log('cbUpload file error!!!');
+         console.log('cbUpload file error!!! mainWindow = ',mainWindow);
          console.log('보냄, main, SENDFILE ');
+         if(mainWindow === undefined || mainWindow === null){
+           return;
+         }
          mainWindow.webContents.send("SENDFILE", {error: error});
   
     }
@@ -549,7 +571,9 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
       }
     };
     var upload = fs.createReadStream(file.fullpath,{highWaterMark : 256*1024});
-    var r = reqestProm(options, cbUpload);
+    var r = reqestProm(options, cbUpload).catch(function(err){
+      console.log('terminate');
+    });
     
     console.log('업로드 시작');
     upload.pipe(r);

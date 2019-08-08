@@ -5,7 +5,10 @@
   "version": "3.0.0",
   "description": "with KT Cloud Storage",
   "homepage": "https://github.com/kyehyukahn/safebackup",
-  "author": "ERIC K AHN <erickahn@bsquarelab.com>",
+  "author": {
+    "name": "bsquarelab",
+    "email": "support@bsquarelab.com"
+  },
   "keywords": [
     "angular",
     "angular 8",
