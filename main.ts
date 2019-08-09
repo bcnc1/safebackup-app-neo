@@ -40,14 +40,6 @@ var AutoLaunch = require('auto-launch');
 
 let isQuiting = false;
 
-//kimcy
-// var shouldQuit = app.makeSingleInstance(function(commandLine, workingDirectory) {
-//   // Someone tried to run a second instance, we should focus our window.
-//   if (mainWindow) { 
-//     if (mainWindow.isMinimized()) mainWindow.restore();
-//     mainWindow.focus();
-//   }
-// });
 
 
 if (handleSquirrelEvent(app)) {
@@ -55,7 +47,6 @@ if (handleSquirrelEvent(app)) {
   app.exit(0); //return;
 }
 let mainWindow;
-
 
 var drBackupAutoLauncher = new AutoLaunch({
   name: 'safebackup'
@@ -90,7 +81,9 @@ function createWindow() {
        click: function () {
          isQuiting = true;
          console.log('트레이종료');
+         //mainWindow.close(); 
          app.quit();
+         //app.exit();
        }
      }
    ]);
@@ -144,7 +137,7 @@ function createWindow() {
  
    //kimcy: release 할때는 해당 부부을 false, 개발할때는 true
    function isDev() {
-     return false;//process.mainModule.filename.indexOf('app.asar') === -1;
+     return true;//process.mainModule.filename.indexOf('app.asar') === -1;
    };
  
    // The following is optional and will open the DevTools:
@@ -166,24 +159,25 @@ function createWindow() {
        //kimcy: 임시로 강제종료기능 막음
        //tray.destroy();
        //e.preventDefault();
-       isQuiting = false;
+       //isQuiting = false;
      } else {
        log.warn('before-quit ==>HIDE', isQuiting);
-       e.preventDefault();
-       mainWindow.hide();
+       //kimcy
+       //e.preventDefault();
+      // mainWindow.hide();
      }
    });
  
    mainWindow.on('close', function (e) {
-     log.warn('close ==> CLOSING?', isQuiting);
+     log.warn('close ==> isQuiting?', isQuiting);
      if (isQuiting == true) {
-       log.warn('CLOSING?-->QUIT', isQuiting);
+       //log.warn('CLOSING?-->QUIT', isQuiting);
        isQuiting = false;
        return true;
      } else {
-       log.warn('CLOSING?-->HIDE', isQuiting);
+      // log.warn('CLOSING?-->HIDE', isQuiting);
        mainWindow.hide();
-       e.preventDefault();
+       e.preventDefault();  //여기서 이거 안하고 show 하면 문제 생김
        return false;
      }
    });
@@ -260,9 +254,27 @@ try {
   // This method will be called when Electron has finished
   // initialization and is ready to create browser windows.
   // Some APIs can only be used after this event occurs.
+
+  //kimcy
+const gotTheLock = app.requestSingleInstanceLock()
+
+if (!gotTheLock) {
+  app.quit()
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.focus()
+    }
+  })
+
   app.on('ready', createWindow);
+}
+ //app.on('ready', createWindow);
 
   // Quit when all windows are closed.
+  // kimcy 강제종료는 tray에서만 하는것으로??
   app.on('window-all-closed', () => {
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
@@ -278,6 +290,12 @@ try {
     }
   });
 
+  app.on('quit', ()=> {
+    console.log('quit 완전종료');
+    //tray.destroy();
+    mainWindow.close();
+    app.exit();
+  });
   //kimcy
   // app.on('will-quit', () => {
   //   if (process.platform !== 'darwin') {
@@ -436,9 +454,7 @@ ipcMain.on('PCRESOURCE', (event, arg) => {
 
   console.log('받음 main, PCRESOURCE');
   var interfaces = os.networkInterfaces();
-  // console.log('interfaces = ',interfaces);
-  // var maps = Object.keys(interfaces);
-  // console.log('maps = ',maps);
+
   var maps = Object.keys(interfaces)
     .map(x => interfaces[x].filter(x => x.family === 'IPv4' && !x.internal)[0])
     .filter(x => x);
@@ -528,7 +544,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
           endTime: new Date().getTime()
         });
     }else{
-         console.log('cbUpload file error!!! mainWindow = ',mainWindow);
+         console.log('cbUpload file error!!! response = ',response.headers);
          console.log('보냄, main, SENDFILE ');
          if(mainWindow === undefined || mainWindow === null){
            return;

@@ -363,6 +363,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
               this.router.navigateByUrl('/login');
               return;
             }else{
+              console.log('새로운 토큰 가져오기');
               this.memberAPI.getLoginToken(this.member,this.storageService);
             }
 
