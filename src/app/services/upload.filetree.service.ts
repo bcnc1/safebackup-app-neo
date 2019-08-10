@@ -408,7 +408,7 @@ export class UploadFiletreeService {
       // Do async job
         request.get(options, function(err, resp, body) {
             if (err) {
-              console.log('목록얻어오기 실패 = ',err);
+              console.log('11..목록얻어오기 실패 = ',err);
                 reject(err);
             } else {
                 if(resp.statusCode == 200){
@@ -422,7 +422,7 @@ export class UploadFiletreeService {
                   resolve("No Content");
                 }
                 else{
-                  console.log('목록얻어오기 실패');
+                  console.log('22..목록얻어오기 실패', resp.statusCode);
                   reject(resp);
                 }
             }

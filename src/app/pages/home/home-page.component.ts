@@ -77,7 +77,9 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.router.navigateByUrl('/');
   }
 
-
+  gotoRoot(){
+    this.router.navigateByUrl('/');
+  }
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    *  탭이 선택됨
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/

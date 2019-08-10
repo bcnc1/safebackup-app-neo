@@ -1,5 +1,7 @@
 import { isFormattedError } from "@angular/compiler";
 import {environment} from './src/environments/environment';
+import { Router } from '@angular/router';
+//import { runMain } from "module";
 //import {LOCAL_STORAGE, StorageService} from 'ngx-webstorage-service';
 //import {M5MemberService} from './src/app/services/m5/m5.member.service';
 //import {Component, Inject, OnInit} from '@angular/core';
@@ -14,14 +16,6 @@ const os = require("os");
 
 const path = require("path");
 
-/* original code
-import { app, BrowserWindow, ipcMain} from 'electron';
-import * as fs from 'fs';
-import * as url from 'url';
-import * as os from 'os'; 
-
-import * as path from 'path';
-*/
 
 const checkDiskSpace = require("check-disk-space");
 const request = require('request');
@@ -33,13 +27,12 @@ const log = require('electron-log');
 const updater = require('electron-simple-updater');
 //kimcy
 const reqestProm = require('request-promise-native')
-//const macAddress = require('macaddress');
 
 var AutoLaunch = require('auto-launch');
 
 
 let isQuiting = false;
-
+//let router: Router;
 
 
 if (handleSquirrelEvent(app)) {
@@ -81,9 +74,7 @@ function createWindow() {
        click: function () {
          isQuiting = true;
          console.log('트레이종료');
-         //mainWindow.close(); 
          app.quit();
-         //app.exit();
        }
      }
    ]);
@@ -156,26 +147,29 @@ function createWindow() {
      // Handle menu-item or keyboard shortcut quit here
      if (isQuiting == true) {
        log.warn('before-quit ===>QUIT', isQuiting);
-       //kimcy: 임시로 강제종료기능 막음
-       //tray.destroy();
-       //e.preventDefault();
+       mainWindow.destory();
+       if(mainWindow.isDestroyed()){
+        log.warn('before-quit 윈도우 종료 안됨');
+       }else{
+        log.warn('before-quit 윈도우 종료 ');
+       }
        //isQuiting = false;
      } else {
        log.warn('before-quit ==>HIDE', isQuiting);
-       //kimcy
-       //e.preventDefault();
-      // mainWindow.hide();
      }
    });
  
    mainWindow.on('close', function (e) {
      log.warn('close ==> isQuiting?', isQuiting);
+     if(mainWindow.isDestroyed()){
+      log.warn('close 윈도우 종료 안됨');
+     }else{
+      log.warn('close 윈도우 종료 ');
+     }
      if (isQuiting == true) {
-       //log.warn('CLOSING?-->QUIT', isQuiting);
-       isQuiting = false;
+       //isQuiting = false;
        return true;
      } else {
-      // log.warn('CLOSING?-->HIDE', isQuiting);
        mainWindow.hide();
        e.preventDefault();  //여기서 이거 안하고 show 하면 문제 생김
        return false;
@@ -292,24 +286,28 @@ if (!gotTheLock) {
 
   app.on('quit', ()=> {
     console.log('quit 완전종료');
-    //tray.destroy();
-    mainWindow.close();
-    app.exit();
+    if(mainWindow.isDestroyed()){
+      log.warn('quit 윈도우 종료 안됨');
+     }else{
+      log.warn('quit 윈도우 종료 ');
+     }
+    //this.router.navigateByUrl('/');
+    // mainWindow.close();
+    // mainWindow = null;
+    // app.exit(0);
   });
   //kimcy
-  // app.on('will-quit', () => {
-  //   if (process.platform !== 'darwin') {
-  //     log.warn('will-quit ==> CLOSING????', isQuiting);
-  //     if (isQuiting == true) {
-  //       isQuiting = false;
-  //       event.preventDefault();
-  //     } else {
-  //       mainWindow.hide();
-  //       isQuiting = false;
-  //     }
+  app.on('will-quit', () => {
+    if (process.platform !== 'darwin') {
+      log.warn('will-quit ==> CLOSING????', isQuiting);
+      if(mainWindow.isDestroyed()){
+        log.warn('will-quit 윈도우 종료 안됨');
+       }else{
+        log.warn('will-quit 윈도우 종료 ');
+       }
   
-  //   }
-  // });
+    }
+  });
 
   app.on('activate', () => {
     // On OS X it's common to re-create a window in the app when the
@@ -342,12 +340,18 @@ if (!gotTheLock) {
       if (err) {
         console.error(err);
       } else {
-        //console.log('33..앱이실행중이라 업로드 res : ',res);
-        console.log('보냄, GETFOLDERTREE, main');
-        mainWindow.webContents.send("GETFOLDERTREE", {
-          folderIndex: arg.folderIndex,
-          tree: res
-        });
+
+        if(mainWindow && !mainWindow.isDestroyed()){
+          console.log('보냄, GETFOLDERTREE, main');
+          mainWindow.webContents.send("GETFOLDERTREE", {
+            folderIndex: arg.folderIndex,
+            tree: res
+          });
+        }
+        // mainWindow.webContents.send("GETFOLDERTREE", {
+        //   folderIndex: arg.folderIndex,
+        //   tree: res
+        // });
       }
     }
   );
@@ -368,8 +372,8 @@ var diretoryTreeToObj = function (dir, done) {
       return done(err);
 
     var pending = list.length;
-    console.log('diretoryTreeToObj => list.length = ',list.length);
-    console.log('diretoryTreeToObj => pending = ',pending);
+    // console.log('diretoryTreeToObj => list.length = ',list.length);
+    // console.log('diretoryTreeToObj => pending = ',pending);
 
     if (!pending)
       return done(null, {name: path.basename(dir), type: 'folder', children: results});
@@ -468,12 +472,6 @@ ipcMain.on('PCRESOURCE', (event, arg) => {
     macaddress = maps[0].mac;
   }
 
-  // console.log(maps);
-  //kimcy
-  // macAddress.one(function (err, macaddress) {
-  //   console.log("Mac address for this host: %s", macaddress);  
-
-  // });
 
   const cpus = os.cpus();
 
@@ -481,14 +479,24 @@ ipcMain.on('PCRESOURCE', (event, arg) => {
   const path = os.platform() === 'win32' ? 'C:/' : '/';
 
   checkDiskSpace(path).then((diskSpace) => {
-    console.log('보냄 main, PCRESOURCE');
-    mainWindow.webContents.send("PCRESOURCE", {
-      cpus: cpus,
-      disk: diskSpace,
-      ipaddresses: maps,
-      ipaddress: ipaddress,
-       macaddress: macaddress
-    });
+    
+    if(mainWindow && !mainWindow.isDestroyed()){
+      console.log('보냄 main, PCRESOURCE');
+      mainWindow.webContents.send("PCRESOURCE", {
+        cpus: cpus,
+        disk: diskSpace,
+        ipaddresses: maps,
+        ipaddress: ipaddress,
+         macaddress: macaddress
+      });
+    }
+    // mainWindow.webContents.send("PCRESOURCE", {
+    //   cpus: cpus,
+    //   disk: diskSpace,
+    //   ipaddresses: maps,
+    //   ipaddress: ipaddress,
+    //    macaddress: macaddress
+    // });
   });
 
 });
@@ -504,12 +512,20 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   var directory = dialog.showOpenDialog(mainWindow, {
     properties: ['openDirectory']
   });
-  console.log('보냄,main, SELECTFOLDER');
-  mainWindow.webContents.send("SELECTFOLDER", {
-    error: null,
-    folderIndex: arg.folderIndex,
-    directory: directory
-  });
+ 
+  if(mainWindow && !mainWindow.isDestroyed()){
+    console.log('보냄,main, SELECTFOLDER');
+    mainWindow.webContents.send("SELECTFOLDER", {
+      error: null,
+      folderIndex: arg.folderIndex,
+      directory: directory
+    });
+  }
+  // mainWindow.webContents.send("SELECTFOLDER", {
+  //   error: null,
+  //   folderIndex: arg.folderIndex,
+  //   directory: directory
+  // });
 
 });
 
@@ -534,22 +550,31 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   function cbUpload(error, response, body) {
    // console.log(response);
     if (!error && response.statusCode == 201) {
-      console.log('cbUpload file successfully');
-      console.log('보냄, main, SENDFILE index = ',index);
-      mainWindow.webContents.send("SENDFILE", {
+      //console.log('cbUpload file successfully');
+      console.log('업로드 성공, 보냄, main, SENDFILE ');
+      if(mainWindow && !mainWindow.isDestroyed()){
+        mainWindow.webContents.send("SENDFILE", {
           error: null,
           body: body,
           index: index,
           startTime: startTime,
           endTime: new Date().getTime()
         });
+      }
+      // mainWindow.webContents.send("SENDFILE", {
+      //     error: null,
+      //     body: body,
+      //     index: index,
+      //     startTime: startTime,
+      //     endTime: new Date().getTime()
+      //   });
     }else{
-         console.log('cbUpload file error!!! response = ',response.headers);
-         console.log('보냄, main, SENDFILE ');
-         if(mainWindow === undefined || mainWindow === null){
-           return;
+         //console.log('cbUpload file error!!! response = ',response.headers);
+         console.log('업로드 실패, 보냄, main, SENDFILE  ');
+         if (mainWindow && !mainWindow.isDestroyed()){
+          mainWindow.webContents.send("SENDFILE", {error: error});
          }
-         mainWindow.webContents.send("SENDFILE", {error: error});
+         //mainWindow.webContents.send("SENDFILE", {error: error});
   
     }
   }
@@ -573,13 +598,22 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
       console.log('terminate22');
     });
   }else{
-    mainWindow.webContents.send("SENDFILE", {
-      error: null,
-      body: 'folder',
-      index: index,
-      startTime: startTime,
-      endTime: new Date().getTime()
-    });
+    if(mainWindow && !mainWindow.isDestroyed()){
+      mainWindow.webContents.send("SENDFILE", {
+        error: null,
+        body: 'folder',
+        index: index,
+        startTime: startTime,
+        endTime: new Date().getTime()
+      });
+    }
+    // mainWindow.webContents.send("SENDFILE", {
+    //   error: null,
+    //   body: 'folder',
+    //   index: index,
+    //   startTime: startTime,
+    //   endTime: new Date().getTime()
+    // });
   }
 
  
