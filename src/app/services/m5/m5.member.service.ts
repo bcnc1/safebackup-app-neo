@@ -58,7 +58,7 @@ export class M5MemberService extends M5Service {
    initialize(username, password) {
     // Setting URL and headers for request
     var options = {
-        uri: M5MemberService.apiServer,
+        uri: M5MemberService.login,
         method: 'POST',
          headers: {
           'Content-Type': 'application/json'
@@ -98,6 +98,7 @@ export class M5MemberService extends M5Service {
           storage.set('member',member);
       }, function(err) {
           console.log(err);
+          //kimcy: 다 지우는게 맞나?
           storage.remove(member);
       })
   
@@ -128,17 +129,17 @@ export class M5MemberService extends M5Service {
 
   
   //자체 서버가 필요없음으로 삭제해야 될 부분
-  public login(member: Member): Observable<M5ResultMember> {
+  // public login(member: Member): Observable<M5ResultMember> {
 
-    console.log('LOGIN : ', member);
-    const body = ObjectUtils.copy(member);
-    body.fetchOrgBoards = true;
-    return this.http.post(this.url.login(), body)
-      .pipe(
-        map(res => this.handleLoginResponse(res)),
-        catchError(this.handleError)
-      );
-  }
+  //   console.log('LOGIN : ', member);
+  //   const body = ObjectUtils.copy(member);
+  //   body.fetchOrgBoards = true;
+  //   return this.http.post(this.url.login(), body)
+  //     .pipe(
+  //       map(res => this.handleLoginResponse(res)),
+  //       catchError(this.handleError)
+  //     );
+  // }
 
 
 

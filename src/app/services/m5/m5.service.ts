@@ -9,13 +9,16 @@ export class M5Service {
   //kimcy
   static s3Storage = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3'; //environment.STORAGE_URL;
   static s3Auth = 'https://ssproxy.ucloudbiz.olleh.com/auth/v1.0'; 
-  static apiServer = 'http://211.252.85.59:3000/api/v1/user/login';
+  static apiServer = 'http://211.252.85.59:3000/api';
+  static login = M5Service.apiServer +'/v1/user/login';
+
   // static server = 'http://192.168.0.197:7919';
 
   url = {
+    //kimcy
     login: function () {
       console.log('m5.member, login');
-      return M5Service.apiServer;
+      return M5Service.apiServer +'/v1/user/login';
     },
     signup: function () {
       console.log('m5.member, signup');
@@ -41,7 +44,7 @@ export class M5Service {
       console.log('m5.member, list');
       return M5Service.s3Storage + '/'+ username;
     },
- 
+
   };
 
 

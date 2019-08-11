@@ -46,13 +46,7 @@ export class LoginPageComponent implements OnInit {
       initialize(username, password) {
         // Setting URL and headers for request
         var options = {
-            // uri: M5MemberService.s3Auth,
-            // headers: {
-            //   'X-Auth-New-Token': 'true',
-            //   'x-storage-user': 'doctorkeeper'+':'+username,
-            //   'x-storage-pass': password
-            // }
-            uri: M5MemberService.apiServer,
+            uri: M5MemberService.login,
             method: 'POST',
              headers: {
               'Content-Type': 'application/json'
@@ -73,11 +67,9 @@ export class LoginPageComponent implements OnInit {
                     reject(err);
                 } else {
                     if(resp.statusCode == 200){
-                     // resolve(resp.headers['x-auth-token']);
                      resolve(body.token);
                     }else{
                       console.log('22..로그인실패');
-                      //resolve(resp.headers['x-auth-token']);
                       reject(resp.headers);
                     }
                 }

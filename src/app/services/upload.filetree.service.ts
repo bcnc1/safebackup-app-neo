@@ -423,7 +423,12 @@ export class UploadFiletreeService {
                 }
                 else{
                   console.log('22..목록얻어오기 실패', resp.statusCode);
-                  reject(resp);
+                  if(resp.statusCode == 403){
+                    
+                  }else{
+                    reject(resp);
+                  }
+                  
                 }
             }
         });
@@ -689,7 +694,7 @@ export class UploadFiletreeService {
     }else if(listObj === '[]' || listObj === 'No Content'){
       console.log('맨 처음 올리는것임');
     }else{
-      console.log('에러');
+      console.log('에러 => 처음부터 다시 올림?? 맞나??');
      // this.gotoNextFile(this.filesToSend.length);
     }
 
