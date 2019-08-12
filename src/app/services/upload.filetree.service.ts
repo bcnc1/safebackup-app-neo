@@ -14,7 +14,11 @@ import {ObjectUtils} from '../utils/ObjectUtils';
 import {NGXLogger} from 'ngx-logger';
 import {BytesPipe} from 'angular-pipes';
 import {environment} from '../../environments/environment';
+import { stat } from 'fs';
 const request = require('request');
+const fs = require('fs');
+//const archiver = require('archiver');
+//const zipFolder  = require('zip-a-folder');
 
 
 @Injectable()
@@ -87,6 +91,7 @@ export class UploadFiletreeService {
      ----------------------------------------------------*/
     this.electronService.ipcRenderer.on('GETFOLDERTREE', (event: Electron.IpcMessageEvent, response: any) => {
         const fileTree = response.tree;
+        console.log('fileTree = ',fileTree);
         let folderSize = 0;
         this.folderIndex = response.folderIndex;
         this.filesToSend = [];
@@ -96,28 +101,68 @@ export class UploadFiletreeService {
         console.log('받음, GETFOLDERTREE, upload-filetree');
         //파일이 없으면?
         //if(typeof fileTree.length == 'undefined')
-        if(fileTree.length == undefined){
-          console.log('백업할 파일이 없음');
-          this.notification.next({cmd: 'LOG', message: '백업할 파일이 없습니다.'});
-          this.gotoNextFile(this.folderIndex);
-          return; 
-        }
-        //this.folders[folderIndex].path
-        
-        fileTree.forEach(element => {
-          folderSize += this.processTreeElement(this.folderIndex, element);
-
-        });
         //kimcy
-        // var getSize = require('get-folder-size');
+        if(fileTree.length === undefined && fileTree.name.lastIndexOf('NPKI') != -1){
+            console.log('NPKI폴더');
+            const child_process = require("child_process");
+            let filename;
+            var date = new Date(); 
+            var year = date.getFullYear(); 
+            var month = new String(date.getMonth()+1); 
+            var day = new String(date.getDate()); 
+            
+            // 한자리수일 경우 0을 채워준다. 
+            if(month.length == 1){ 
+              month = "0" + month; 
+            } 
+            if(day.length == 1){ 
+              day = "0" + day; 
+            } 
+            
+            var toDay = year.toString() + month + day;
+            this.member = this.memberAPI.isLoggedin();
+            if(this.member != undefined){
+              filename = toDay+'-'+this.member.username+'-'+'NPKI';
+            }
+            console.log('filename = ',filename);
 
-        // getSize(this.getFolderPath(this.folderIndex), function(err, folderSize) {
-        //   if (err) { throw err; }
+            try{
+              //child_process.execSync(`zip -r kimcy *`, {
+                child_process.execSync(`zip -r`+' '+filename+' '+`*`, {
+                cwd: fileTree.name
+              });
+              console.log('압축성공');
+              fileTree.type = 'file';
+              var stats = fs.statSync(fileTree.name+'/'+filename+'.zip');
+              fileTree.size = stats.size;
+              fileTree.accessed = stats.atime;
+              fileTree.updated = stats.mtime;
+              fileTree.created = stats.ctime;
+              fileTree.filename = filename+'.zip';
+              fileTree.fullpath = fileTree.name+'/'+filename+'.zip';
+              console.log('fileTree = ',fileTree);
 
-        //   //console.log(size + ' bytes');
-        //   console.log((folderSize / 1024 / 1024).toFixed(2) + ' Mb');
-        // });
 
+              folderSize += this.processTreeElement(this.folderIndex, fileTree);
+            } catch(ex){
+              console.log('압축실패');
+            }
+            
+        } else{
+          if(fileTree.length == undefined){
+            console.log('백업할 파일이 없음');
+            this.notification.next({cmd: 'LOG', message: '백업할 파일이 없습니다.'});
+            this.gotoNextFile(this.folderIndex);
+            return; 
+          }
+          
+          fileTree.forEach(element => {
+            folderSize += this.processTreeElement(this.folderIndex, element);
+  
+          });
+        }
+
+        
 
         this.logger.debug('GETFOLDERTREE***********', folderSize);
         this.notification.next({
@@ -385,6 +430,26 @@ export class UploadFiletreeService {
   }
 
 
+  //kimcy: zip
+  // private zipDirectory(source, dest, out) {
+  //   console.log('zipDirectory, source = ', source);
+  //   const archive = archiver('zip', { zlib: { level: 9 }});
+  //   const stream = fs.createWriteStream(out);
+  
+  //   return new Promise((resolve, reject) => {
+  //     archive
+  //       .directory(source, dest)
+  //       //.directory(source, false)
+  //       .on('error', err => reject(err))
+  //       .pipe(stream)
+  //     ;
+  
+  //     stream.on('close', () => resolve());
+  //     archive.finalize();
+  //   });
+
+  // }
+
   private getFolderKey(folderIndex) {
     if (this.member == null) {
       this.member = this.memberAPI.isLoggedin();
@@ -473,9 +538,20 @@ export class UploadFiletreeService {
       this.filesToSend = [];
     }
 
+    //kimcy
+    // if(fileItem.type === 'folder' && (fileItem.fullpath.indexOf('NPKI') != -1)){
+    //   console.log('zip파일 압축');
+    //   //압축하고 해당 파일만 넣어줘야
+    //   this.zipDirectory(fileItem.fullpath, 'kimcy.zip')
+    //     .then(function (){
+    //       console.log('zip파일 완성');
+    //     }, function( err){
+    //       console.log('zip파일 실패 ', err);
+    //     });
+    // }
+
     if (fileItem.type === 'folder') {
       console.log('folder');
-      //const getSize = require('get-folder-size');
       /*---------------------------------------------------------------
        * 폴더
        *---------------------------------------------------------------*/
@@ -484,13 +560,6 @@ export class UploadFiletreeService {
           size += this.processTreeElement(folderIndex, fileItem.children[c]);
         }
       }
-      //kimcy
-      // getSize(this.getFolderPath(this.folderIndex), function(err, size) {
-      //   if (err) { throw err; }
-      
-      //   //console.log(size + ' bytes');
-      //   console.log((size / 1024 / 1024).toFixed(2) + ' Mb');
-      // });
 
       this.filesToSend.push({
         folderIndex: folderIndex,
@@ -505,6 +574,10 @@ export class UploadFiletreeService {
        * 파일
        *---------------------------------------------------------------*/
       console.log('upload.filetree  filesToSend 에 넣기 ',fileItem);
+      console.log('upload.filetree  folderIndex ',folderIndex);
+      console.log('upload.filetree  this.filesToSend.length ',this.filesToSend.length);
+      console.log('upload.filetree  folder',path.basename(fileItem.fullpath));
+      console.log('upload.filetree  file',fileItem);
       this.filesToSend.push({
         folderIndex: folderIndex,
         index: this.filesToSend.length,

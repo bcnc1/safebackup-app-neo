@@ -348,10 +348,6 @@ if (!gotTheLock) {
             tree: res
           });
         }
-        // mainWindow.webContents.send("GETFOLDERTREE", {
-        //   folderIndex: arg.folderIndex,
-        //   tree: res
-        // });
       }
     }
   );
@@ -375,11 +371,18 @@ var diretoryTreeToObj = function (dir, done) {
     // console.log('diretoryTreeToObj => list.length = ',list.length);
     // console.log('diretoryTreeToObj => pending = ',pending);
 
+    //kimcy
+    if(dir.indexOf('NPKI')!= -1){
+      console.log('NPKI폴더')
+      return done(null, {name: dir, type: 'folder', children: results});
+    }
+
     if (!pending)
       return done(null, {name: path.basename(dir), type: 'folder', children: results});
 
     list.forEach(function (file) {
       file = path.resolve(dir, file);
+      console.log('main,  file = ',file);
       fs.stat(file, function (err, stat) {
         if (stat) {
           if (stat.isDirectory()) {
