@@ -23,11 +23,11 @@ export class M5MemberService extends M5Service {
     super();
   }
 
-  public getLoggedin() {
-    //kimcy
-    return this.storage.get('member');
-    //return this.storage.get('username');
-  }
+  // public getLoggedin() {
+  //   //kimcy
+  //   return this.storage.get('member');
+  //   //return this.storage.get('username');
+  // }
 
   public isLoggedin() {
     return this.storage.get('member');
@@ -101,31 +101,84 @@ export class M5MemberService extends M5Service {
           //kimcy: 다 지우는게 맞나?
           storage.remove(member);
       })
-  
-
   }
 
-  private handleLoginResponse(response: any) {
-    console.log('로그인 : ',response);
-    this.handleData(response);
-    this.storage.set('member', response.member);
-    this.storage.set('accessToken', decodeURIComponent(response.accessToken));
-    if (response.orgBoards != null) {
-      response.orgBoards.forEach(board => {
-        console.log(board);
-        if (board.type === 'board') {
-          this.storage.set('board', board);
-        }
-      });
-    } else {
-      this.storage.set('board', {
-        id: 'SVCBoard_481477478793500'
-      });
-    }
+  /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+   *  proof-create
+   *
+   *  username
+   *  password
+   -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
+   initProof(username, path) {
+    // Setting URL and headers for request
+    var options = {
+        uri: M5MemberService.create,
+        method: 'POST',
+         headers: {
+          'Content-Type': 'application/json'
+        },
+        body:{
+          id:username,
+          file:path
+        },
+        json : true
+    };
+    // Return new promise 
+    return new Promise(function(resolve, reject) {
+        request.post(options, function(err, resp, body) {
+            if (err) {
+              console.log('proof create. 실패');
+                reject(err);
+            } else {
+                console.log(resp);
+                if(resp.statusCode == 200){
+                 resolve(body);
+                }else{
+                  console.log('proof create.실패');
+                  reject(body);
+                }
+            }
+        });
+    });
 
-    return response || {};
+}
 
+   public createProof(member,filepath,storage) {
+    var initializePromise = this.initProof(member.username, filepath);
+
+      initializePromise.then(function(result) {
+          //var userToken = result;
+          console.log("createProof => result :",result);
+          // member.token = userToken;
+          // storage.set('member',member);
+      }, function(err) {
+          console.log(err);
+          //kimcy: 다 지우는게 맞나?
+          //storage.remove(member);
+      })
   }
+
+  // private handleLoginResponse(response: any) {
+  //   console.log('로그인 : ',response);
+  //   this.handleData(response);
+  //   this.storage.set('member', response.member);
+  //   this.storage.set('accessToken', decodeURIComponent(response.accessToken));
+  //   if (response.orgBoards != null) {
+  //     response.orgBoards.forEach(board => {
+  //       console.log(board);
+  //       if (board.type === 'board') {
+  //         this.storage.set('board', board);
+  //       }
+  //     });
+  //   } else {
+  //     this.storage.set('board', {
+  //       id: 'SVCBoard_481477478793500'
+  //     });
+  //   }
+
+  //   return response || {};
+
+  // }
 
   
   //자체 서버가 필요없음으로 삭제해야 될 부분

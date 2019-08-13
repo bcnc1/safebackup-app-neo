@@ -2,7 +2,7 @@ import { isFormattedError } from "@angular/compiler";
 import {environment} from './src/environments/environment';
 import { Router } from '@angular/router';
 //import { runMain } from "module";
-//import {LOCAL_STORAGE, StorageService} from 'ngx-webstorage-service';
+import {LOCAL_STORAGE, StorageService} from 'ngx-webstorage-service';
 //import {M5MemberService} from './src/app/services/m5/m5.member.service';
 //import {Component, Inject, OnInit} from '@angular/core';
 
@@ -29,9 +29,11 @@ const updater = require('electron-simple-updater');
 const reqestProm = require('request-promise-native')
 
 var AutoLaunch = require('auto-launch');
-
+//kimcy
+const jsonStorage = require('electron-json-storage');
 
 let isQuiting = false;
+//let StorageService: LOCAL_STORAGE ;
 //let router: Router;
 
 
@@ -136,10 +138,12 @@ function createWindow() {
      mainWindow.webContents.openDevTools();
    } else {
      //kimcy: 3초후에 사라지게 되서 막음
-    //  setTimeout(function () {
-    //    mainWindow.minimize();
-    //    log.warn('MINIMIZE');
-    //  }, 3000);
+     //mainWindow.webContents.openDevTools();
+    //if()
+    setTimeout(function () {
+      mainWindow.minimize();
+      log.warn('MINIMIZE');
+    }, 3000);
  
    }
  
@@ -291,10 +295,7 @@ if (!gotTheLock) {
      }else{
       log.warn('quit 윈도우 종료 ');
      }
-    //this.router.navigateByUrl('/');
-    // mainWindow.close();
-    // mainWindow = null;
-    // app.exit(0);
+
   });
   //kimcy
   app.on('will-quit', () => {
@@ -329,7 +330,34 @@ if (!gotTheLock) {
 
  ipcMain.on("GETFOLDERTREE", (event, arg) => {
   //console.log('22..앱이실행중이라 업로드');
-  console.log('GETFOLDERTREE', arg);
+  //console.log('GETFOLDERTREE', arg);
+  //kimcy:test
+  // const defaultDataPath = jsonStorage.getDefaultDataPath();
+  // console.log('defaultDataPath = ',defaultDataPath);
+
+  // jsonStorage.set('foobar', { foo: 'bar', status: 100 }, function(error) {
+  //   if (error) throw error;
+  // });
+
+  // jsonStorage.set('foobar', { foo1: 'bar1', status: 0}, function(error) {
+  //   if (error) throw error;
+  // });
+  // jsonStorage.set('foobar', { foo2: 'bar2' , status: 1}, function(error) {
+  //   if (error) throw error;
+  // });
+
+  // jsonStorage.get('foobar', function(error, data) {
+  //   if (error) throw error;
+   
+  //   console.log('get=> data = ',data);
+  // });
+
+  // jsonStorage.getAll(function(error, data) {
+  //   if (error) throw error;
+   
+  //   console.log('all=> data = ',data);
+  // });
+
   console.log('받음, GETFOLDERTREE, main');
   if (arg.path == null) {
     console.log('arg.path == null');
@@ -372,10 +400,10 @@ var diretoryTreeToObj = function (dir, done) {
     // console.log('diretoryTreeToObj => pending = ',pending);
 
     //kimcy
-    if(dir.indexOf('NPKI')!= -1){
-      console.log('NPKI폴더')
-      return done(null, {name: dir, type: 'folder', children: results});
-    }
+    // if(dir.indexOf('NPKI')!= -1){
+    //   console.log('NPKI폴더')
+    //   return done(null, {name: dir, type: 'folder', children: results});
+    // }
 
     if (!pending)
       return done(null, {name: path.basename(dir), type: 'folder', children: results});
@@ -493,13 +521,7 @@ ipcMain.on('PCRESOURCE', (event, arg) => {
          macaddress: macaddress
       });
     }
-    // mainWindow.webContents.send("PCRESOURCE", {
-    //   cpus: cpus,
-    //   disk: diskSpace,
-    //   ipaddresses: maps,
-    //   ipaddress: ipaddress,
-    //    macaddress: macaddress
-    // });
+
   });
 
 });
@@ -524,11 +546,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
       directory: directory
     });
   }
-  // mainWindow.webContents.send("SELECTFOLDER", {
-  //   error: null,
-  //   folderIndex: arg.folderIndex,
-  //   directory: directory
-  // });
+
 
 });
 
@@ -541,9 +559,9 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   var sendFile = function (index, formData, file, accessToken, containerName) {
 
   const STORAGE_URL = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3';
- // console.log("fullpath:", file.fullpath);
+  console.log("fullpath:", file.fullpath);
   let paths = path.dirname(file.fullpath).split(path.sep);
-
+  console.log("paths:", paths);
 
   let startTime = new Date().getTime();
   formData.count = file.size;
@@ -561,23 +579,17 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
           body: body,
           index: index,
           startTime: startTime,
+          uploadPath: encodeURI(formData.code.replace(/\\/g, '/')),
           endTime: new Date().getTime()
         });
       }
-      // mainWindow.webContents.send("SENDFILE", {
-      //     error: null,
-      //     body: body,
-      //     index: index,
-      //     startTime: startTime,
-      //     endTime: new Date().getTime()
-      //   });
+
     }else{
          //console.log('cbUpload file error!!! response = ',response.headers);
          console.log('업로드 실패, 보냄, main, SENDFILE  ');
          if (mainWindow && !mainWindow.isDestroyed()){
           mainWindow.webContents.send("SENDFILE", {error: error});
          }
-         //mainWindow.webContents.send("SENDFILE", {error: error});
   
     }
   }
@@ -585,7 +597,6 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   if(formData.subtype === 'file'){
     var options = {  
       method: 'PUT',
-      //uri: STORAGE_URL+'/'+containerName+'/'+ encodeURI(file.fullpath.replace(/\\/g, '/')), 
       uri: STORAGE_URL+'/'+containerName+'/'+ encodeURI(formData.code.replace(/\\/g, '/')), 
       headers:{
           'X-Auth-Token': accessToken,
@@ -610,13 +621,6 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
         endTime: new Date().getTime()
       });
     }
-    // mainWindow.webContents.send("SENDFILE", {
-    //   error: null,
-    //   body: 'folder',
-    //   index: index,
-    //   startTime: startTime,
-    //   endTime: new Date().getTime()
-    // });
   }
 
  

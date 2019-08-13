@@ -11,6 +11,7 @@ export class M5Service {
   static s3Auth = 'https://ssproxy.ucloudbiz.olleh.com/auth/v1.0'; 
   static apiServer = 'http://211.252.85.59:3000/api';
   static login = M5Service.apiServer +'/v1/user/login';
+  static create = M5Service.apiServer +'/v1/proof/create';
 
   // static server = 'http://192.168.0.197:7919';
 

@@ -288,7 +288,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     console.log('보냄 home-page, PCRESOURCE');
     this.logger.debug('- HOMEPAGE ngOnInit: ', this.version);
 
-    this.member = this.memberAPI.getLoggedin();
+    this.member = this.memberAPI.isLoggedin();
 
     function getRandomInt(min, max) {
       console.log('home-page, getRandomInt');
@@ -341,6 +341,19 @@ export class HomePageComponent implements OnInit, OnDestroy {
           // }
 
           this.onStartUploadFolder(message.folderIndex + 1, 5);
+        } else if(message.cmd === 'LIST.COMPLETE'){
+          //kimcy token 갱신
+          if (this.electronService.isElectronApp){
+            this.member = this.memberAPI.isLoggedin();
+            if(this.member === undefined){
+              //로그인
+              this.router.navigateByUrl('/login');
+              return;
+            }else{
+              console.log('새로운 토큰 가져오기');
+              this.memberAPI.getLoginToken(this.member,this.storageService);
+            }
+          }
         } else {
 
           //kimcy: 기존의 목록을 지워야 한다.
@@ -356,22 +369,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
             cmd: 'LOG',
             message: str + '에 백업이 재실행됩니다.'
           });
-
-          //kimcy token 갱신
-          if (this.electronService.isElectronApp){
-            this.member = this.memberAPI.isLoggedin();
-            if(this.member === undefined){
-              //로그인
-              this.router.navigateByUrl('/login');
-              return;
-            }else{
-              console.log('새로운 토큰 가져오기');
-              this.memberAPI.getLoginToken(this.member,this.storageService);
-            }
-
-          }
-
-          //this.loginAPI.login()
           this.logger.debug(new Date(), '다음 백업 대기 업로딩? ', this.uploading);
           this.onStartUploadFolder(0, interval / 1000);
 
