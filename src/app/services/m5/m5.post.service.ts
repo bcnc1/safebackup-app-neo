@@ -102,7 +102,7 @@ export class M5PostService extends M5Service {
   }
 
 
-  createProof(postUrl, member, filepath, index): Observable<M5Result> {
+  createProof(postUrl, member, filepath, index, noti): Observable<M5Result> {
 
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
@@ -111,20 +111,30 @@ export class M5PostService extends M5Service {
 
     let body = {'id': member.username , 'file': decodeURI(filepath)}
 
-
-    // const headers = new HttpHeaders()
-    //         .set("Content-Type", "application/json")
-    //         .set("X-Auth-Token", member.token);
-
-    
-    // let params = Object.assign(post, parameters);
-    // params.accessToken = this.storage.get('accessToken');
-    // params = this.getFormUrlEncoded(params);
-
     const url = postUrl;
 
     console.log('createProof', url);
     return this.http.post(url,
+      body, options)
+      .pipe(
+        map(res => this.handleResponse(res)),
+        catchError(this.handleError)
+      );
+  }
+
+  updateProof(postUrl, member, filepath, index, noti): Observable<M5Result> {
+
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'X-Auth-Token': member.token });
+    let options = { headers: headers };
+
+    let body = {'id': member.username , 'file': decodeURI(filepath)}
+
+    const url = postUrl;
+
+    console.log('updateProof', url);
+    return this.http.put(url,
       body, options)
       .pipe(
         map(res => this.handleResponse(res)),

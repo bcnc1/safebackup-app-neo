@@ -45,6 +45,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
   public uploading = false;
   private alertModal: BsModalRef;
+  private memberPrivate = false;
 
   constructor(
     private memberAPI: M5MemberService,
@@ -90,6 +91,10 @@ export class HomePageComponent implements OnInit, OnDestroy {
     console.log('folderKey = ', folderKey, 'folder = ', folder);
 
     this.logger.debug('FOLDERNAME', folder, folderKey);
+    
+   // if(M5MemberService.is)
+    this.uploadFiletreeService.getContainerList(this.storageService);
+
     //kimcy
     //if (folder != null) {
     if (folder != undefined) {
@@ -121,7 +126,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   onChangeFolder(folderIndex) {
     this.selectedFolderIndex = folderIndex;
-    console.log('보냄,home-page, onChangeFolder, SELECTFOLDER');
+    console.log('보냄,home-page, onChangeFolder, SELECTFOLDER ,  folderIndex = ',folderIndex );
     this.electronService.ipcRenderer.send('SELECTFOLDER', {
       folderIndex: folderIndex
     });
@@ -251,7 +256,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     const folder = this.storageService.get(folderKey);
     console.log('home-page folder = ', folder, 'folderKey = ', folderKey);
 
-    //kimcy: 일단은 여기서 목록을 만들어서 저장한다.
+    //kimcy: 중간에 로그아웃해버리는 경우가 있음으로 일단은 여기서 목록을 만들어서 저장한다.
     console.log('folderIndex = ',folderIndex,'uploading = ',this.uploading);
     if(folderIndex == 0 && (this.uploading === false)){
       console.log('업로딩 시작으로 목록갱신');
@@ -262,7 +267,35 @@ export class HomePageComponent implements OnInit, OnDestroy {
       console.log('setTimeout, folderIndex = ', folderIndex);
       this.uploading = true;
       this.uploadFiletreeService.upload(folderIndex, folder);
-    }, after * 1000);  //여기서 시간값을 바꾸면 시작값이 안 맞는다.(다음폴더는 5초후에), 백업시작버튼누르면 3초후에, 다음번은 1~4시간안에
+    }, after * 1000);  //보통은 로그인후 3초후에 시작, 여기서 시간값을 바꾸면 시작값이 안 맞는다.(다음폴더는 5초후에), 백업시작버튼누르면 3초후에, 다음번은 1~4시간안에
+  }
+
+  onStartUploadFolderNext(folderIndex, after) {
+    console.log('home-page, onStartUploadFolder, folderIndex = ',folderIndex, 'after = ',after);
+    if (after == null) {
+      after = 5;
+    }
+    const folderKey = this.getFolderKey(folderIndex);
+    console.log('home-page folderKey = ', folderKey);
+
+    const folder = this.storageService.get(folderKey);
+    console.log('home-page folder = ', folder, 'folderKey = ', folderKey);
+
+    //kimcy: 중간에 로그아웃해버리는 경우가 있음으로 일단은 여기서 목록을 만들어서 저장한다.
+    console.log('folderIndex = ',folderIndex,'uploading = ',this.uploading);
+    // if(folderIndex == 0 && (this.uploading === false)){
+    //   console.log('업로딩 시작으로 목록갱신');
+    //   this.uploadFiletreeService.getContainerList(this.storageService);
+    // }
+    //token갱신
+    console.log('새로운 토큰 가져오기');
+    this.memberAPI.getLoginToken(this.member,this.storageService);
+
+    setTimeout(() => {
+      console.log('setTimeout, folderIndex = ', folderIndex);
+      this.uploading = true;
+      this.uploadFiletreeService.upload(folderIndex, folder);
+    }, after * 1000);  //보통은 로그인후 3초후에 시작, 여기서 시간값을 바꾸면 시작값이 안 맞는다.(다음폴더는 5초후에), 백업시작버튼누르면 3초후에, 다음번은 1~4시간안에
   }
 
   fillFolders() {
@@ -270,8 +303,11 @@ export class HomePageComponent implements OnInit, OnDestroy {
     for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
       const folderKey = this.getFolderKey(i);
       this.storedFolders[i] = this.storageService.get(folderKey); //선택한폴더
+      console.log('this.selectedFolderIndex = ',this.selectedFolderIndex);
+      console.log('this.storedFolders[i] = ',this.storedFolders[i], i);
       if (this.selectedFolderIndex === i) {
         this.showingFolderName = this.storedFolders[i];
+        console.log('this.showingFolderName = ',this.showingFolderName);
       }
     }
   }
@@ -290,6 +326,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.logger.debug('- HOMEPAGE ngOnInit: ', this.version);
 
     this.member = this.memberAPI.isLoggedin();
+    this.memberPrivate = this.member.private;
 
     function getRandomInt(min, max) {
       console.log('home-page, getRandomInt');
@@ -297,16 +334,15 @@ export class HomePageComponent implements OnInit, OnDestroy {
     }
 
     //kimcy:test
-    // var div1 = window.document.getElementsByClassName('tab-container');
-    // var node = div1.namedItem
-    // console.log('div1 =',node);
+    var div1 = window.document.getElementById('tab2');
+    //var node = div1.namedItem('tab-container');
+    //div1.
+    console.log('div1 =',div1);
 
     /*---------------------------------------------------------------
            Subscribe to notification
      ----------------------------------------------------------------*/
-    //  this.uploadSubscribe = this.uploadFiletreeService.notified().subscribe(message => {
-
-    //  });
+  
     this.uploadSubscribe = this.uploadFiletreeService.notified().subscribe(message => {
 
 
@@ -349,7 +385,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
           // }
 
           this.onStartUploadFolder(message.folderIndex + 1, 5);
-        } else if(message.cmd === 'LIST.COMPLETE'){
+        } else if(message.cmd === 'LIST.COMPLETE'){  //이거 지금 안 불림..
           //kimcy token 갱신
           if (this.electronService.isElectronApp){
             this.member = this.memberAPI.isLoggedin();
@@ -378,7 +414,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
             message: str + '에 백업이 재실행됩니다.'
           });
           this.logger.debug(new Date(), '다음 백업 대기 업로딩? ', this.uploading);
-          this.onStartUploadFolder(0, interval / 1000);
+          //this.onStartUploadFolder(0, interval / 1000);
+          this.onStartUploadFolderNext(0, interval / 1000); //여기서 토큰 갱신
 
         }
 
@@ -403,7 +440,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
     setTimeout(() => {
       
-      console.log('5초후 등록된 폴더에 대해 업로드를 실행 ??');
+      console.log('10초후 등록된 폴더에 대해 업로드를 실행 ??');
       //this.uploadFiletreeService.upload(0, this.storedFolders[0]);
       if(this.storageService.get('login') == true){
         for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
@@ -441,7 +478,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
         console.log('home-page, SELECTFOLDER => folderKey', folderKey);
 
-        this.storageService.set(folderKey, response.directory[0]); //key: folder:pharmbase:0
+        this.storageService.set(folderKey, response.directory[0]); //key: 예:folder:pharmbase:0
         this.fillFolders();
 
         this.uploadFiletreeService.fillFollders();
@@ -459,6 +496,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
            서버에 저장된 Folder의 File 목록들을 받아온다
            (초기 목록 보여주기 용)
      ----------------------------------------------------------------*/
+     //this.uploadFiletreeService.getContainerList(this.storageService);
     this.onTab(0);
 
     // const folderPath = this.uploadFiletreeService.getFolderPath(this.selectedFolderIndex);

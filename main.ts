@@ -581,7 +581,8 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
           index: index,
           startTime: startTime,
           uploadPath: encodeURI(formData.code.replace(/\\/g, '/')),
-          endTime: new Date().getTime()
+          endTime: new Date().getTime(),
+          chain: formData.chain
         });
       }
 

@@ -10,9 +10,12 @@
     </div>
 
     <div class="col-sm pull-right  text-right">
-      <button type="submit" class="btn btn-danger btn-sm" style="margin-right:5px;" (click)="onStartUploadFolder(0,3)">
-        백업시작
+      <button type="submit" class="btn btn-info btn-sm" style="margin-right:5px;" (click)="onStartBrowser()" *ngIf="memberPrivate">
+        백업관리
       </button>
+      <button type="submit" class="btn btn-danger btn-sm" style="margin-right:5px;" (click)="onStartUploadFolder(0,3)">
+          백업시작
+        </button>
       <button type="submit" class="btn btn-primary btn-sm" (click)="onLogout()">
         로그아웃
       </button>
@@ -25,24 +28,25 @@
 
   <div>
     <tabset>
-      <tab (selectTab)="onTab(0)">
+      <tab (selectTab)="onTab(0)" *ngIf="!memberPrivate">
         <ng-template tabHeading>
           폴더1
-          <span class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[0] != undefined">
+          <span  class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[0] != undefined">
             {{foldersSize[0] | bytes}}
           </span>
         </ng-template>
       </tab>
 
-      <tab (selectTab)="onTab(1)">
+      <tab (selectTab)="onTab(1)" *ngIf="!memberPrivate">
         <ng-template tabHeading>
           폴더2
-          <span class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[1] != undefined">
+          <span  class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[1] != undefined">
             {{foldersSize[1] | bytes}}
           </span>
         </ng-template>
       </tab>
-      <tab (selectTab)="onTab(2)" *ngIf="true">
+     <!-- <tab id="tab2" (selectTab)="onTab(2)" *ngIf="true"> -->
+        <tab  (selectTab)="onTab(2)" *ngIf="memberPrivate">
      <!-- <tab (select)="onTab(2)" *ngIf="false"> -->
         <ng-template tabHeading>
           개인폴더
