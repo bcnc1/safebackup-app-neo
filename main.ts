@@ -562,6 +562,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   console.log("fullpath:", file.fullpath);
   let paths = path.dirname(file.fullpath).split(path.sep);
   console.log("paths:", paths);
+  console.log("파일명:", file.filename);
 
   let startTime = new Date().getTime();
   formData.count = file.size;

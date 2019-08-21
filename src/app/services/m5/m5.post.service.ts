@@ -10,6 +10,7 @@ import {ObjectUtils} from '../../utils/ObjectUtils';
 import * as moment from 'moment';
 
 
+
 @Injectable({
   providedIn: 'root'
 })
@@ -99,4 +100,37 @@ export class M5PostService extends M5Service {
         catchError(this.handleError)
       );
   }
+
+
+  createProof(postUrl, member, filepath, index): Observable<M5Result> {
+
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'X-Auth-Token': member.token });
+    let options = { headers: headers };
+
+    let body = {'id': member.username , 'file': decodeURI(filepath)}
+
+
+    // const headers = new HttpHeaders()
+    //         .set("Content-Type", "application/json")
+    //         .set("X-Auth-Token", member.token);
+
+    
+    // let params = Object.assign(post, parameters);
+    // params.accessToken = this.storage.get('accessToken');
+    // params = this.getFormUrlEncoded(params);
+
+    const url = postUrl;
+
+    console.log('createProof', url);
+    return this.http.post(url,
+      body, options)
+      .pipe(
+        map(res => this.handleResponse(res)),
+        catchError(this.handleError)
+      );
+  }
 }
+
+

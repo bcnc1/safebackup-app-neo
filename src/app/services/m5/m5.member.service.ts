@@ -17,23 +17,27 @@ const request = require('request');
 
 export class M5MemberService extends M5Service {
 
+  private chainUpdate =  false;
+
   constructor(
     protected http: HttpClient,
     @Inject(LOCAL_STORAGE) private storage: StorageService) {
     super();
   }
 
-  // public getLoggedin() {
-  //   //kimcy
-  //   return this.storage.get('member');
-  //   //return this.storage.get('username');
-  // }
+ 
 
   public isLoggedin() {
     return this.storage.get('member');
   }
 
+  public isChainUpdate(){
+    return this.chainUpdate;
+  }
 
+  private setChianUpdate(set){
+    this.chainUpdate =  set;
+  }
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    *  로그아웃
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
@@ -109,54 +113,70 @@ export class M5MemberService extends M5Service {
    *  username
    *  password
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-   initProof(username, path) {
-    // Setting URL and headers for request
-    var options = {
-        uri: M5MemberService.create,
-        method: 'POST',
-         headers: {
-          'Content-Type': 'application/json'
-        },
-        body:{
-          id:username,
-          file:path
-        },
-        json : true
-    };
-    // Return new promise 
-    return new Promise(function(resolve, reject) {
-        request.post(options, function(err, resp, body) {
-            if (err) {
-              console.log('proof create. 실패');
-                reject(err);
-            } else {
-                console.log(resp);
-                if(resp.statusCode == 200){
-                 resolve(body);
-                }else{
-                  console.log('proof create.실패');
-                  reject(body);
-                }
-            }
-        });
-    });
+//    initProof(username, token, path) {
+//     // Setting URL and headers for request
+//     var options = {
+//         uri: M5MemberService.create,
+//         method: 'POST',
+//          headers: {
+//           'Content-Type': 'application/json',
+//           'X-Auth-Token': token
+//         },
+//         body:{
+//           id:username,
+//           file:decodeURI(path)
+//         },
+//         json : true
+//     };
+//     // Return new promise 
+//     return new Promise(function(resolve, reject) {
+//         request.post(options, function(err, resp, body) {
+//             if (err) {
+//               console.log('11. proof create. 실패');
+//                 reject(err);
+//             } else {
+//                 console.log(resp);
+//                 //if(resp.statusCode == 200){
+//                   if(body.key.code == 10000){
+//                   console.log('proof create.성공');
+//                  resolve(body.key.code);
+//                 }else{
+//                   console.log('22.. proof create.실패');
+//                   reject(body);
+//                 }
+//             }
+//         });
+//     });
 
-}
+// }
 
-   public createProof(member,filepath,storage) {
-    var initializePromise = this.initProof(member.username, filepath);
+//    public createProof(member,filepath,storage) {
+//     //var path = decodeURI(response.uploadPath);
+//     //console.log('filepath = ',decodeURI(filepath));
+//     var initializePromise = this.initProof(member.username, member.token, filepath);
 
-      initializePromise.then(function(result) {
-          //var userToken = result;
-          console.log("createProof => result :",result);
-          // member.token = userToken;
-          // storage.set('member',member);
-      }, function(err) {
-          console.log(err);
-          //kimcy: 다 지우는게 맞나?
-          //storage.remove(member);
-      })
-  }
+//       initializePromise.then(function(result) {
+//           //var userToken = result;
+//           console.log("createProof => result :",result);
+//           var chainArray=[];
+//           var str = {'name' : filepath, 'status': true};
+//           var jsonStr = JSON.stringify(str);
+//           chainArray = storage.get('chain');
+//           console.log('chainArray = ',chainArray);
+//           if(chainArray == undefined){
+//             storage.set('chain', jsonStr); 
+//           }else{
+//             chainArray.push(jsonStr); 
+//             storage.set('chain', chainArray); 
+//           }
+
+
+
+//       }, function(err) {
+//           console.log(err);
+//         //  storage.set(filepath,false);
+//       })
+//   }
 
   // private handleLoginResponse(response: any) {
   //   console.log('로그인 : ',response);

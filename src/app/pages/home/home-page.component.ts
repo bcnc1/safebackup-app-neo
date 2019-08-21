@@ -12,9 +12,7 @@ import * as moment from 'moment';
 import { ObjectUtils } from '../../utils/ObjectUtils';
 import { NGXLogger } from 'ngx-logger';
 import { environment } from '../../../environments/environment';
-//import { LoginPageComponent} from '../login/login-page.component';
-// /Users/kimcy/dev/SafeBackUp/src/app/pages/login/login-page.component.ts
-// /Users/kimcy/dev/SafeBackUp/src/app/pages/home/home-page.component.ts
+
 
 @Component({
   selector: 'app-page',
@@ -30,6 +28,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
   public member;
   private deviceResource;
   private uploadSubscribe;
+
 
   private accessToken;
 
@@ -56,7 +55,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
     private logger: NGXLogger,
     @Inject(LOCAL_STORAGE) private storageService: StorageService,
     private modalService: BsModalService,
-    //private loginAPI: LoginPageComponent,
     private router: Router) {
   }
 
@@ -64,7 +62,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
   private getFolderKey(folderIndex) {
     console.log('home-page, getFolderKey => folderIndex ',folderIndex, this.member.username);
     const key = 'folder:' + this.member.username + ':' + folderIndex;
-    this.logger.debug('FOLDERKEY', key, 'username = ' + this.member.username);
+    //this.logger.debug('FOLDERKEY', key, 'username = ' + this.member.username);
     return key;
   }
 
@@ -127,6 +125,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.electronService.ipcRenderer.send('SELECTFOLDER', {
       folderIndex: folderIndex
     });
+    this.storageService.set('login',false);
+
   }
 
 
@@ -259,6 +259,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     }
 
     setTimeout(() => {
+      console.log('setTimeout, folderIndex = ', folderIndex);
       this.uploading = true;
       this.uploadFiletreeService.upload(folderIndex, folder);
     }, after * 1000);  //여기서 시간값을 바꾸면 시작값이 안 맞는다.(다음폴더는 5초후에), 백업시작버튼누르면 3초후에, 다음번은 1~4시간안에
@@ -295,10 +296,17 @@ export class HomePageComponent implements OnInit, OnDestroy {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    //kimcy:test
+    // var div1 = window.document.getElementsByClassName('tab-container');
+    // var node = div1.namedItem
+    // console.log('div1 =',node);
 
     /*---------------------------------------------------------------
            Subscribe to notification
      ----------------------------------------------------------------*/
+    //  this.uploadSubscribe = this.uploadFiletreeService.notified().subscribe(message => {
+
+    //  });
     this.uploadSubscribe = this.uploadFiletreeService.notified().subscribe(message => {
 
 
@@ -390,24 +398,26 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
     /*---------------------------------------------------------------
            등록된 폴더에 대해 업로드를 실행  (현재는 모두 다시 올림)
-           로그아웃 후 로그안 하는 경우
+           로그아웃 후 로그인 하는 경우
      ----------------------------------------------------------------*/
-    setTimeout(() => {
 
+    setTimeout(() => {
+      
       console.log('5초후 등록된 폴더에 대해 업로드를 실행 ??');
       //this.uploadFiletreeService.upload(0, this.storedFolders[0]);
-      for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
-        //kimcy 
-        //console.log('this.storedFolders[i]', i, this.storedFolders[i]);
-        //if (this.storedFolders[i] != null) {
-        this.uploading = false;
-        if (this.storedFolders[i] != undefined) {
-          console.log('등록된 폴더에 대해 업로드를 실행', this.storedFolders[i].length); //폴더의 이름 길이
-          this.uploadFiletreeService.upload(i, this.storedFolders[i]);
-          break;
+      if(this.storageService.get('login') == true){
+        for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
+          this.uploading = false;
+          console.log('storedFolders = ',this.storedFolders[i]);
+          if (this.storedFolders[i] != undefined) {
+            console.log('등록된 폴더에 대해 업로드를 실행', this.storedFolders[i].length); //폴더의 이름 길이
+            this.uploadFiletreeService.upload(i, this.storedFolders[i]);
+            break;
+          }
         }
       }
-    }, 5000);
+      
+    }, 10000);  //폴더선택후 3초후에 업로드시작이기때문에 처음로그인해서는 5초보다는 길어야.. 10초후
 
     /*----------------------------------------------------
        *  IPC Response : Get FileTree
@@ -420,7 +430,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
     /*---------------------------------------------------------------
            LISTENER : SELECTFOLDER의 리스너
-     ----------------------------------------------------------------*/62
+     ----------------------------------------------------------------*/
 
     this.electronService.ipcRenderer.on('SELECTFOLDER', (event: Electron.IpcMessageEvent, response: any) => {
       this.logger.debug('SELECTFOLDER', response, this.uploading);
@@ -431,15 +441,15 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
         console.log('home-page, SELECTFOLDER => folderKey', folderKey);
 
-
-        //        this.storedFolders[response.folderIndex] = response.directory[0];
         this.storageService.set(folderKey, response.directory[0]); //key: folder:pharmbase:0
         this.fillFolders();
 
         this.uploadFiletreeService.fillFollders();
         console.log('home-page, uploading?? ', this.uploading)
         if (this.uploading === false) {
-          this.onStartUploadFolder(response.folderIndex, 3);
+          console.log('home-page, SELECTFOLDER ?? folderIndex = ', response.folderIndex)
+          this.storageService.set('login',false);
+          this.onStartUploadFolder(response.folderIndex, 3);  //3초후에 업로드
         }
       }
     });

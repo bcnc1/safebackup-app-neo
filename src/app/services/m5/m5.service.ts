@@ -57,7 +57,10 @@ export class M5Service {
   protected handleData(response: any) {
     console.log('handleData');
     console.log(response);
-    if (200 !== response.header.code) {
+    // if (200 !== response.header.code) {
+    //   throw response.header;
+    // }
+    if(response.key.code != 10000){
       throw response.header;
     }
   }

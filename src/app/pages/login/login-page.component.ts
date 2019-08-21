@@ -67,7 +67,12 @@ export class LoginPageComponent implements OnInit {
                     reject(err);
                 } else {
                     if(resp.statusCode == 200){
-                     resolve(body.token);
+                      var result = [];
+                      result.push(body.token);
+                      result.push(body.private);
+                     //resolve(body.token);
+                     console.log('login result = ',result);
+                     resolve(result);
                     }else{
                       console.log('22..로그인실패');
                       reject(resp.headers);
@@ -82,10 +87,15 @@ export class LoginPageComponent implements OnInit {
       var initializePromise = this.initialize(member.username, member.password);
 
       initializePromise.then(function(result) {
-          var userToken = result;
-          console.log("userToken :",userToken);
-          member.token = userToken;
+           var userToken = result[0];
+           console.log("userToken :",userToken);
+           member.token = userToken;
+
+           var userPrivate = result[1];
+           member.private = userPrivate;
+
           storage.set('member',member);
+          storage.set('login',true);
           
           router.navigateByUrl('/home');
 
