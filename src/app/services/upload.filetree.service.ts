@@ -126,27 +126,41 @@ export class UploadFiletreeService {
             }
             console.log('filename = ',filename);
 
+            var filepath = fileTree.name + '/' + filename + '.zip';
+
             var zipper = require('zip-local');
 
-            zipper.sync.zip(fileTree.name).compress().save(fileTree.name + '/' + filename + '.zip');
+            zipper.sync.zip(fileTree.name).compress().save(filepath);
 
+            
              //파일사이즈계산
-            var stats = fs.statSync(fileTree.name + '/' + filename + '.zip');
+            var stats = fs.statSync(filepath);
             folderSize = stats.size;
 
+            var fileitem ={type:'file', filename: path.basename(filepath), fullpath : filepath, 
+                           size: stats.size, accessed:stats.atime, updated:stats.mtime, created:stats.ctime};
+            
+
             this.filesToSend.push({
-              type: 'file',
-              filename: path.basename(fileTree.name),
-              fullpath: fileTree.name,
-              //folderIndex: this.folderIndex,
-              //index: 1,
-              size: stats.size,
-              folder: fileTree.name,
-              //file: fileTree
-              accessed: stats.atime, //파일에 접근한 마지막 시간
-              updated: stats.mtime, //파일이 수정된 마지막 시간
-              created: stats.ctime, //파일상태가 변경된 마지막시간
+              folderIndex: this.folderIndex,
+              index: 0,                         //0부터 시작
+              folder: path.basename(filepath),
+              file: fileitem
+
+
+              // type: 'file',
+              // filename: path.basename(fileTree.name),
+              // fullpath: fileTree.name,
+              // //folderIndex: this.folderIndex,
+              // //index: 1,
+              // size: stats.size,
+              // folder: fileTree.name,
+              // //file: fileTree
+              // accessed: stats.atime, //파일에 접근한 마지막 시간
+              // updated: stats.mtime, //파일이 수정된 마지막 시간
+              // created: stats.ctime, //파일상태가 변경된 마지막시간
             });
+
             this.logger.debug('GET, NPKI ***********', folderSize);
             this.notification.next({
               cmd: 'FOLDER.INFO',
@@ -238,6 +252,7 @@ export class UploadFiletreeService {
         console.log('upload.filetree, filesToSend?? ', this.filesToSend);
         for (const f in this.filesToSend) {
           if (this.filesToSend.hasOwnProperty(f)) {
+            console.log('filesToSend hasOwnProperty 가 있다.this.filesToSend[f] = ', this.filesToSend[f]);
             const fileItem = this.filesToSend[f];
 
             const folderName = path.dirname(fileItem.file.fullpath);
@@ -327,7 +342,7 @@ export class UploadFiletreeService {
         //   }
         // }
 
-        console.log('uplaod.filetree, FILESORT', fileSortList);
+        //console.log('uplaod.filetree, FILESORT', fileSortList);
 
 
         const dataBackupItem = this.folders[response.folderIndex];
@@ -358,12 +373,15 @@ export class UploadFiletreeService {
         /*----------------------------------------------------
          *  이상유무를 서버에 저장
          *---------------------------------------------------*/
-        dataBackupItem.lastUploaded = moment().unix() * 1000;
-        dataBackupItem.lastZip = maxDate.unix() * 1000;
-        dataBackupItem.count = folderSize;
-        dataBackupItem.deviceResource = this.deviceResource;
+        console.log('이상유무를 서버에 저장');
+        // dataBackupItem.lastUploaded = moment().unix() * 1000;
+        // dataBackupItem.lastZip = maxDate.unix() * 1000;
+        // dataBackupItem.count = folderSize;
+        // dataBackupItem.deviceResource = this.deviceResource;
 
         this.member = this.memberAPI.isLoggedin();
+
+        console.log('로그인되어있는지 보고');
         //kimcy 추후.
         // this.memberAPI.detail(this.member).subscribe(res => {
         //   this.logger.debug('##MEMBER', res.member);
@@ -381,15 +399,17 @@ export class UploadFiletreeService {
         //   );
         // });
 
-
+        console.log('deviceResource = ',this.deviceResource);
         if (this.deviceResource == null) {
           this.deviceResource = {
             macaddress: 'MAC'
           };
         }
-
+        
         //kimcy: dataBackupItem 이란? 마지막 업로드. 에러(10일, 5일, nozip), 마지막zip, count, 디바이스리소스
         dataBackupItem.version = environment.VERSION;
+
+        console.log('dataBackupItem.version = ',dataBackupItem.version);
         //kimcy: 
         // const post = {
         //   type: 'folderData',
@@ -416,6 +436,7 @@ export class UploadFiletreeService {
         //     this.logger.debug(error);
         //   }
         // );
+        console.log('processFile 호출?? 해야지.. ');
         this.subject.next(this.filesToSend[0]); //processFile 호출??
       }
     );
@@ -757,13 +778,13 @@ export class UploadFiletreeService {
      ----------------------------------------------------------------*/
 
     const paths = path.dirname(file.fullpath).split(path.sep);  //fullpath를 /로 분리하여 저장
-    //console.log('업로드 paths: ',paths);  
+    console.log('업로드 paths: ',paths);  
     const parentPath = (paths.slice(0, paths.length).join(path.sep)).replace(/\\/g, '/');
-    //console.log('업로드 parentPath: ',parentPath);
+    console.log('업로드 parentPath: ',parentPath);
     const folderName = this.folders[item.folderIndex].path.replace(/\\/g, '/');
-    //console.log('업로드 folderName: ',folderName);
+    console.log('업로드 folderName: ',folderName);
     const code = file.fullpath.replace(/\\/g, '/');  //비교대상
-    //console.log('업로드 code: ',code);
+    console.log('업로드 code: ',code);
     const deviceId = this.deviceResource.macaddress;
 
     let userToken = this.member.token;
