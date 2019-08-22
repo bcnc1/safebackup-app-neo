@@ -247,6 +247,12 @@ export class HomePageComponent implements OnInit, OnDestroy {
   //kimcy: folderIndex 가 0이면 처음부터 시작
   onStartUploadFolder(folderIndex, after) {
     console.log('home-page, onStartUploadFolder, folderIndex = ',folderIndex, 'after = ',after);
+
+    //매 업로드 시작시 토큰 갱신
+    if(folderIndex == 0){
+      this.memberAPI.getLoginToken(this.member,this.storageService);
+    }
+
     if (after == null) {
       after = 5;
     }
@@ -270,6 +276,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     }, after * 1000);  //보통은 로그인후 3초후에 시작, 여기서 시간값을 바꾸면 시작값이 안 맞는다.(다음폴더는 5초후에), 백업시작버튼누르면 3초후에, 다음번은 1~4시간안에
   }
 
+  //업로드 종료후 토큰 갱신
   onStartUploadFolderNext(folderIndex, after) {
     console.log('home-page, onStartUploadFolder, folderIndex = ',folderIndex, 'after = ',after);
     if (after == null) {
@@ -414,8 +421,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
             message: str + '에 백업이 재실행됩니다.'
           });
           this.logger.debug(new Date(), '다음 백업 대기 업로딩? ', this.uploading);
-          //this.onStartUploadFolder(0, interval / 1000);
-          this.onStartUploadFolderNext(0, interval / 1000); //여기서 토큰 갱신
+          this.onStartUploadFolder(0, interval / 1000);
+         // this.onStartUploadFolderNext(0, interval / 1000); //여기서 토큰 갱신
 
         }
 
