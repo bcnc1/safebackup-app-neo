@@ -848,8 +848,9 @@ export class UploadFiletreeService {
     }
 
     /*---------------------------------------------------------------
-          이미 존재하는지 체크
+          이미 존재하는지 체크, 
         ----------------------------------------------------------------*/
+    //공용과 블록체인을 나워야...
     let existPost = null;
     var listObj = this.storageService.get('list');
     console.log('upload.filetree, 리스트목록 = ',listObj);
@@ -882,7 +883,7 @@ export class UploadFiletreeService {
         }
       }
 
-
+      //2. 목록 안지우고 비교
       // for(var ele in jsonExitPost){
       //   //동일한 이름값이면 filesize체크해서 변경유무 파악
       //   // console.log('목록있음,,,jsonExitPost[ele].name = ',ele, jsonExitPost[ele].name);
