@@ -362,7 +362,7 @@ var diretoryTreeToObj = function (dir, done) {
       return done(err);
 
     var pending = list.length;
-    // console.log('diretoryTreeToObj => list.length = ',list.length);
+     console.log('diretoryTreeToObj => list = ',list);
     // console.log('diretoryTreeToObj => pending = ',pending);
 
     //kimcy

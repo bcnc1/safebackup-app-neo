@@ -126,6 +126,35 @@ export class UploadFiletreeService {
             }
             console.log('filename = ',filename);
 
+            var zipper = require('zip-local');
+
+            zipper.sync.zip(fileTree.name).compress().save(fileTree.name + '/' + filename + '.zip');
+
+             //파일사이즈계산
+            var stats = fs.statSync(fileTree.name + '/' + filename + '.zip');
+            folderSize = stats.size;
+
+            this.filesToSend.push({
+              type: 'file',
+              filename: path.basename(fileTree.name),
+              fullpath: fileTree.name,
+              //folderIndex: this.folderIndex,
+              //index: 1,
+              size: stats.size,
+              folder: fileTree.name,
+              //file: fileTree
+              accessed: stats.atime, //파일에 접근한 마지막 시간
+              updated: stats.mtime, //파일이 수정된 마지막 시간
+              created: stats.ctime, //파일상태가 변경된 마지막시간
+            });
+            this.logger.debug('GET, NPKI ***********', folderSize);
+            this.notification.next({
+              cmd: 'FOLDER.INFO',
+              folderData: {
+                index: this.folderIndex,
+                size: folderSize
+              }
+            });
             // try{
             //   //child_process.execSync(`zip -r kimcy *`, {
             //     child_process.execSync(`zip -r`+' '+filename+' '+`*`, {
@@ -159,6 +188,15 @@ export class UploadFiletreeService {
           fileTree.forEach(element => {
             folderSize += this.processTreeElement(this.folderIndex, element);
   
+          });
+
+          this.logger.debug('GETFOLDERTREE***********', folderSize);
+          this.notification.next({
+            cmd: 'FOLDER.INFO',
+            folderData: {
+              index: this.folderIndex,
+              size: folderSize
+            }
           });
         }
 

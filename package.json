@@ -126,6 +126,7 @@
     "request-promise-native": "^1.0.7",
     "rxjs": "^6.5.2",
     "tslib": "^1.10.0",
+    "zip-local": "^0.3.4",
     "zone.js": "~0.8.26"
   },
   "repository": {
