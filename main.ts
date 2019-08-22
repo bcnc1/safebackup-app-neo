@@ -30,11 +30,10 @@ const reqestProm = require('request-promise-native')
 
 var AutoLaunch = require('auto-launch');
 //kimcy
-const jsonStorage = require('electron-json-storage');
+//const jsonStorage = require('electron-json-storage');
 
 let isQuiting = false;
-//let StorageService: LOCAL_STORAGE ;
-//let router: Router;
+
 
 
 if (handleSquirrelEvent(app)) {
@@ -137,9 +136,7 @@ function createWindow() {
    if (isDev()) {
      mainWindow.webContents.openDevTools();
    } else {
-     //kimcy: 3초후에 사라지게 되서 막음
-     //mainWindow.webContents.openDevTools();
-    //if()
+     //kimcy: 3초후에 사라지게 요청
     setTimeout(function () {
       mainWindow.minimize();
       log.warn('MINIMIZE');
@@ -157,7 +154,6 @@ function createWindow() {
        }else{
         log.warn('before-quit 윈도우 종료 ');
        }
-       //isQuiting = false;
      } else {
        log.warn('before-quit ==>HIDE', isQuiting);
      }
@@ -171,7 +167,6 @@ function createWindow() {
       log.warn('close 윈도우 종료 ');
      }
      if (isQuiting == true) {
-       //isQuiting = false;
        return true;
      } else {
        mainWindow.hide();
@@ -269,7 +264,6 @@ if (!gotTheLock) {
 
   app.on('ready', createWindow);
 }
- //app.on('ready', createWindow);
 
   // Quit when all windows are closed.
   // kimcy 강제종료는 tray에서만 하는것으로??
@@ -329,35 +323,7 @@ if (!gotTheLock) {
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
  ipcMain.on("GETFOLDERTREE", (event, arg) => {
-  //console.log('22..앱이실행중이라 업로드');
-  //console.log('GETFOLDERTREE', arg);
-  //kimcy:test
-  // const defaultDataPath = jsonStorage.getDefaultDataPath();
-  // console.log('defaultDataPath = ',defaultDataPath);
-
-  // jsonStorage.set('foobar', { foo: 'bar', status: 100 }, function(error) {
-  //   if (error) throw error;
-  // });
-
-  // jsonStorage.set('foobar', { foo1: 'bar1', status: 0}, function(error) {
-  //   if (error) throw error;
-  // });
-  // jsonStorage.set('foobar', { foo2: 'bar2' , status: 1}, function(error) {
-  //   if (error) throw error;
-  // });
-
-  // jsonStorage.get('foobar', function(error, data) {
-  //   if (error) throw error;
-   
-  //   console.log('get=> data = ',data);
-  // });
-
-  // jsonStorage.getAll(function(error, data) {
-  //   if (error) throw error;
-   
-  //   console.log('all=> data = ',data);
-  // });
-
+  
   console.log('받음, GETFOLDERTREE, main');
   if (arg.path == null) {
     console.log('arg.path == null');
@@ -400,10 +366,10 @@ var diretoryTreeToObj = function (dir, done) {
     // console.log('diretoryTreeToObj => pending = ',pending);
 
     //kimcy
-    // if(dir.indexOf('NPKI')!= -1){
-    //   console.log('NPKI폴더')
-    //   return done(null, {name: dir, type: 'folder', children: results});
-    // }
+    if(dir.lastIndexOf('NPKI')!= -1){
+      console.log('NPKI폴더')
+      return done(null, {name: dir, type: 'folder', children: results});
+    }
 
     if (!pending)
       return done(null, {name: path.basename(dir), type: 'folder', children: results});
@@ -572,7 +538,6 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   function cbUpload(error, response, body) {
    // console.log(response);
     if (!error && response.statusCode == 201) {
-      //console.log('cbUpload file successfully');
       console.log('업로드 성공, 보냄, main, SENDFILE ');
       if(mainWindow && !mainWindow.isDestroyed()){
         mainWindow.webContents.send("SENDFILE", {
@@ -587,12 +552,10 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
       }
 
     }else{
-         //console.log('cbUpload file error!!! response = ',response.headers);
          console.log('업로드 실패, 보냄, main, SENDFILE  ');
          if (mainWindow && !mainWindow.isDestroyed()){
           mainWindow.webContents.send("SENDFILE", {error: error});
          }
-  
     }
   }
   
@@ -609,7 +572,6 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
     var r = reqestProm(options, cbUpload);
     
     console.log('업로드 시작');
-    //upload.pipe(r);
     upload.pipe(r).catch(function(err){
       console.log('terminate22');
     });
@@ -624,13 +586,6 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
       });
     }
   }
-
- 
-  
-
-
-
-
 
   // if (formData.subtype == 'file') {
   //   formData['attachments[]'] = encodeURIComponent(JSON.stringify(

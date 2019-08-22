@@ -102,78 +102,78 @@ export class UploadFiletreeService {
         //파일이 없으면?
         //if(typeof fileTree.length == 'undefined')
         //kimcy: 압축은 추후
-        // if(fileTree.length === undefined && fileTree.name.lastIndexOf('NPKI') != -1){
-        //     console.log('NPKI폴더');
-        //     const child_process = require("child_process");
-        //     let filename;
-        //     var date = new Date(); 
-        //     var year = date.getFullYear(); 
-        //     var month = new String(date.getMonth()+1); 
-        //     var day = new String(date.getDate()); 
+        if(fileTree.length === undefined && fileTree.name.lastIndexOf('NPKI') != -1){
+            console.log('NPKI폴더');
+            const child_process = require("child_process");
+            let filename;
+            var date = new Date(); 
+            var year = date.getFullYear(); 
+            var month = new String(date.getMonth()+1); 
+            var day = new String(date.getDate()); 
             
-        //     // 한자리수일 경우 0을 채워준다. 
-        //     if(month.length == 1){ 
-        //       month = "0" + month; 
-        //     } 
-        //     if(day.length == 1){ 
-        //       day = "0" + day; 
-        //     } 
+            // 한자리수일 경우 0을 채워준다. 
+            if(month.length == 1){ 
+              month = "0" + month; 
+            } 
+            if(day.length == 1){ 
+              day = "0" + day; 
+            } 
             
-        //     var toDay = year.toString() + month + day;
-        //     this.member = this.memberAPI.isLoggedin();
-        //     if(this.member != undefined){
-        //       filename = toDay+'-'+this.member.username+'-'+'NPKI';
-        //     }
-        //     console.log('filename = ',filename);
+            var toDay = year.toString() + month + day;
+            this.member = this.memberAPI.isLoggedin();
+            if(this.member != undefined){
+              filename = toDay+'-'+this.member.username+'-'+'NPKI';
+            }
+            console.log('filename = ',filename);
 
-        //     try{
-        //       //child_process.execSync(`zip -r kimcy *`, {
-        //         child_process.execSync(`zip -r`+' '+filename+' '+`*`, {
-        //         cwd: fileTree.name
-        //       });
-        //       console.log('압축성공');
-        //       fileTree.type = 'file';
-        //       var stats = fs.statSync(fileTree.name+'/'+filename+'.zip');
-        //       fileTree.size = stats.size;
-        //       fileTree.accessed = stats.atime;
-        //       fileTree.updated = stats.mtime;
-        //       fileTree.created = stats.ctime;
-        //       fileTree.filename = filename+'.zip';
-        //       fileTree.fullpath = fileTree.name+'/'+filename+'.zip';
-        //       console.log('fileTree = ',fileTree);
+            // try{
+            //   //child_process.execSync(`zip -r kimcy *`, {
+            //     child_process.execSync(`zip -r`+' '+filename+' '+`*`, {
+            //     cwd: fileTree.name
+            //   });
+            //   console.log('압축성공');
+            //   fileTree.type = 'file';
+            //   var stats = fs.statSync(fileTree.name+'/'+filename+'.zip');
+            //   fileTree.size = stats.size;
+            //   fileTree.accessed = stats.atime;
+            //   fileTree.updated = stats.mtime;
+            //   fileTree.created = stats.ctime;
+            //   fileTree.filename = filename+'.zip';
+            //   fileTree.fullpath = fileTree.name+'/'+filename+'.zip';
+            //   console.log('fileTree = ',fileTree);
 
 
-        //       folderSize += this.processTreeElement(this.folderIndex, fileTree);
-        //     } catch(ex){
-        //       console.log('압축실패');
-        //     }
+            //   folderSize += this.processTreeElement(this.folderIndex, fileTree);
+            // } catch(ex){
+            //   console.log('압축실패');
+            // }
             
-        // } else{
-        //   if(fileTree.length == undefined){
-        //     console.log('백업할 파일이 없음');
-        //     this.notification.next({cmd: 'LOG', message: '백업할 파일이 없습니다.'});
-        //     this.gotoNextFile(this.folderIndex);
-        //     return; 
-        //   }
+        } else{
+          if(fileTree.length == undefined){
+            console.log('백업할 파일이 없음');
+            this.notification.next({cmd: 'LOG', message: '백업할 파일이 없습니다.'});
+            this.gotoNextFile(this.folderIndex);
+            return; 
+          }
           
-        //   fileTree.forEach(element => {
-        //     folderSize += this.processTreeElement(this.folderIndex, element);
+          fileTree.forEach(element => {
+            folderSize += this.processTreeElement(this.folderIndex, element);
   
-        //   });
-        // }
-
-        
-        if(fileTree.length == undefined){
-          console.log('백업할 파일이 없음');
-          this.notification.next({cmd: 'LOG', message: '백업할 파일이 없습니다.'});
-          this.gotoNextFile(this.folderIndex);
-          return; 
+          });
         }
-        
-        fileTree.forEach(element => {
-          folderSize += this.processTreeElement(this.folderIndex, element);
 
-        });
+        
+        // if(fileTree.length == undefined){
+        //   console.log('백업할 파일이 없음');
+        //   this.notification.next({cmd: 'LOG', message: '백업할 파일이 없습니다.'});
+        //   this.gotoNextFile(this.folderIndex);
+        //   return; 
+        // }
+        
+        // fileTree.forEach(element => {
+        //   folderSize += this.processTreeElement(this.folderIndex, element);
+
+        // });
 
         this.logger.debug('GETFOLDERTREE***********', folderSize);
         this.notification.next({
