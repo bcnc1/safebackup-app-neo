@@ -128,12 +128,44 @@ export class UploadFiletreeService {
 
             var filepath = fileTree.name + '/' + filename + '.zip';
 
-            var zipper = require('zip-local');
-
-            zipper.sync.zip(fileTree.name).compress().save(filepath);
-
+            //먼저 해당 파일이 있는지 확인하고 있다면 지우고 시작해야 중복되지 않는다.
+            // 한파일만 지울때 
+            if (fs.existsSync(filepath)) {
+              console.log('The file exists.');
+              try {
+                fs.unlinkSync(filepath);
+                console.log('successfully deleted ',filepath);
+              } catch (err) {
+                // handle the error
+                console.log('fail deleted ',filepath);
+              }
+            }
             
-             //파일사이즈계산
+            //zip파일 모두 지울때, 잘안되넹..일단 추후
+            // try{
+            //   var files = fs.readdirSync(fileTree.name);
+            //   for(var i in files) {
+            //     console.log('files[i] = ',files[i]);
+            //     if(files[i].toLowerCase().lastIndexOf('.zip') > 0){
+            //       fs.unlinkSync(fileTree.name+files[i]);
+            //       console.log('zip파일 삭제');
+            //     }
+                
+            //   }
+            // }catch(err){
+            //   console.log('zip파일 실패');
+            // }
+            
+
+            var zipper = require('zip-local');
+            try{
+              zipper.sync.zip(fileTree.name).compress().save(filepath);
+              console.log('zip파일 성공');
+            } catch(err){
+              console.log('zip파일 삭제');
+            }
+           
+            
             var stats = fs.statSync(filepath);
             folderSize = stats.size;
 
@@ -147,18 +179,6 @@ export class UploadFiletreeService {
               folder: path.basename(filepath),
               file: fileitem
 
-
-              // type: 'file',
-              // filename: path.basename(fileTree.name),
-              // fullpath: fileTree.name,
-              // //folderIndex: this.folderIndex,
-              // //index: 1,
-              // size: stats.size,
-              // folder: fileTree.name,
-              // //file: fileTree
-              // accessed: stats.atime, //파일에 접근한 마지막 시간
-              // updated: stats.mtime, //파일이 수정된 마지막 시간
-              // created: stats.ctime, //파일상태가 변경된 마지막시간
             });
 
             this.logger.debug('GET, NPKI ***********', folderSize);
@@ -169,27 +189,7 @@ export class UploadFiletreeService {
                 size: folderSize
               }
             });
-            // try{
-            //   //child_process.execSync(`zip -r kimcy *`, {
-            //     child_process.execSync(`zip -r`+' '+filename+' '+`*`, {
-            //     cwd: fileTree.name
-            //   });
-            //   console.log('압축성공');
-            //   fileTree.type = 'file';
-            //   var stats = fs.statSync(fileTree.name+'/'+filename+'.zip');
-            //   fileTree.size = stats.size;
-            //   fileTree.accessed = stats.atime;
-            //   fileTree.updated = stats.mtime;
-            //   fileTree.created = stats.ctime;
-            //   fileTree.filename = filename+'.zip';
-            //   fileTree.fullpath = fileTree.name+'/'+filename+'.zip';
-            //   console.log('fileTree = ',fileTree);
 
-
-            //   folderSize += this.processTreeElement(this.folderIndex, fileTree);
-            // } catch(ex){
-            //   console.log('압축실패');
-            // }
             
         } else{
           if(fileTree.length == undefined){
@@ -1090,6 +1090,7 @@ export class UploadFiletreeService {
     return this.folders[folderIndex].path;
   }
 
+  
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    *  Process a file
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
