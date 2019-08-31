@@ -604,6 +604,30 @@ export class UploadFiletreeService {
                 else{
                   console.log('22..목록얻어오기 실패', resp.statusCode);
                   if(resp.statusCode == 403){
+                    //권한다시 요청
+                    var options = {
+                        uri: M5MemberService.again+'/'+containername+'/'+'again',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'X-Auth-Token': token
+                        }
+                    };
+                    request.put(options, function(err, resp, body) {  
+                        if (err) {
+                            console.log('',err);
+                            reject(err);
+                        } else {
+                            if(resp.statusCode == 200){
+                              console.log('성공');
+                              //setTimeout
+                              // var result = []
+                              // result.push("again");
+                              // result.push(containername);
+                              // result.push(token);
+                              resolve("again");
+                            }
+                        }
+                      });
                     
                   }else{
                     reject(resp);
@@ -615,9 +639,47 @@ export class UploadFiletreeService {
     });
   }
   
+  // private initializeAgain(containername, token) {
+  //   // Setting URL and headers for request
+  //   console.log('initialize => containername = ',containername);
+  //   console.log('initialize => token = ',token);
+  //   var options = {
+  //       uri: M5MemberService.again+'/'+containername+'/'+'again',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'X-Auth-Token': token
+  //       }
+  //   };
+  //   // Return new promise 
+  //   return new Promise(function(resolve, reject) {
+  //     // Do async job
+  //       request.put(options, function(err, resp, body) {
+  //           if (err) {
+  //             console.log('',err);
+  //               reject(err);
+  //           } else {
+  //               if(resp.statusCode == 200){
+  //                  console.log('성공');
+  //                  resolve(true);
+  //               }
+
+  //           }
+  //       });
+  //   });
+  // }
+  // getfolderAuthority(user, token){
+  //     //api서버로
+  //     var initializePromise = this.initializeAgain(user, token);
+  //     initializePromise.then(function(result) {
+
+  //   }, function(err) {
+  //       console.log(err);
+  //   })
+  // }
+
   //kimcy
   getContainerList(storage){
-    const STORAGE_URL = M5Service.s3Storage; //'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3';
+    //const STORAGE_URL = M5Service.s3Storage; 
     this.member = this.storageService.get('member');
     if(this.member == undefined){
       console.log('이경우는 어딜까??')
@@ -628,8 +690,37 @@ export class UploadFiletreeService {
 
     console.log('getContainerList');
     initializePromise.then(function(result) {
+       if(result === 'again'){
+          var againMember = this.storageService.get('member');
+          var againContanier = againMember.username.replace(/"/g, '').replace(/"/g, '');
+          var againToken = againMember.token;
+          //getContainerList(storage);
+          var options = {
+            uri: M5MemberService.s3Storage+'/'+againContanier+'?format=json',
+            headers: {
+              'X-Auth-Token': againToken
+            }
+          };
+          request.get(options, function(err, resp, body) {
+  
+              if(resp.statusCode == 200){
+                console.log('2번째 목록얻어오기 성공');
+                console.log(body);
+                storage.set('list',body);
+              }else if(resp.statusCode == 204){
+              console.log('처음 목록얻어오기 성공');
+              storage.set('list',"No Content");
+              }else{
+                  console.log('2번째 목록얻어오기 실패 = ',err);
+              }
+          });
+
+       }else{
         storage.set('list',result);
-       console.log("11..결과 body :",storage.get('list'));
+        console.log("11..결과 body :",storage.get('list'));
+       }
+      //   storage.set('list',result);
+      //  console.log("11..결과 body :",storage.get('list'));
       //  var notification = new Subject();  //구독하지 않는 거라 home에서 받지 못함
       //  notification.next({
       //   cmd: 'LIST.COMPLETE',

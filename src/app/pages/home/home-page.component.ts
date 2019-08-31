@@ -305,6 +305,11 @@ export class HomePageComponent implements OnInit, OnDestroy {
     }, after * 1000);  //보통은 로그인후 3초후에 시작, 여기서 시간값을 바꾸면 시작값이 안 맞는다.(다음폴더는 5초후에), 백업시작버튼누르면 3초후에, 다음번은 1~4시간안에
   }
 
+  onStartBrowser(){
+    //require('electron').shell.openExternal("http://www.google.com");
+    require('electron').shell.openExternal("http://localhost:3100");
+  }
+
   fillFolders() {
     console.log('home-page, fillFolders');
     for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
