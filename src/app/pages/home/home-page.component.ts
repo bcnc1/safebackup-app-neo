@@ -142,45 +142,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     }
     const folderKey = this.getFolderKey(folderIndex);
     const folder = this.storageService.get(folderKey);
-    //kimcy: 추후
 
-    // this.postAPI.list(this.board.id, {
-    //   type: 'folderData',
-    //   andFields: JSON.stringify({code: this.member.id + '##' + this.deviceResource.macaddress + '##' + folder}),
-    //   fetchMode: 'admin'
-    // }).subscribe(
-    //   response => {
-    //     {
-    //       this.logger.debug('음***', response);
-
-    //       if (ObjectUtils.isNotEmpty(response.posts)) {
-    //         this.rootFolderData = response.posts[0];
-    //         if (ObjectUtils.isNotEmpty(this.rootFolderData.userData.error)) {
-    //           switch (this.rootFolderData.userData.error) {
-    //             case '10days' :
-    //             case '5days' :
-    //               console.log('5일경과');
-    //               this.rootFolderData.userData.errorMessage = '5일경과';
-    //               break;
-    //             // case '3days' :
-    //             //   this.rootFolderData.userData.errorMessage = '3일점검';
-    //             //   break;
-    //             case 'nozip' :
-    //                 console.log('긴급점검');
-    //               this.rootFolderData.userData.errorMessage = '긴급점검';
-    //               break;
-    //           }
-    //         }
-    //       }
-    //     }
-    //   },
-    //   error => {
-    //     if (error.code != null) {
-    //     } else {
-    //       this.logger.debug('에러', error);
-    //     }
-    //   }
-    // );
   }
 
 
@@ -203,44 +165,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
     //kimcy: 이걸보여주면? 무엇이?
     //this.showingFolderList.push(this.parentFolder); //test code html line95에서 폴더 타이틀 찾는 부분에서 죽는다.
 
-    
- 
-
-    //kimcy: 추후 새로..
-    // this.postAPI.list(this.board.id, {
-    //   type: 'item',
-    //   status: this.uploadFiletreeService.getFolderPath(folderIndex),
-    //   andFields: JSON.stringify({'userData.parentPath': gotoPath.replace(/\\/g, '/')}),
-    //   fetchMode: 'admin'
-    // }).subscribe(
-    //   response => {
-    //     {
-    //       console.log('서버응답');
-    //       for (const p in response.posts) {
-    //         if (response.posts.hasOwnProperty(p)) {
-    //           // const folder = path.dirname(response.posts[p].code);
-    //           if (response.posts[p].subtype === 'folder') {
-    //             this.showingFolderList.push(response.posts[p]);
-    //           } else {
-    //             this.showingFileList.push(response.posts[p]);
-    //           }
-    //         }
-    //       }
-    //     }
-    //   },
-    //   error => {
-    //     console.log('서버응답 에러');
-    //     if (error.code != null) {
-    //       this.konsoleService.sendMessage({cmd: 'LOG', message: JSON.stringify(error)});
-    //     } else {
-    //       this.konsoleService.sendMessage({cmd: 'LOG', message: JSON.stringify(error)});
-    //     }
-    //     /** RETRY **/
-    //     setTimeout(() => {
-    //       this.onRequestFolderPosts(folderIndex, gotoPath, files);
-    //     }, 2000);
-    //   }
-    // );
   }
 
 
@@ -306,7 +230,9 @@ export class HomePageComponent implements OnInit, OnDestroy {
   }
 
   onStartBrowser(){
+
     require('electron').shell.openExternal("http://211.252.85.59");
+    //require('electron').shell.openExternal("http://localhost:3100");
   }
 
   fillFolders() {

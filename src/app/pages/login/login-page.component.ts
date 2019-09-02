@@ -53,7 +53,8 @@ export class LoginPageComponent implements OnInit {
             },
             body:{
               id:username,
-              pwd:password
+              pwd:password,
+              client: M5MemberService.safebackupVersion
             },
             json : true
         };
@@ -141,91 +142,6 @@ export class LoginPageComponent implements OnInit {
 
     //kimcy: 토큰은 여기서 넣어준다..
     this.onLoginB(member, false, this.storageService, this.router);
-
-    // this.loggingin = true;
-    // this.memberAPI.login(member).subscribe(
-    //   response => {
-    //     {
-    //       this.loggingin = true;
-    //       this.logger.debug('로그인하면..', response);
-    //       if (ObjectUtils.isNotEmpty(this.oldPaths[0])) {
-    //         console.log("path1 = ",this.oldPaths[0]);
-    //         this.storageService.set('folder:' + response.member['id'] + ':' + 0, this.oldPaths[0]);
-    //       }
-    //       if (ObjectUtils.isNotEmpty(this.oldPaths[1])) {
-    //         this.storageService.set('folder:' + response.member['id'] + ':' + 1, this.oldPaths[1]);
-    //         console.log("path2 = ", this.oldPaths[1]);
-    //       }
-    //       this.storageService.set('password', member.password);
-    //       //kimcy: add
-    //       console.log('33..',member.username);
-    //       this.storageService.set('username', member.username);
-    //       this.router.navigateByUrl('/home');
-    //     }
-    //   },
-    //   error => {
-    //     this.loggingin = true;
-    //     if (error.code != null) {
-    //       if (error.code === 1040) {
-    //         const memberForm = new Member();
-    //         memberForm.fullname = member.username;
-    //         memberForm.username = member.username;
-    //         memberForm.password = member.password;
-
-    //         if (this.migrateFromV1) {
-    //           this.memberAPI.signup(memberForm).subscribe(
-    //             response => {
-    //               {
-    //                 this.logger.debug('SIGNUP', response);
-    //                 this.migrating = false;
-    //                 this.onLogin(member.username, member.password, false);
-
-    //               }
-    //             },
-    //             signupError => {
-    //               if (signupError.code != null) {
-    //                 this.migrating = false;
-    //                 // alert(signupError.message);
-    //               } else {
-    //                 this.migrating = false;
-    //                 // alert(signupError);
-    //               }
-    //             });npm
-    //         } else {
-    //           if (popup === true) {
-    //             // alert('아이디를 확인하세요. 가입을 원하시면 관리자에게 연락하시기 바랍니다.');
-    //           }
-    //         }
-    //       } else if (error.code === 1070) {
-    //         if (popup === true) {
-    //            alert('비밀번호를 확인하세요.');
-    //         }
-    //       }
-    //     } else if (error.message != null) {
-    //       this.migrating = false;
-    //       if (popup === true) {
-    //         // alert(error.message);
-    //       }
-    //     } else {
-    //       this.migrating = false;
-    //       if (popup === true) {
-    //         // alert(error);
-    //       }
-    //     }
-
-       
-
-    //     setTimeout(() => {
-    //       // member.username = username;
-    //       // member.password = this.passwords[this.passwordIndex % 2];
-    //       // this.passwordIndex++;
-
-    //       this.onLogin(member.username, member.password, false);
-    //     }, 60 * 5 * 1000);
-    //   }
-    // );
-
-    //kimcy kt s3
     
   }
 
