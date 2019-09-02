@@ -617,11 +617,6 @@ export class UploadFiletreeService {
                         } else {
                             if(resp.statusCode == 200){
                               console.log('성공');
-                              //setTimeout
-                              // var result = []
-                              // result.push("again");
-                              // result.push(containername);
-                              // result.push(token);
                               resolve("again");
                             }
                         }
@@ -689,10 +684,9 @@ export class UploadFiletreeService {
     console.log('getContainerList');
     initializePromise.then(function(result) {
        if(result === 'again'){
-          var againMember = this.storageService.get('member');
+          var againMember = storage.get('member');
           var againContanier = againMember.username.replace(/"/g, '').replace(/"/g, '');
           var againToken = againMember.token;
-          //getContainerList(storage);
           var options = {
             uri: M5MemberService.s3Storage+'/'+againContanier+'?format=json',
             headers: {

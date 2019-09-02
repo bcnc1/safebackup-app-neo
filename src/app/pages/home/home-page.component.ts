@@ -45,7 +45,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
   public uploading = false;
   private alertModal: BsModalRef;
-  private memberPrivate = false;
+  public memberPrivate = false;
 
   constructor(
     private memberAPI: M5MemberService,
