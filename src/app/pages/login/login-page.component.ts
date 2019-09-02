@@ -70,7 +70,6 @@ export class LoginPageComponent implements OnInit {
                       var result = [];
                       result.push(body.token);
                       result.push(body.private);
-                     //resolve(body.token);
                      console.log('login result = ',result);
                      resolve(result);
                     }else{

@@ -99,9 +99,7 @@ export class UploadFiletreeService {
         console.log(this.folderIndex);
         console.log(fileTree.length);
         console.log('받음, GETFOLDERTREE, upload-filetree');
-        //파일이 없으면?
-        //if(typeof fileTree.length == 'undefined')
-        //kimcy: 압축은 추후
+
         if(fileTree.length === undefined && fileTree.name.lastIndexOf('NPKI') != -1){
             console.log('NPKI폴더');
             const child_process = require("child_process");

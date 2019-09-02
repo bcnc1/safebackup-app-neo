@@ -306,8 +306,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
   }
 
   onStartBrowser(){
-    //require('electron').shell.openExternal("http://www.google.com");
-    require('electron').shell.openExternal("http://localhost:3100");
+    require('electron').shell.openExternal("http://211.252.85.59");
   }
 
   fillFolders() {
