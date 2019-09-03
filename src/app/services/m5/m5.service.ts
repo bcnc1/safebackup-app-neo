@@ -9,7 +9,7 @@ export class M5Service {
   //kimcy
   static s3Storage = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3'; //environment.STORAGE_URL;
   static s3Auth = 'https://ssproxy.ucloudbiz.olleh.com/auth/v1.0'; 
-  static apiServer = 'http://localhost:3000/api'; //'http://211.252.85.59:3000/api';//'http://localhost:3000/api' //'http://211.252.85.59:3000/api';
+  static apiServer = 'http://211.252.85.59:3000/api';//'http://localhost:3000/api' //'http://211.252.85.59:3000/api';
   static login = M5Service.apiServer +'/v1/user/login';
   static create = M5Service.apiServer +'/v1/proof/create';
   static update = M5Service.apiServer +'/v1/proof/update';

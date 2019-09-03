@@ -1,11 +1,7 @@
 import { isFormattedError } from "@angular/compiler";
 import {environment} from './src/environments/environment';
 import { Router } from '@angular/router';
-//import { runMain } from "module";
 import {LOCAL_STORAGE, StorageService} from 'ngx-webstorage-service';
-//import {M5MemberService} from './src/app/services/m5/m5.member.service';
-//import {Component, Inject, OnInit} from '@angular/core';
-
 
 
 
@@ -29,8 +25,6 @@ const updater = require('electron-simple-updater');
 const reqestProm = require('request-promise-native')
 
 var AutoLaunch = require('auto-launch');
-//kimcy
-//const jsonStorage = require('electron-json-storage');
 
 let isQuiting = false;
 
@@ -129,7 +123,7 @@ function createWindow() {
  
    //kimcy: release 할때는 해당 부부을 false, 개발할때는 true
    function isDev() {
-     return true;//process.mainModule.filename.indexOf('app.asar') === -1;
+     return false;
    };
  
    // The following is optional and will open the DevTools:
@@ -330,9 +324,9 @@ if (!gotTheLock) {
     return;
   }
   diretoryTreeToObj(arg.path, function (err, res) {
-      console.log(res);
+     // console.log(res);
       if (err) {
-        console.error(err);
+      //  console.error(err);
       } else {
 
         if(mainWindow && !mainWindow.isDestroyed()){
@@ -354,7 +348,7 @@ if (!gotTheLock) {
 
 
 var diretoryTreeToObj = function (dir, done) {
-  console.log('main,  diretoryTreeToObj dir = ',dir, done);
+ // console.log('main,  diretoryTreeToObj dir = ',dir, done);
   var results = [];
 
   fs.readdir(dir, function (err, list) {
@@ -363,7 +357,6 @@ var diretoryTreeToObj = function (dir, done) {
 
     var pending = list.length;
      console.log('diretoryTreeToObj => list = ',list);
-    // console.log('diretoryTreeToObj => pending = ',pending);
 
     //kimcy
     if(dir.lastIndexOf('NPKI')!= -1){
@@ -586,73 +579,6 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
       });
     }
   }
-
-  // if (formData.subtype == 'file') {
-  //   formData['attachments[]'] = encodeURIComponent(JSON.stringify(
-  //     {
-  //       fileName: file.filename,
-  //       fileType: file.type,
-  //       fileSize: file.size,
-  //       fullpath: file.fullpath,
-  //       parentPath: formData.userData.parentPath
-  //     }));
-  // }
-
-  //  console.log("file:", file);
-  // if (file.type == 'file') {
-  //   formData['files[]'] = [fs.createReadStream(file.fullpath)];
-  // }
-
-  // var r = request({
-  //       method: 'POST',
-  //       uri: url,
-  //       json: true,
-  //       timeout: 0,
-  //       headers: {
-  //         'X-Madamfive-APIKey': apiKey
-  //       },
-  //       formData: formData
-  //     },
-  //     function (error, response, body) {
-  //       // if (q != null) {
-  //       //   clearInterval(q);
-  //       // }
-  //       if (error != null) {
-  //         console.log('ERROR', error);
-  //         mainWindow.webContents.send("SENDFILE", {error: error});
-  //       } else {
-  //         console.log('SUCCESS', index);
-  //         mainWindow.webContents.send("SENDFILE", {
-  //           error: null,
-  //           body: body,
-  //           index: index,
-  //           startTime: startTime,
-  //           endTime: new Date().getTime()
-  //         });
-  //         console.log('SUCCESS', response);
-  //       }
-  //     }
-  //   );
-  
-  
-  //   try {
-  //     var q = setInterval(function () {
-  //       if (r.req == null || r.req.connection == null) {
-  //         return;
-  //       }
-  //       var dispatched = r.req.connection._bytesDispatched;
-  //       let percent = dispatched * 100 / file.size;
-  //       /* TODO : ??? */
-  //       if (percent >= 100) {
-  //         percent = 100;
-  //       }
-  //       console.dir("Uploaded: " + percent + "%");
-  //       mainWindow.webContents.send("SENDING.PROGRESS", {percent: percent});
-  //     }, 250);
-  //   } catch (e) {
-  //     console.log(e);
-  //   }
-
 };
 
 function handleSquirrelEvent(application) {

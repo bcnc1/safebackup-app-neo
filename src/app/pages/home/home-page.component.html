@@ -28,8 +28,8 @@
 
   <div>
     <tabset>
-      <tab (selectTab)="onTab(0)" *ngIf="!memberPrivate">
-        <ng-template tabHeading>
+      <tab (selectTab)="onTab(0)" *ngIf="!memberPrivate"> 
+        <ng-template tabHeading >
           폴더1
           <span  class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[0] != undefined">
             {{foldersSize[0] | bytes}}
@@ -38,17 +38,15 @@
       </tab>
 
       <tab (selectTab)="onTab(1)" *ngIf="!memberPrivate">
-        <ng-template tabHeading>
+        <ng-template tabHeading >
           폴더2
           <span  class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[1] != undefined">
             {{foldersSize[1] | bytes}}
           </span>
         </ng-template>
       </tab>
-     <!-- <tab id="tab2" (selectTab)="onTab(2)" *ngIf="true"> -->
-        <tab  (selectTab)="onTab(2)" *ngIf="memberPrivate">
-     <!-- <tab (select)="onTab(2)" *ngIf="false"> -->
-        <ng-template tabHeading>
+       <tab  (selectTab)="onTab(2)" *ngIf="memberPrivate">
+        <ng-template tabHeading >
           개인폴더
           <span class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[2] != undefined">
             {{foldersSize[2] | bytes}}
