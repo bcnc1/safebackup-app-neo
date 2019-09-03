@@ -128,39 +128,42 @@ export class UploadFiletreeService {
 
             //먼저 해당 파일이 있는지 확인하고 있다면 지우고 시작해야 중복되지 않는다.
             // 한파일만 지울때 
-            if (fs.existsSync(filepath)) {
-              console.log('The file exists.');
-              try {
-                fs.unlinkSync(filepath);
-                console.log('successfully deleted ',filepath);
-              } catch (err) {
-                // handle the error
-                console.log('fail deleted ',filepath);
-              }
-            }
-            
-            //zip파일 모두 지울때, 잘안되넹..일단 추후
-            // try{
-            //   var files = fs.readdirSync(fileTree.name);
-            //   for(var i in files) {
-            //     console.log('files[i] = ',files[i]);
-            //     if(files[i].toLowerCase().lastIndexOf('.zip') > 0){
-            //       fs.unlinkSync(fileTree.name+files[i]);
-            //       console.log('zip파일 삭제');
-            //     }
-                
+            // if (fs.existsSync(filepath)) {
+            //   console.log('The file exists.');
+            //   try {
+            //     fs.unlinkSync(filepath);
+            //     console.log('successfully deleted ',filepath);
+            //   } catch (err) {
+            //     // handle the error
+            //     console.log('fail deleted ',filepath);
             //   }
-            // }catch(err){
-            //   console.log('zip파일 실패');
             // }
+            
+            //zip파일 모두 지우게...
+            try{
+              var files = fs.readdirSync(fileTree.name);
+              for(var i in files) {
+                // console.log('files[i] = ',files[i]);
+                // console.log('zip[i] = ',files[i].toLowerCase().lastIndexOf('.zip'));
+                if(files[i].toLowerCase().lastIndexOf('.zip') > 0){
+                  fs.unlinkSync(fileTree.name+'/'+files[i]);
+                  //console.log('zip파일 삭제');
+                }else{
+                  //console.log('zip파일 아님');
+                }
+                
+              }
+            }catch(err){
+              //console.log('zip파일 실패');
+            }
             
 
             var zipper = require('zip-local');
             try{
               zipper.sync.zip(fileTree.name).compress().save(filepath);
-              console.log('zip파일 성공');
+              //console.log('zip파일 성공');
             } catch(err){
-              console.log('zip파일 삭제');
+              //console.log('zip파일 삭제');
             }
            
             
