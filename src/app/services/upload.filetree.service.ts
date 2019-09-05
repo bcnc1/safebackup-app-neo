@@ -682,6 +682,7 @@ export class UploadFiletreeService {
       return;
     }
     var contaniername = this.member.username.replace(/"/g, '').replace(/"/g, '');
+    console.log('목록조회 요청 토큰: ',  this.member.token);
     var initializePromise = this.initialize(contaniername, this.member.token);
 
     console.log('getContainerList');

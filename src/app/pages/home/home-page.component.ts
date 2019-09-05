@@ -12,7 +12,7 @@ import * as moment from 'moment';
 import { ObjectUtils } from '../../utils/ObjectUtils';
 import { NGXLogger } from 'ngx-logger';
 import { environment } from '../../../environments/environment';
-
+const request = require('request');
 
 @Component({
   selector: 'app-page',
@@ -67,7 +67,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     return key;
   }
 
-
+  
   onLogout() {
     console.log('로그아웃버튼 눌림');
     this.uploadFiletreeService.setUploadingStatus(false);
@@ -163,15 +163,50 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
   }
 
+  /*
+  *  신규토큰가져오기
+  */
+  initialize(username, password) {
+    // Setting URL and headers for request
+    var options = {
+        uri: M5MemberService.login,
+        method: 'POST',
+         headers: {
+          'Content-Type': 'application/json'
+        },
+        body:{
+          id:username,
+          pwd:password
+        },
+        json : true
+    };
+    // Return new promise 
+    return new Promise(function(resolve, reject) {
+        request.post(options, function(err, resp, body) {
+            if (err) {
+              console.log('m5.member.11..로그인실패');
+                reject(err);
+            } else {
+                if(resp.statusCode == 200){
+                 resolve(body.token);
+                }else{
+                  console.log('m5.member..22..로그인실패');
+                  reject(resp.headers);
+                }
+            }
+        });
+    });
+
+  }
 
   //kimcy: folderIndex 가 0이면 처음부터 시작
   onStartUploadFolder(folderIndex, after) {
     console.log('home-page, onStartUploadFolder, folderIndex = ',folderIndex, 'after = ',after);
 
     //매 업로드 시작시 토큰 갱신
-    if(folderIndex == 0){
-      this.memberAPI.getLoginToken(this.member,this.storageService);
-    }
+    // if(folderIndex == 0){
+    //   this.memberAPI.getLoginToken(this.member,this.storageService);
+    // }
 
     if (after == null) {
       after = 5;
@@ -185,8 +220,45 @@ export class HomePageComponent implements OnInit, OnDestroy {
     //kimcy: 중간에 로그아웃해버리는 경우가 있음으로 일단은 여기서 목록을 만들어서 저장한다.
     console.log('folderIndex = ',folderIndex,'uploading = ',this.uploading);
     if(folderIndex == 0 && (this.uploading === false)){
-      console.log('업로딩 시작으로 목록갱신');
-      this.uploadFiletreeService.getContainerList(this.storageService);
+      console.log('업로딩 시작으로 토큰, 목록갱신');
+
+
+
+      this.postAPI.getNewToken(M5MemberService.login, this.member).subscribe(
+        response => {
+          console.log('getNewToken => response = ', response);
+          // var newToken = response.body['token'];
+          // console.log('newToken = ',newToken);
+          this.member.token = response;
+          this.storageService.set('member',this.member);
+          this.uploadFiletreeService.getContainerList(this.storageService);
+        },
+        error => {
+          console.log('업로딩 시작으로 토큰, 목록갱신 안됨');
+          console.log('err = ', error);
+          this.konsoleService.sendMessage('KT서버 응답을 받지 못했습니다. 다시 로그인하세요');
+         // this.onLogout();
+        }
+      );
+      // var getNewTokenPromise = this.initialize(this.member.username, this.member.password);
+
+      // getNewTokenPromise.then(function(result) {
+      //     var userToken = result;
+      //     console.log("new Token :",userToken);
+      //     var member = this.memberAPI.isLoggedin();
+      //     member.token = userToken;
+      //     console.log('member = ', member);
+      //     this.storageService.set('member',this.member);
+      //     this.uploadFiletreeService.getContainerList(this.storageService);
+      // }, function(err) {
+      //     console.log(err);
+      //     //kimcy: 다 지우는게 맞나?
+      //     console.log('업로딩 시작으로 토큰, 목록갱신 안됨');
+      //     this.konsoleService.sendMessage('KT서버 응답을 받지 못했습니다. 다시 로그인하세요');
+      //     //this.storageService.remove(this.member);
+      //     this.onLogout();
+      // })
+     // this.uploadFiletreeService.getContainerList(this.storageService);
     }
 
     setTimeout(() => {

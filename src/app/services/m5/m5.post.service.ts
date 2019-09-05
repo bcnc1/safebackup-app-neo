@@ -3,7 +3,7 @@ import {Inject, Injectable} from '@angular/core';
 import {Observable, of, throwError} from 'rxjs';
 import {M5Service} from './m5.service';
 
-import {Member, M5Result, M5ResultPosts} from '../../models';
+import {Member, M5Result, M5ResultPosts, M5ResultToken} from '../../models';
 import {catchError, map, tap} from 'rxjs/operators';
 import {LOCAL_STORAGE, StorageService} from 'ngx-webstorage-service';
 import {ObjectUtils} from '../../utils/ObjectUtils';
@@ -33,11 +33,17 @@ export class M5PostService extends M5Service {
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
   private handleResponse(response: any) {
-    console.log(response);
+    console.log('handleResponse = ' ,response);
     this.handleData(response);
     return response || {};
   }
 
+  private handleTokenResponse(response: any) {
+    console.log('handleTokenResponse = ' ,response);
+    var token = response.token;
+    console.log('token = ',token)
+    return token || {};
+  }
 
   // list(username: string, parameters: any): Observable<M5ResultPosts> {
   //   const url = this.url.list(username);
@@ -118,6 +124,25 @@ export class M5PostService extends M5Service {
       body, options)
       .pipe(
         map(res => this.handleResponse(res)),
+        catchError(this.handleError)
+      );
+  }
+
+  getNewToken(postUrl, member): Observable<M5Result> {
+
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json'});
+    let options = { headers: headers , json: true};
+
+    let body = {'id': member.username , 'pwd': member.password}
+
+    const url = postUrl;
+
+    console.log('getNewToken', url);
+    return this.http.post(url,
+      body, options)
+      .pipe(
+        map(res => this.handleTokenResponse(res)),
         catchError(this.handleError)
       );
   }
