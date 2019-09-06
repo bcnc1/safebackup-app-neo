@@ -12,7 +12,7 @@ import * as moment from 'moment';
 import { ObjectUtils } from '../../utils/ObjectUtils';
 import { NGXLogger } from 'ngx-logger';
 import { environment } from '../../../environments/environment';
-const request = require('request');
+
 
 @Component({
   selector: 'app-page',
@@ -67,7 +67,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     return key;
   }
 
-  
+
   onLogout() {
     console.log('로그아웃버튼 눌림');
     this.uploadFiletreeService.setUploadingStatus(false);
@@ -83,12 +83,12 @@ export class HomePageComponent implements OnInit, OnDestroy {
    *  탭이 선택됨
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   onTab(tabIndex) {
-   // console.log('탭이 선택됨', tabIndex);
+    console.log('탭이 선택됨', tabIndex);
     this.selectedFolderIndex = tabIndex;
     const folderKey = this.getFolderKey(tabIndex);
     const folder = this.storageService.get(folderKey);
 
-  //  console.log('folderKey = ', folderKey, 'folder = ', folder);
+    console.log('folderKey = ', folderKey, 'folder = ', folder);
 
     this.logger.debug('FOLDERNAME', folder, folderKey);
     
@@ -163,41 +163,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
   }
 
-  /*
-  *  신규토큰가져오기
-  */
-  initialize(username, password) {
-    // Setting URL and headers for request
-    var options = {
-        uri: M5MemberService.login,
-        method: 'POST',
-         headers: {
-          'Content-Type': 'application/json'
-        },
-        body:{
-          id:username,
-          pwd:password
-        },
-        json : true
-    };
-    // Return new promise 
-    return new Promise(function(resolve, reject) {
-        request.post(options, function(err, resp, body) {
-            if (err) {
-              console.log('m5.member.11..로그인실패');
-                reject(err);
-            } else {
-                if(resp.statusCode == 200){
-                 resolve(body.token);
-                }else{
-                  console.log('m5.member..22..로그인실패');
-                  reject(resp.headers);
-                }
-            }
-        });
-    });
-
-  }
 
   //kimcy: folderIndex 가 0이면 처음부터 시작
   onStartUploadFolder(folderIndex, after) {
@@ -412,7 +377,9 @@ export class HomePageComponent implements OnInit, OnDestroy {
             message: str + '에 백업이 재실행됩니다.'
           });
           this.logger.debug(new Date(), '다음 백업 대기 업로딩? ', this.uploading);
-          this.onStartUploadFolder(0, interval / 1000); //여기서 토큰 갱신
+          this.onStartUploadFolder(0, interval / 1000);
+         // this.onStartUploadFolderNext(0, interval / 1000); //여기서 토큰 갱신
+
         }
 
 
