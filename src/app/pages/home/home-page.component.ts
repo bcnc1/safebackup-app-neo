@@ -168,11 +168,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
   onStartUploadFolder(folderIndex, after) {
     console.log('home-page, onStartUploadFolder, folderIndex = ',folderIndex, 'after = ',after);
 
-    //매 업로드 시작시 토큰 갱신
-    // if(folderIndex == 0){
-    //   this.memberAPI.getLoginToken(this.member,this.storageService);
-    // }
-
     if (after == null) {
       after = 5;
     }
@@ -181,6 +176,53 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
     const folder = this.storageService.get(folderKey);
     //console.log('home-page folder = ', folder, 'folderKey = ', folderKey);
+
+    //업로드는 됬으나 블록체인에 기록안된 경우 맨처음 올려야..
+    if(this.storageService.get('createProof') != undefined){
+      this.konsoleService.sendMessage('블록체인에 업데이트 중입니다.');
+      this.uploadFiletreeService.setUploadingStatus(true);
+     const path = this.storageService.get('createProof');  //문제된 넘 부터 올리게..
+     this.postAPI.createProof(M5MemberService.create,this.member, path, 0, 0).subscribe(
+      response => {
+
+        console.log('성공');
+        let chainArray = new Array();
+        var str = {name : path, status: true};
+        var jsonStr = JSON.stringify(str);
+        console.log('jsonStr = ',jsonStr);
+
+        if(this.storageService.get('chain') == undefined){
+          console.log('맨처음');
+          chainArray.push(JSON.parse(jsonStr));
+          this.storageService.set('chain', chainArray); 
+        }else{
+          console.log('덫붙이기 chainArray = ',chainArray);
+          chainArray = this.storageService.get('chain');
+          chainArray.push(JSON.parse(jsonStr));
+          this.storageService.set('chain', chainArray); 
+        }
+       
+        this.storageService.remove('createProof'); //에러가 없음으로 해당 파일을 지운다.
+        this.konsoleService.sendMessage('블록체인에 업데이트 됬습니다.');
+        this.uploadFiletreeService.setUploadingStatus(false);
+      },
+      error => {
+        var str = {name : path, status: false};
+        this.uploadFiletreeService.setUploadingStatus(false);
+        console.log('실패');
+        this.konsoleService.sendMessage('블록체인에 업데이트 실패 ')
+        // var message = ' : 블록체인에 에러가 발생했습니다.  (' + (index + 1) + '/' + decodeURI(path) + ')';
+        // console.log(message);
+        // //메세지를 뿌릴려고..
+        // noti.next({
+        //   cmd: 'LOG',
+        //   message: '[' + (index + 1) + '] ' + message
+        // });
+      }
+    );;
+    
+    }
+
 
     //kimcy: 중간에 로그아웃해버리는 경우가 있음으로 일단은 여기서 목록을 만들어서 저장한다.
     console.log('folderIndex = ',folderIndex,'uploading = ',this.uploading);
@@ -199,7 +241,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
           this.uploadFiletreeService.getContainerList(this.storageService);
         },
         error => {
-          console.log('업로딩 시작으로 토큰, 목록갱신 안됨');
+          console.log('업로딩 시작인데 토큰, 목록갱신 안됨');
           console.log('err = ', error);
           this.konsoleService.sendMessage('KT서버 응답을 받지 못했습니다. 다시 로그인하세요');
          // this.onLogout();

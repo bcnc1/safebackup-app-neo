@@ -141,6 +141,7 @@ export class UploadFiletreeService {
             // }
             
             //zip파일 모두 지우게...
+            console.log('fileTree.name = ',fileTree.name);
             try{
               var files = fs.readdirSync(fileTree.name);
               for(var i in files) {
@@ -162,9 +163,9 @@ export class UploadFiletreeService {
             var zipper = require('zip-local');
             try{
               zipper.sync.zip(fileTree.name).compress().save(filepath);
-              //console.log('zip파일 성공');
+              console.log('zip파일 성공');
             } catch(err){
-              //console.log('zip파일 삭제');
+              console.log('zip파일 삭제');
             }
            
             
@@ -501,7 +502,7 @@ export class UploadFiletreeService {
                 var str = {name : path, status: false};
                 this.uploading = false;
                 console.log('실패');
-                var message = ' : 파일 업로드 실패 , 관리자에게 문의하세요 (' + (index + 1) + '/' + decodeURI(path) + ')';
+                var message = ' : 블록체인에 에러가 발생했습니다.  (' + (index + 1) + '/' + decodeURI(path) + ')';
                 console.log(message);
                 //메세지를 뿌릴려고..
                 noti.next({
@@ -544,7 +545,7 @@ export class UploadFiletreeService {
                 var str = {name : path, status: false};
                 this.uploading = false; //이렇게 해주면 다시 업로드 버튼을 누를때 올라가는 것처럼 보임
                 console.log('실패');
-                var message = ' : 파일 업로드 실패 , 관리자에게 문의하세요 (' + (index + 1) + '/' + decodeURI(path) + ')';
+                var message = ' : 블록체인에 에러가 발생했습니다.(' + (index + 1) + '/' + decodeURI(path) + ')';
                 console.log(message);
                 //메세지를 뿌릴려고..
                 noti.next({
@@ -930,6 +931,10 @@ export class UploadFiletreeService {
            
       });
 
+      
+      listObj = null;
+      jsonExitPost = null;
+
       console.log('diffJsonPost = ',diffJsonPost);
       console.log('post.formData.code = ',post.formData.code);
       for(var ele in diffJsonPost){
@@ -948,6 +953,8 @@ export class UploadFiletreeService {
           }
         }
       }
+
+      jsonExitPost = null;
 
       //2. 목록 안지우고 비교
       // for(var ele in jsonExitPost){
