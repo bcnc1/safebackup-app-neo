@@ -129,7 +129,7 @@ export class M5PostService extends M5Service {
   }
 
   getNewToken(postUrl, member): Observable<M5Result> {
-
+    console.log('88.. 맴버 = ', member);
     let headers = new HttpHeaders({
       'Content-Type': 'application/json'});
     let options = { headers: headers , json: true};

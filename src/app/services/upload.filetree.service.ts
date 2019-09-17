@@ -18,8 +18,62 @@ import { stat } from 'fs';
 const request = require('request');
 const fs = require('fs');
 const log = require('electron-log');
-//const archiver = require('archiver');
-//const zipFolder  = require('zip-a-folder');
+const PAGE_COUNT = 1000;
+
+ function getObjList(containername, token,  marker, list) {
+    
+    
+  // console.log('lnitObjList = ',containername, 'token = ',token,
+  //             'marker = ',marker,'list = ',list);
+              
+  var options = {
+      uri: M5MemberService.s3Storage+'/'+containername+'?format=json'
+           +'&limit='+1000+'&marker='+marker,
+      headers: {
+        'X-Auth-Token': token
+      }
+  };
+  // Return new promise 
+  return new Promise(function(resolve, reject) {
+    // Do async job
+      request.get(options, function(error, response, body) {
+        if (!error && (response.statusCode == 200)){
+          var objCountInContainer = parseInt(response.headers['x-container-object-count']);
+          console.log("목록 : count : " + objCountInContainer);
+
+          if(objCountInContainer <= 1000) {
+            // one time
+            resolve(body);
+          }else {
+            var partiallist;
+            
+            list += body;
+            list = list.replace("][", ",").replace(",]", "]");
+            console.log('1000개 이상 = ',list);
+            partiallist = JSON.parse(body);
+
+            if(partiallist.length == 0) {
+              // console.log("file list : " + list);
+              partiallist = JSON.parse(list);
+              console.log("my file list count : " + partiallist.length);
+              resolve(list);
+            }
+            else {
+              marker = partiallist[partiallist.length-1].name; // the last
+              console.log('재귀함수 호출');
+              resolve(getObjList(containername, token, marker, list));
+              //console.log('this = ', typeof this);
+              //resolve(['recursive', marker, list, this]);
+            }
+          }
+        }else if (!error && (response.statusCode == 404 || response.statusCode == 204)) {
+            resolve(list);
+        }else{
+          reject(error);
+        } 
+      });
+  });
+}
 
 
 @Injectable()
@@ -37,11 +91,13 @@ export class UploadFiletreeService {
 
   private uploading = false;
   private notification;
+  //private kim;
 
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    *  Constructor
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   fillFollders() {
+    console.log('fillFollders ');
     this.folders = new Array(4);
 
 
@@ -51,7 +107,9 @@ export class UploadFiletreeService {
       };
     }
 
+    console.log('this.folders = ',this.folders);
   }
+
 
   constructor(
     private memberAPI: M5MemberService,
@@ -60,9 +118,12 @@ export class UploadFiletreeService {
     private konsoleService: KonsoleService,
     private logger: NGXLogger,
     @Inject(LOCAL_STORAGE) private storageService: StorageService) {
-    this.member = this.memberAPI.isLoggedin();
+    //this.member = this.memberAPI.isLoggedin();
+    this.member;
+    console.log('dd..맴버 = ',this.member);
 
     this.fillFollders();
+   
     this.board = this.storageService.get('board');
     this.accessToken = this.storageService.get('accessToken');
 
@@ -75,7 +136,7 @@ export class UploadFiletreeService {
      ----------------------------------------------------*/
     this.electronService.ipcRenderer.on('PCRESOURCE', (event: Electron.IpcMessageEvent, response: any) => {
       this.deviceResource = response;
-      console.log('받음 upload.filetree, PCRESOURCE');
+      console.log('받음 upload.filetree, PCRESOURCE 디바이스 = ',this.deviceResource);
     });
     /*----------------------------------------------------
        *  IPC Response : Get FileTree
@@ -120,6 +181,7 @@ export class UploadFiletreeService {
             
             var toDay = year.toString() + month + day;
             this.member = this.memberAPI.isLoggedin();
+            console.log('22..맴버 = ',this.member);
             if(this.member != undefined){
               filename = toDay+'-'+this.member.username+'-'+'NPKI';
             }
@@ -364,15 +426,16 @@ export class UploadFiletreeService {
         /*----------------------------------------------------
          *  이상유무를 서버에 저장
          *---------------------------------------------------*/
-        console.log('이상유무를 서버에 저장');
+        //console.log('이상유무를 서버에 저장');
         // dataBackupItem.lastUploaded = moment().unix() * 1000;
         // dataBackupItem.lastZip = maxDate.unix() * 1000;
         // dataBackupItem.count = folderSize;
         // dataBackupItem.deviceResource = this.deviceResource;
 
-        this.member = this.memberAPI.isLoggedin();
+        //this.member = this.memberAPI.isLoggedin();
 
-        console.log('로그인되어있는지 보고');
+        //console.log('33..맴버 = ',this.member);
+        //console.log('로그인되어있는지 보고');
         //kimcy 추후.
         // this.memberAPI.detail(this.member).subscribe(res => {
         //   this.logger.debug('##MEMBER', res.member);
@@ -468,6 +531,8 @@ export class UploadFiletreeService {
               this.storageService.set('createProof', path);
             }
 
+            console.log('체인 업로드 패스 = ',path);
+
             this.postAPI.createProof(M5MemberService.create,this.member, path, index, noti).subscribe(
               response => {
   
@@ -489,6 +554,7 @@ export class UploadFiletreeService {
                 }
                
                 this.storageService.remove('createProof'); //에러가 없음으로 해당 파일을 지운다.
+
                 var message = ' : 파일 업로드 완료 (' + (index + 1) + '/' + this.filesToSend.length + ')';
                 console.log(message);
                 //메세지를 뿌릴려고..
@@ -502,13 +568,14 @@ export class UploadFiletreeService {
                 var str = {name : path, status: false};
                 this.uploading = false;
                 console.log('실패');
-                var message = ' : 블록체인에 에러가 발생했습니다.  (' + (index + 1) + '/' + decodeURI(path) + ')';
-                console.log(message);
-                //메세지를 뿌릴려고..
-                noti.next({
-                  cmd: 'LOG',
-                  message: '[' + (index + 1) + '] ' + message
-                });
+                //var message = ' : 블록체인에 에러가 발생했습니다.  (' + (index + 1) + '/' + decodeURI(path) + ')';
+                // var message = ' : 파일 업로드 실패(0000)'+ decodeURI(path);
+                // console.log(message);
+                // //메세지를 뿌릴려고..
+                // noti.next({
+                //   cmd: 'LOG',
+                //   message: '[' + (index + 1) + '] ' + message
+                // });
               }
             );;
           }else if(response.chain === 'chain-update'){
@@ -533,7 +600,7 @@ export class UploadFiletreeService {
                 }
   
                 var message = ' : 파일 업로드 완료 (' + (index + 1) + '/' + this.filesToSend.length + ')';
-                console.log(message);
+                //console.log(message);
                 //메세지를 뿌릴려고..
                 noti.next({
                   cmd: 'LOG',
@@ -545,13 +612,14 @@ export class UploadFiletreeService {
                 var str = {name : path, status: false};
                 this.uploading = false; //이렇게 해주면 다시 업로드 버튼을 누를때 올라가는 것처럼 보임
                 console.log('실패');
-                var message = ' : 블록체인에 에러가 발생했습니다.(' + (index + 1) + '/' + decodeURI(path) + ')';
-                console.log(message);
+                //var message = ' : 블록체인에 에러가 발생했습니다.(' + (index + 1) + '/' + decodeURI(path) + ')';
+                //var message = ' : 파일 업로드 실패(0000)'+ decodeURI(path);
+                //console.log(message);
                 //메세지를 뿌릴려고..
-                noti.next({
-                  cmd: 'LOG',
-                  message: '[' + (index + 1) + '] ' + message
-                });
+                // noti.next({
+                //   cmd: 'LOG',
+                //   message: '[' + (index + 1) + '] ' + message
+                // });
               }
             );;
           }
@@ -580,141 +648,106 @@ export class UploadFiletreeService {
 
         this.gotoNextFile(response.index);
       }
- 
-     // this.gotoNextFile(response.index);
     });
   }
 
+ 
+
   private getFolderKey(folderIndex) {
-    if (this.member == null) {
-      this.member = this.memberAPI.isLoggedin();
-    }
+    // if (this.member == null) {
+    //   this.member = this.memberAPI.isLoggedin();
+    //   console.log('bb 맴버 = ',this.member);
+    // }
+
+    this.member = this.memberAPI.isLoggedin();
+
+    console.log('getFolderKey => 맴버 ', this.member);
 
     return 'folder:' + this.member.username + ':' + folderIndex;
   }
-  
-  private initialize(containername, token) {
-    // Setting URL and headers for request
-    console.log('initialize => containername = ',containername);
-    console.log('initialize => token = ',token);
-    var options = {
-        uri: M5MemberService.s3Storage+'/'+containername+'?format=json',
-        headers: {
-          'X-Auth-Token': token
-        }
-    };
-    // Return new promise 
-    return new Promise(function(resolve, reject) {
-      // Do async job
-        request.get(options, function(err, resp, body) {
-            if (err) {
-              console.log('11..목록얻어오기 실패 = ',err);
-                reject(err);
-            } else {
-                if(resp.statusCode == 200){
-                   console.log('목록얻어오기 성공');
-                   console.log(body);
-                  //resolve([resp.headers,body]);  //배열로 멀티값전달
-                  resolve(body);
-                }else if(resp.statusCode == 204){
-                  console.log('처음 목록얻어오기 성공');
-                  resolve("No Content");
-                }
-                else{
-                  console.log('22..목록얻어오기 실패', resp.statusCode);
-                  if(resp.statusCode == 403){
-                    //권한다시 요청
-                    var options = {
-                        uri: M5MemberService.again+'/'+containername+'/'+'again',
-                        headers: {
-                          'Content-Type': 'application/json',
-                          'X-Auth-Token': token
-                        }
-                    };
-                    request.put(options, function(err, resp, body) {  
-                        if (err) {
-                            console.log('',err);
-                            reject(err);
-                        } else {
-                            if(resp.statusCode == 200){
-                              console.log('성공');
-                              resolve("again");
-                            }
-                        }
-                      });
-                    
-                  }else{
-                    reject(resp);
-                  }
-                  
-                }
-            }
-        });
-    });
-  }
 
   //kimcy
-  getContainerList(storage){
-    //const STORAGE_URL = M5Service.s3Storage; 
-    this.member = this.storageService.get('member');
+  getContainerList(storage, callback){
+   
+     console.log('getContainerList');
+     var list = "";
+     this.member = storage.get('member');
+     console.log('44..맴버 = ',this.member);
     if(this.member == undefined){
       console.log('이경우는 어딜까??')
-      return;
+      return callback(false);
     }
+    const token = this.member.token;
     var contaniername = this.member.username.replace(/"/g, '').replace(/"/g, '');
-    var initializePromise = this.initialize(contaniername, this.member.token);
+    var getObjListPromise = getObjList(contaniername, token,  "", list)
+    //console.log('getObjListPromise = ', typeof getObjListPromise);
 
-    console.log('getContainerList');
-    initializePromise.then(function(result) {
-       if(result === 'again'){
-          var againMember = storage.get('member');
-          var againContanier = againMember.username.replace(/"/g, '').replace(/"/g, '');
-          var againToken = againMember.token;
-          var options = {
-            uri: M5MemberService.s3Storage+'/'+againContanier+'?format=json',
-            headers: {
-              'X-Auth-Token': againToken
-            }
-          };
-          request.get(options, function(err, resp, body) {
+    getObjListPromise.then(function(result){
+
+      console.log('결과 = ', result);
+      storage.set('list',result);
+      return callback(true);
+    },function(error){
+      console.log('목록가져오기 실패 = ',error);
+      return callback(false);
+    });
+    //var initializePromise = this.initialize(contaniername, this.member.token);
+
+    // initializePromise.then(function(result) {
+    //    if(result === 'again'){
+    //       var againMember = storage.get('member');
+    //       var againContanier = againMember.username.replace(/"/g, '').replace(/"/g, '');
+    //       var againToken = againMember.token;
+    //       var options = {
+    //         uri: M5MemberService.s3Storage+'/'+againContanier+'?format=json',
+    //         headers: {
+    //           'X-Auth-Token': againToken
+    //         }
+    //       };
+    //       request.get(options, function(err, resp, body) {
   
-              if(resp.statusCode == 200){
-                console.log('2번째 목록얻어오기 성공');
-                console.log(body);
-                storage.set('list',body);
-              }else if(resp.statusCode == 204){
-              console.log('처음 목록얻어오기 성공');
-              storage.set('list',"No Content");
-              }else{
-                  console.log('2번째 목록얻어오기 실패 = ',err);
-              }
-          });
+    //           if(resp.statusCode == 200){
+    //             console.log('2번째 목록얻어오기 성공');
+    //             console.log(body);
+    //             //resolve([resp.headers,body]);  //배열로 멀티값전달
+    //             //storage.set('list',body);
+    //           }else if(resp.statusCode == 204){
+    //           console.log('처음 목록얻어오기 성공');
+    //           storage.set('list',"No Content");
+    //           }else{
+    //               console.log('2번째 목록얻어오기 실패 = ',err);
+    //           }
+    //       });
 
-       }else{
-        storage.set('list',result);
-        console.log("11..결과 body :",storage.get('list'));
-       }
-      //   storage.set('list',result);
-      //  console.log("11..결과 body :",storage.get('list'));
-      //  var notification = new Subject();  //구독하지 않는 거라 home에서 받지 못함
-      //  notification.next({
-      //   cmd: 'LIST.COMPLETE',
-      //   message:'목록조회완료'
-      // });
+    //    }else if(result === "No Content"){
+    //     storage.set('list',result);
+    //    // console.log("11..결과 body :",storage.get('list'));
+    //     return callback(true);
+    //    } else{
+    //       if(result[0] <= PAGE_COUNT){
+    //         console.log('result[1] = ',result[1]);
+    //         storage.set('list',result[1]);
+    //         return callback(true);;
+    //       }else{
 
-    }, function(err) {
-        console.log(err);
-        // var notification = new Subject();
-        // notification.next({
-        //   cmd: 'LIST.COMPLETE',
-        //   message:'목록조회완료'
-        // });
-    })
+    //       }
+    //    }
+
+    // }, function(err) {
+    //     console.log(err);
+    //     return callback(false);
+
+    // })
 
   }
+
 
   public setUploadingStatus(set){
     this.uploading = set;
+  }
+
+  public setUploadMember(set){
+    this.member = set;
   }
 
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -753,11 +786,6 @@ export class UploadFiletreeService {
       /*---------------------------------------------------------------
        * 파일
        *---------------------------------------------------------------*/
-      // console.log('upload.filetree  filesToSend 에 넣기 ',fileItem);
-      // console.log('upload.filetree  folderIndex ',folderIndex);
-      // console.log('upload.filetree  this.filesToSend.length ',this.filesToSend.length);
-      // console.log('upload.filetree  folder',path.basename(fileItem.fullpath));
-      // console.log('upload.filetree  file',fileItem);
       this.filesToSend.push({
         folderIndex: folderIndex,
         index: this.filesToSend.length,
@@ -825,29 +853,24 @@ export class UploadFiletreeService {
     const file = item.file;
     let post;
     this.member = this.memberAPI.isLoggedin();
-
+    console.log('55..맴버 = ',this.member);
     console.log('업로드 file: ',file);
     /*---------------------------------------------------------------
         폴더도 Post를 하나 추가해놓아야함
      ----------------------------------------------------------------*/
 
     const paths = path.dirname(file.fullpath).split(path.sep);  //fullpath를 /로 분리하여 저장
-    console.log('업로드 paths: ',paths);  
+    //console.log('업로드 paths: ',paths);  
     const parentPath = (paths.slice(0, paths.length).join(path.sep)).replace(/\\/g, '/');
-    console.log('업로드 parentPath: ',parentPath);
+   //console.log('업로드 parentPath: ',parentPath);
     const folderName = this.folders[item.folderIndex].path.replace(/\\/g, '/');
-    console.log('업로드 folderName: ',folderName);
+    //console.log('업로드 folderName: ',folderName);
     const code = file.fullpath.replace(/\\/g, '/');  //비교대상
-    console.log('업로드 code: ',code);
+    //console.log('업로드 code: ',code);
     const deviceId = this.deviceResource.macaddress;
 
     let userToken = this.member.token;
     let username = this.member.username;
-
-  //  console.log('userToken = ',userToken);
-  //  console.log('username = ',username);
-
-
 
     if (item.file.type === 'folder') {
       let uertoken = 
@@ -919,14 +942,17 @@ export class UploadFiletreeService {
     //공용과 블록체인을 나워야...
     let existPost = null;
     var listObj = this.storageService.get('list');
-    console.log('upload.filetree, 리스트목록 = ',listObj);
-    console.log('리스트목록 갯수 = ',listObj.length);
+    //console.log('upload.filetree, 리스트목록 = ',listObj);
+   // console.log('리스트목록 갯수 = ',listObj.length);
     if(listObj != '[]' && listObj != 'No Content' && file.type != 'folder' 
        && listObj != undefined){
       let jsonExitPost = JSON.parse(listObj);
+      // console.log('json, 리스트목록  = ',jsonExitPost);
+      // console.log('리스트목록 갯수 = ',jsonExitPost.length);
+      // console.log('deviceId = ',deviceId);
+      //console.log('item.name = ',item.name);
       let diffJsonPost = jsonExitPost.filter(function (item){
-          //  console.log('deviceId = ',deviceId);
-          //  console.log('item.name = ',item.name);
+          
            return item.name.startsWith(deviceId);
            
       });
@@ -1018,11 +1044,11 @@ export class UploadFiletreeService {
 
     }
     /*---------------------------------------------------------------
-        업로드해야할 파일 판단
+        업로드해야할 파일 판단, 업로드 시작
       ----------------------------------------------------------------*/
     else {
 
-      console.log('업로드 해야 할 파일 판단',  code);
+      console.log('업로드 해야 할 파일 판단, 업로드 시작',  code);
 
       if (existPost == null && file.type != 'folder') {
         const pipe = new BytesPipe();
@@ -1114,63 +1140,216 @@ export class UploadFiletreeService {
   upload(folderIndex, fullpath) {
 
     console.log('upload.filetree folderIndex =  ',folderIndex, 'fullpath = ',fullpath);
-    if (this.uploading === true) {
-      console.log('업로딩중이라 리턴');
-      return;
-    }
+    //일단 임시..kimcy
+    // if (this.uploading === true) {
+    //   console.log('업로딩중이라 리턴');
+    //   return;
+    // }
+    // if(fullpath == undefined){
+    //   this.fillFollders();
 
-    this.uploading = true;
-    this.folderIndex = folderIndex;
+    //   console.log('33..폴더가 ', this.folders);
+    // }
 
-    console.log('this.folders[folderIndex]',folderIndex, this.folders[folderIndex]);
-    //kimcy
+    this.fillFollders();
+    
+
     if (this.folders[folderIndex] == null) {
-      console.log('폴더가 mull');
+      console.log('폴더가 null');
       this.folders[folderIndex] = [];
-      console.log('폴더가 ', this.folders[folderIndex]);
+      console.log('11..폴더가 ', this.folders[folderIndex]);
     }
 
-    //console.log('this.folders[folderIndex].path = ',this.folders[folderIndex].path);
+    console.log('22..폴더가 ', this.folders);
+    console.log('this.folders[folderIndex].path = ',this.folders[folderIndex].path);
     if (this.folders[folderIndex].path === undefined) {
       this.uploading = false;
       if (this.electronService.isElectronApp) {
         //kimcy: 지정되지 않음이 계속나와 this.folderIndex를 +1시킴 -> 다음폴더이동, 했더니 문제가 있어서 원복
+        if(this.member == null){
+          this.member = this.memberAPI.isLoggedin();
+        }
+        console.log('cc.. 맴버 = ',this.member);
         if(this.member.private){
+          console.log('private. folderIndex = ',folderIndex);
           if(folderIndex > 0){
             this.notification.next({
               cmd: 'FOLDER.SENT',
-              folderIndex: this.folderIndex
+              folderIndex:  folderIndex //this.folderIndex
             });
           }else{
             this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
             this.notification.next({
               cmd: 'FOLDER.SENT',
-              folderIndex: this.folderIndex
+              folderIndex:  folderIndex //this.folderIndex
             });
           }
           
         }else{
-          if(folderIndex == 2){
+          console.log('public, folderIndex = ',folderIndex);
+          if( /*folderIndex >=  1*/folderIndex ==  2){
             this.notification.next({
               cmd: 'FOLDER.SENT',
-              folderIndex: this.folderIndex
+              folderIndex: folderIndex //this.folderIndex
             });
           }else{
+            console.log('폴더 지정,,folderIndex = ',folderIndex);
             this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
             this.notification.next({
               cmd: 'FOLDER.SENT',
-              folderIndex: this.folderIndex
+              folderIndex:  folderIndex //this.folderIndex
             });
           }
         }
-        // this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
-        // this.notification.next({
-        //   cmd: 'FOLDER.SENT',
-        //   folderIndex: this.folderIndex
-        // });
-
       }
-    } else {
+    } else{
+      console.log('99.. 맴버 = ',this.member);
+      if(this.member == null){ //로그아웃후 로그인
+         this.member = this.memberAPI.isLoggedin();
+      }
+      console.log('00.. 맴버 = ',this.member);
+      this.postAPI.getNewToken(M5MemberService.login, this.member).subscribe(
+        response => {
+          this.member.token = response;
+          console.log('77.. 맴버 = ',this.member);
+          this.storageService.set('member',this.member);
+          console.log("신규토큰 ,,member :",this.storageService.get('member'));
+  
+          this.getContainerList(this.storageService, (result)=>{
+            if(result == true){
+              this.initUpLoad(folderIndex, fullpath)
+            }else{
+              console.log('목록을 가져오지 못했음'); //이 경우 다시 처음부터 올려야 하나? 그럴경우 블록체인에서 에러 나옴..
+              this.notification.next({cmd: 'LOG', message: 'KT서버 응답을 받지 못했습니다. 다시 로그인하세요'});
+            }
+          });
+  
+        },
+        error => {
+          console.log('업로딩 시작, 토큰갱신 못함');
+          this.notification.next({cmd: 'LOG', message: 'KT서버 응답을 받지 못했습니다. 다시 로그인하세요'});
+        }
+      );
+    }
+
+
+    
+
+
+
+    // this.uploading = true;
+    // this.folderIndex = folderIndex;
+
+    // console.log('this.folders[folderIndex]',folderIndex, this.folders[folderIndex]);
+    // //kimcy
+    // if (this.folders[folderIndex] == null) {
+    //   console.log('폴더가 mull');
+    //   this.folders[folderIndex] = [];
+    //   console.log('폴더가 ', this.folders[folderIndex]);
+    // }
+
+    // //console.log('this.folders[folderIndex].path = ',this.folders[folderIndex].path);
+    // if (this.folders[folderIndex].path === undefined) {
+    //   this.uploading = false;
+    //   if (this.electronService.isElectronApp) {
+    //     //kimcy: 지정되지 않음이 계속나와 this.folderIndex를 +1시킴 -> 다음폴더이동, 했더니 문제가 있어서 원복
+    //     if(this.member.private){
+    //       if(folderIndex > 0){
+    //         this.notification.next({
+    //           cmd: 'FOLDER.SENT',
+    //           folderIndex: this.folderIndex
+    //         });
+    //       }else{
+    //         this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
+    //         this.notification.next({
+    //           cmd: 'FOLDER.SENT',
+    //           folderIndex: this.folderIndex
+    //         });
+    //       }
+          
+    //     }else{
+    //       if(folderIndex == 2){
+    //         this.notification.next({
+    //           cmd: 'FOLDER.SENT',
+    //           folderIndex: this.folderIndex
+    //         });
+    //       }else{
+    //         this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
+    //         this.notification.next({
+    //           cmd: 'FOLDER.SENT',
+    //           folderIndex: this.folderIndex
+    //         });
+    //       }
+    //     }
+    //     // this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
+    //     // this.notification.next({
+    //     //   cmd: 'FOLDER.SENT',
+    //     //   folderIndex: this.folderIndex
+    //     // });
+
+    //   }
+    // } else {
+    //   this.folders[folderIndex].path = fullpath;
+    //   if (this.electronService.isElectronApp) { //앱이 실행중이라면..
+    //     console.log('11..upload ->앱이실행중이라 업로드');
+    //     this.notification.next({cmd: 'LOG', message: this.folders[folderIndex].path + ' 업로드를 시작합니다.'});
+    //     console.log('보냄, GETFOLDERTREE, upload-filetree');
+    //     this.electronService.ipcRenderer.send('GETFOLDERTREE', {
+    //       folderIndex: folderIndex,
+    //       path: this.folders[folderIndex].path
+    //     });
+    //   }
+    // }
+  }
+
+  initUpLoad(folderIndex,fullpath){
+    this.uploading = true;
+    this.folderIndex = folderIndex;
+
+    // console.log('this.folders[folderIndex]',folderIndex, this.folders[folderIndex]);
+    // //kimcy
+    // if (this.folders[folderIndex] == null) {
+    //   console.log('폴더가 mull');
+    //   this.folders[folderIndex] = [];
+    //   console.log('폴더가 ', this.folders[folderIndex]);
+    // }
+
+    // //console.log('this.folders[folderIndex].path = ',this.folders[folderIndex].path);
+    // if (this.folders[folderIndex].path === undefined) {
+    //   this.uploading = false;
+    //   if (this.electronService.isElectronApp) {
+    //     //kimcy: 지정되지 않음이 계속나와 this.folderIndex를 +1시킴 -> 다음폴더이동, 했더니 문제가 있어서 원복
+    //     if(this.member.private){
+    //       if(folderIndex > 0){
+    //         this.notification.next({
+    //           cmd: 'FOLDER.SENT',
+    //           folderIndex: this.folderIndex
+    //         });
+    //       }else{
+    //         this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
+    //         this.notification.next({
+    //           cmd: 'FOLDER.SENT',
+    //           folderIndex: this.folderIndex
+    //         });
+    //       }
+          
+    //     }else{
+    //       if(folderIndex == 2){
+    //         this.notification.next({
+    //           cmd: 'FOLDER.SENT',
+    //           folderIndex: this.folderIndex
+    //         });
+    //       }else{
+    //         this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
+    //         this.notification.next({
+    //           cmd: 'FOLDER.SENT',
+    //           folderIndex: this.folderIndex
+    //         });
+    //       }
+    //     }
+    //   }
+    // } else 
+    {
       this.folders[folderIndex].path = fullpath;
       if (this.electronService.isElectronApp) { //앱이 실행중이라면..
         console.log('11..upload ->앱이실행중이라 업로드');

@@ -42,22 +42,22 @@ export class SignupPageComponent implements OnInit {
 
   onSubmit() {
     console.log('signup-page => onSubmit');
-    this.memberAPI.signup(this.registerForm.value).subscribe(
-      response => {
-        {
-          console.log("signup :", response);
-          //kimcy
-         // this.storage.set('username', this.registerForm.value.username);
-          this.storage.set('password', this.registerForm.value.password);
-          this.router.navigateByUrl('/home');
-        }
-      },
-      error => {
-        if (error.code != null) {
-          alert(error.message);
-        } else {
-          alert(error);
-        }
-      });
+    // this.memberAPI.signup(this.registerForm.value).subscribe(
+    //   response => {
+    //     {
+    //       console.log("signup :", response);
+    //       //kimcy
+    //      // this.storage.set('username', this.registerForm.value.username);
+    //       this.storage.set('password', this.registerForm.value.password);
+    //       this.router.navigateByUrl('/home');
+    //     }
+    //   },
+    //   error => {
+    //     if (error.code != null) {
+    //       alert(error.message);
+    //     } else {
+    //       alert(error);
+    //     }
+    //   });
   }
 }

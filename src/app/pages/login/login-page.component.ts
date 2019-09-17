@@ -93,9 +93,12 @@ export class LoginPageComponent implements OnInit {
 
            var userPrivate = result[1];
            member.private = userPrivate;
-
+          console.log('22..계정 = ',member.private);
           storage.set('member',member);
           storage.set('login',true);
+          
+
+          console.log("로그인  ,,member :",storage.get('member'));
           
           router.navigateByUrl('/home');
 
@@ -165,7 +168,7 @@ export class LoginPageComponent implements OnInit {
       this.member = this.memberAPI.isLoggedin();
       let username, password;
 
-      console.log('this.member : ',this.member);
+      console.log('aa 맴버 : ',this.member);
       if(this.member === undefined){
         console.log('처음실행 앱 안죽게');
         return;
