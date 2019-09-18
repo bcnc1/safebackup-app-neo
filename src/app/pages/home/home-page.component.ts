@@ -74,6 +74,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
   onLogout() {
     console.log('로그아웃버튼 눌림');
+    log.info('로그아웃버튼 눌림');
     this.uploadFiletreeService.setUploadingStatus(false);
     this.uploadFiletreeService.setUploadMember(null);
     this.uploading = false;
@@ -81,9 +82,9 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.router.navigateByUrl('/');
   }
 
-  gotoRoot(){
-    this.router.navigateByUrl('/');
-  }
+  // gotoRoot(){
+  //   this.router.navigateByUrl('/');
+  // }
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    *  탭 버튼을 누를경우 저장된 폴더의 패스를 구해와서 보여주기 위한 것임
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
