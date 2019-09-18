@@ -12,7 +12,7 @@ import * as moment from 'moment';
 import { ObjectUtils } from '../../utils/ObjectUtils';
 import { NGXLogger } from 'ngx-logger';
 import { environment } from '../../../environments/environment';
-
+const log = require('electron-log');
 
 @Component({
   selector: 'app-page',

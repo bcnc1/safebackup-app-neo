@@ -42,9 +42,9 @@ var drBackupAutoLauncher = new AutoLaunch({
 drBackupAutoLauncher.enable();
 
 
-function logger(level, text) {
-  log.warn(level, text);
-}
+// function logger(level, text) {
+//   log.warn(level, text);
+// }
 
 
 /* 글로벌로 해야  garbage colllection이 안된다고함 */
@@ -256,6 +256,8 @@ if (!gotTheLock) {
     }
   })
 
+  //kimcy: memory 를 4g까지 사용
+  app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4096');
   app.on('ready', createWindow);
 }
 
