@@ -258,7 +258,8 @@ export class UploadFiletreeService {
             
         } else{
           if(fileTree.length == undefined){
-            //console.log('백업할 파일이 없음');
+            console.log('백업할 파일이 없음');
+            log.info('백업할 파일이 없음');
             this.notification.next({cmd: 'LOG', message: '백업할 파일이 없습니다.'});
             this.gotoNextFile(this.folderIndex);
             return; 
@@ -269,7 +270,11 @@ export class UploadFiletreeService {
   
           });
 
-          this.logger.debug('GETFOLDERTREE***********', folderSize);
+
+
+          //this.logger.debug('GETFOLDERTREE***********', folderSize);
+          //log.ingo('folderSize = ',folderSize);
+
           this.notification.next({
             cmd: 'FOLDER.INFO',
             folderData: {
@@ -464,32 +469,6 @@ export class UploadFiletreeService {
         dataBackupItem.version = environment.VERSION;
 
         console.log('dataBackupItem.version = ',dataBackupItem.version);
-        //kimcy: 
-        // const post = {
-        //   type: 'folderData',
-        //   title: dataBackupItem.path,
-        //   categories: [this.deviceResource.macaddress],
-        //   code: this.member.username + '##' + this.deviceResource.macaddress + '##' + dataBackupItem.path,
-        //   userData: JSON.stringify(dataBackupItem),
-        //   checkCode: 'true',
-        //   checkCodeAction: 'update',
-        // };
-
-        //this.logger.debug('###################', post);
-        //kimcy 일단 추후 구현
-        // this.postAPI.save(this.board.id, post,
-        //   null
-        // ).subscribe(saveResponse => {
-        //     {
-        //       console.log('upload.filetree postAPI.save 성공');
-        //       this.logger.debug(saveResponse);
-        //     }
-        //   },
-        //   error => {
-        //     console.log('upload.filetree postAPI.save 실패');
-        //     this.logger.debug(error);
-        //   }
-        // );
         console.log('processFile 호출?? 해야지.. ');
         this.subject.next(this.filesToSend[0]); //processFile 호출??
       }
@@ -780,6 +759,9 @@ export class UploadFiletreeService {
         file: fileItem,
         size: size
       });
+
+      const used1 = process.memoryUsage().heapUsed / 1024 / 1024;
+      console.log(`22 ..The script uses approximately ${Math.round(used1 * 100) / 100} MB`);
       return size;
 
     } else if (fileItem.type === 'file') {
@@ -792,6 +774,9 @@ export class UploadFiletreeService {
         folder: path.basename(fileItem.fullpath),
         file: fileItem
       });
+
+      const used = process.memoryUsage().heapUsed / 1024 / 1024;
+      console.log(`11..The script uses approximately ${Math.round(used * 100) / 100} MB`);
       size += fileItem.size;
     }
     return size;
@@ -803,8 +788,11 @@ export class UploadFiletreeService {
   private gotoNextFile(index) {
     //index는 폴더 인덱스
     log.warn('gotoNextFile , 파일갯수 : ', this.filesToSend.length);
-    log.warn('gotoNextFile , filesToSend 사이즈 : ', this.filesToSend.size());
-    log.warn('gotoNextFile, 폴더인덱스 : ', index);
+    log.warn('gotoNextFile , filesToSend 사이즈 : ', this.filesToSend);
+    log.warn('gotoNextFile, 폴더인덱스 : ', index);  //process.getHeapStatistics().usedHeapSize
+
+    //console.log('gotoNextFile filesToSend 사이즈 = ',this.filesToSend.length,'index= ',index);
+
 
     console.log('gotoNextFile send = ',this.filesToSend.length,'index= ',index);
     //log.warn()
@@ -853,7 +841,7 @@ export class UploadFiletreeService {
   -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   private processFile(item) {
     console.log('업로드처리 시작 processFile');
-    log.info('processFile, 업로드 프로세스 시작 사이즈 = ', item.size());
+    log.info('processFile, 업로드 프로세스 시작 사이즈 = ', item.length);
     log.info('processFile, item : ',item , 'this.folders[item.folderIndex].path : ',this.folders[item.folderIndex].path);
     if (item == null || this.folders[item.folderIndex].path === undefined) {  //this.folders[item.folderIndex].path: 설정한 업로드패스
       return;
@@ -953,9 +941,13 @@ export class UploadFiletreeService {
        console.log('리스트목록 갯수 = ',jsonExitPost.length);
        log.info('리스트목록 갯수 = ',jsonExitPost.length);
       // console.log('deviceId = ',deviceId);
-      console.log('item.name = ',item.name);
+     // console.log('item.name = ',item.name);
+
+
+     console.log('deviceId = ',deviceId);
+
       let diffJsonPost = jsonExitPost.filter(function (item){
-          
+           console.log('item = ',item);
            return item.name.startsWith(deviceId);
            
       });
