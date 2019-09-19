@@ -803,6 +803,7 @@ export class UploadFiletreeService {
   private gotoNextFile(index) {
     //index는 폴더 인덱스
     log.warn('gotoNextFile , 파일갯수 : ', this.filesToSend.length);
+    log.warn('gotoNextFile , filesToSend 사이즈 : ', this.filesToSend.size());
     log.warn('gotoNextFile, 폴더인덱스 : ', index);
 
     console.log('gotoNextFile send = ',this.filesToSend.length,'index= ',index);
@@ -852,16 +853,17 @@ export class UploadFiletreeService {
   -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   private processFile(item) {
     console.log('업로드처리 시작 processFile');
-    log.info('processFile, 업로드 프로세스 시작 사이즈' );
+    log.info('processFile, 업로드 프로세스 시작 사이즈 = ', item.size());
     log.info('processFile, item : ',item , 'this.folders[item.folderIndex].path : ',this.folders[item.folderIndex].path);
     if (item == null || this.folders[item.folderIndex].path === undefined) {  //this.folders[item.folderIndex].path: 설정한 업로드패스
       return;
     }
-    this.logger.debug('===', item);
+    //this.logger.debug('===', item);
+    console.log('===', item);
     const file = item.file;
     let post;
     this.member = this.memberAPI.isLoggedin();
-    console.log('55..맴버 = ',this.member);
+   //console.log('55..맴버 = ',this.member);
     console.log('업로드 file: ',file);
     /*---------------------------------------------------------------
         폴더도 Post를 하나 추가해놓아야함
@@ -903,25 +905,20 @@ export class UploadFiletreeService {
             // accessed: file.accessed,
           }
         },
-       // accessToken: this.storageService.get('accessToken'),
         accessToken: userToken,
-       // apiKey: M5Service.apiKey,
         username:username,
-       // pwd:password
       };
     } else {
      // console.log('file  타입: ',this.storageService.get('userToken'));
       post = {
         index: item.index,
         file: file,
-      //  url: M5Service.server + '/v1/boards/' + this.board.id + '/posts?accessToken=' + encodeURI(this.accessToken),
         formData: {
           type: 'item',
           categories: [parentPath],                     // 파일이 포함된 path
           subtype: file.type,
           title: file.filename,
           status: folderName,                           // 사용자가 선택한 폴더
-          //code: this.member.username + '##' + this.deviceResource.macaddress + '##' + code,                                   // 파일의 fullpath
           code: this.deviceResource.macaddress + '/' + code,                                   
           subtitle: code,
           checkCode: 'true',
@@ -935,12 +932,8 @@ export class UploadFiletreeService {
             // accessed: file.accessed,
           }
         },
-       // accessToken: this.storageService.get('accessToken'),
-        
         accessToken: userToken,
-        //apiKey: M5Service.apiKey,
         username:username,
-      //  pwd:password
       };
     }
 
@@ -950,15 +943,17 @@ export class UploadFiletreeService {
     //공용과 블록체인을 나워야...
     let existPost = null;
     var listObj = this.storageService.get('list');
+    log.warn('listObj = ',listObj);
     //console.log('upload.filetree, 리스트목록 = ',listObj);
    // console.log('리스트목록 갯수 = ',listObj.length);
     if(listObj != '[]' && listObj != 'No Content' && file.type != 'folder' 
        && listObj != undefined){
       let jsonExitPost = JSON.parse(listObj);
       // console.log('json, 리스트목록  = ',jsonExitPost);
-      // console.log('리스트목록 갯수 = ',jsonExitPost.length);
+       console.log('리스트목록 갯수 = ',jsonExitPost.length);
+       log.info('리스트목록 갯수 = ',jsonExitPost.length);
       // console.log('deviceId = ',deviceId);
-      //console.log('item.name = ',item.name);
+      console.log('item.name = ',item.name);
       let diffJsonPost = jsonExitPost.filter(function (item){
           
            return item.name.startsWith(deviceId);
