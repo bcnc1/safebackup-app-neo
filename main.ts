@@ -257,7 +257,7 @@ if (!gotTheLock) {
   })
 
   //kimcy: memory 를 4g까지 사용
-  app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4096');
+  //app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4096');
   app.on('ready', createWindow);
 }
 
@@ -383,9 +383,9 @@ var diretoryTreeToObj = function (dir, done) {
                 fullpath: file,
 
                 size: stat.size,
-                accessed: stat.atime,
-                updated: stat.mtime,
-                created: stat.ctime,
+                // accessed: stat.atime,
+                // updated: stat.mtime,
+                // created: stat.ctime,
                 children: res
               });
               if (!--pending) {
@@ -400,9 +400,9 @@ var diretoryTreeToObj = function (dir, done) {
               fullpath: file,
 
               size: stat.size,
-              accessed: stat.atime, //파일에 접근한 마지막 시간
-              updated: stat.mtime, //파일이 수정된 마지막 시간
-              created: stat.ctime, //파일상태가 변경된 마지막시간
+              // accessed: stat.atime, //파일에 접근한 마지막 시간
+              // updated: stat.mtime, //파일이 수정된 마지막 시간
+              // created: stat.ctime, //파일상태가 변경된 마지막시간
             });
             if (!--pending)
               done(null, results);

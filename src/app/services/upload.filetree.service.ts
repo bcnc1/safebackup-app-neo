@@ -235,7 +235,7 @@ export class UploadFiletreeService {
             folderSize = stats.size;
 
             var fileitem ={type:'file', filename: path.basename(filepath), fullpath : filepath, 
-                           size: stats.size, accessed:stats.atime, updated:stats.mtime, created:stats.ctime};
+                           size: stats.size /*, accessed:stats.atime, updated:stats.mtime, created:stats.ctime*/};
             
 
             this.filesToSend.push({
@@ -852,9 +852,9 @@ export class UploadFiletreeService {
   -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   private processFile(item) {
     console.log('업로드처리 시작 processFile');
-    log.info('processFile, 업로드 프로세스 시작');
+    log.info('processFile, 업로드 프로세스 시작 사이즈' );
     log.info('processFile, item : ',item , 'this.folders[item.folderIndex].path : ',this.folders[item.folderIndex].path);
-    if (item == null || this.folders[item.folderIndex].path === undefined) {
+    if (item == null || this.folders[item.folderIndex].path === undefined) {  //this.folders[item.folderIndex].path: 설정한 업로드패스
       return;
     }
     this.logger.debug('===', item);
@@ -898,9 +898,9 @@ export class UploadFiletreeService {
           userData: {
             parentPath: parentPath,
             totalSize: item.size,
-            created: file.created,
-            updated: file.updated,
-            accessed: file.accessed,
+            // created: file.created,
+            // updated: file.updated,
+            // accessed: file.accessed,
           }
         },
        // accessToken: this.storageService.get('accessToken'),
@@ -930,9 +930,9 @@ export class UploadFiletreeService {
           userData: {
             parentPath: parentPath,
             totalSize: file.size,
-            created: file.created,
-            updated: file.updated,
-            accessed: file.accessed,
+            // created: file.created,
+            // updated: file.updated,
+            // accessed: file.accessed,
           }
         },
        // accessToken: this.storageService.get('accessToken'),
@@ -964,9 +964,9 @@ export class UploadFiletreeService {
            return item.name.startsWith(deviceId);
            
       });
-      process.takeHeapSnapshot('/Users/kimcy/dev/SafeBackUp')
+     // process.takeHeapSnapshot('/Users/kimcy/dev/SafeBackUp')
 
-      log.warn(process.getHeapStatistics());
+      //log.warn(process.getHeapStatistics());
       
       //log.warn('listObj = ', listObj);
       //log.warn('jsonExitPost = ', listObj);
