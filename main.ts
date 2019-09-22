@@ -2,8 +2,10 @@ import { isFormattedError } from "@angular/compiler";
 import {environment} from './src/environments/environment';
 import { Router } from '@angular/router';
 import {LOCAL_STORAGE, StorageService} from 'ngx-webstorage-service';
+import { createInjectable } from "@angular/compiler/src/core";
+import { userInfo } from "os";
 
-
+//db작성: https://www.youtube.com/watch?v=c76FTxLRwAw
 
 const {app, BrowserWindow, ipcMain} = require("electron");
 const fs = require("fs");
@@ -12,6 +14,7 @@ const os = require("os");
 
 const path = require("path");
 
+const { localStorage, sessionStorage } = require('electron-browser-storage');
 
 const checkDiskSpace = require("check-disk-space");
 const request = require('request');
@@ -26,7 +29,20 @@ const reqestProm = require('request-promise-native')
 
 var AutoLaunch = require('auto-launch');
 
+const chokidar = require('chokidar');
+
 let isQuiting = false;
+
+var knex = require('knex')({
+  client: 'sqlite3',
+  connection: {
+    filename: app.getPath('userData')+'/'+ 'sb.db'
+  }
+});
+var member;
+
+//StorageService.get()
+//console.log('knex = ',knex);
 
 
 
@@ -52,7 +68,7 @@ let tray = null;
 let contextMenu = null;
 
 function createWindow() {
-
+  console.log('createWindow');
   /*---------------------------------------------------------------
                TRAY
    ----------------------------------------------------------------*/
@@ -91,17 +107,6 @@ function createWindow() {
    /*---------------------------------------------------------------
               Main Window
     ----------------------------------------------------------------*/
-   /*
-    mainWindow = new BrowserWindow({
-     width: 1000,
-     height: 600,
-     //"node-integration": "iframe", // and this line
-     //"web-preferences": {
-     // "web-security": false
-     //},
-     autoHideMenuBar: true
-   });
-  */
 
    mainWindow = new BrowserWindow({
     width: 1000,
@@ -123,7 +128,7 @@ function createWindow() {
  
    //kimcy: release 할때는 해당 부부을 false, 개발할때는 true
    function isDev() {
-     return false;
+     return true;
    };
  
    // The following is optional and will open the DevTools:
@@ -175,7 +180,7 @@ function createWindow() {
     return false;
    };
  
- 
+   
    /*---------------------------------------------------------------
             Updater
             kimcy: 업데이트 기능없음
@@ -258,7 +263,12 @@ if (!gotTheLock) {
 
   //kimcy: memory 를 4g까지 사용
   //app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4096');
-  app.on('ready', createWindow);
+ // app.on('ready', createWindow);
+ app.on('ready', ()=> {
+  console.log('Ready');
+  createWindow();
+  createSBDatabBase();
+ });
 }
 
   // Quit when all windows are closed.
@@ -313,7 +323,130 @@ if (!gotTheLock) {
   // throw e;
 }
 
+/*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+ *  DataBase
+ -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
+ var sqlite3 = require('sqlite3').verbose();
+ 
+ function createSBDatabBase(){
+    if (fs.existsSync(app.getPath('userData')+'/'+ 'sb.db')) {
+          console.log('exists');
+    } else{
+      console.log('does not');
+      var db = new sqlite3.Database(app.getPath('userData')+'/'+ 'sb.db');
+      db.close();
+    }
 
+
+    // knex.schema.createTable('users', function (table) {
+    //   table.increments();
+    //   table.string('name');
+    //  // table.timestamps();
+    // }).then(()=>{
+    //   console.log('create');
+    // });
+ }
+
+ function createTable(index, callback){
+   console.log('createTable');
+   localStorage.getItem('member').then((value) => {
+      member = JSON.parse(value);
+      console.log('createTable, member = ',member);
+      var user = member.username;
+      var tableName = user+':'+index;
+
+      //localStorage.setItem('')
+
+      knex.schema.hasTable(tableName).then(function(exists) {
+        if (!exists) {
+          return knex.schema.createTable(tableName, function(t) {
+            t.increments('id').primary();
+            t.text('filename');
+            t.string('property');  //data_bakup, npki
+            //t.integer('filesize')
+            t.decimal('filesize')
+            t.boolean('upload');
+            t.boolean('chain');
+          });
+        }else{
+          return true;
+        }
+      });
+   });
+ 
+   
+
+   
+
+  //  knex.schema.createTable('users', function (table) {
+  //     table.increments();
+  //     table.string('name');
+  //    // table.timestamps();
+  //   }).then(()=>{
+  //     console.log('create');
+  //   });
+ }
+
+ function addDB(member, arg){
+  console.log('addDB');
+  var tableName = member.username+':'+arg.folderIndex;
+
+  const watcher = chokidar.watch(arg.path, {
+    ignored: /(^|[\/\\])\../, // ignore dotfiles
+    persistent: true
+  });
+
+  //const log = console.log.bind(console);
+
+  if(mainWindow && !mainWindow.isDestroyed()){
+    watcher
+    .on('add', function(path, stats) { 
+      
+      console.log('File', path, 'has been added'); 
+      //console.log('22.. tableName = ', tableName, 'has been added'); 
+      knex.schema.hasTable(tableName).then(function(exists){
+        if(exists){
+          console.log('path = ',path);
+          knex(tableName).where('filename', path).then((results)=>{
+            if(results.length == 0 ){
+              //console.log('22..일치하는 값 없음');
+              knex(tableName).insert({filename: path, filesize : stats.size}).then(()=>{
+               console.log('일차하는 값 없어서 insert');
+              });
+            } else{
+              console.log('파일이름이 존재, 따라서 사이즈 비교, stats = ', stats.size);
+              console.log('stats 타입 = ', typeof stats.size);
+              knex(tableName).where({
+                filename: path,
+                filesize: stats.size
+              }).select('id').then((results)=>{
+                console.log('results = ',results);
+                if(results.length == 0){
+                  console.log('새로운 값임으로 insert');
+                  knex(tableName).insert({filename: path, filesize : stats.size}).then(()=>{
+                    console.log('11..일차하는 값 없어서 insert');
+                   });
+                }else{
+                  console.log('db에 저장된 값임으로 skip');
+                }
+              });
+            }
+          });
+
+        }else{
+          console.log('테이블 없음');
+        }
+      });
+    })
+   
+    .on('ready', function() 
+    { 
+      console.log('Initial scan complete. Ready for changes.');
+   
+  
+    })
+  }
+}
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  *  IPC : GET FILES
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
@@ -325,22 +458,51 @@ if (!gotTheLock) {
     console.log('arg.path == null');
     return;
   }
-  diretoryTreeToObj(arg.path, function (err, res) {
-     // console.log(res);
-      if (err) {
-      //  console.error(err);
-      } else {
 
-        if(mainWindow && !mainWindow.isDestroyed()){
-          console.log('보냄, GETFOLDERTREE, main');
-          mainWindow.webContents.send("GETFOLDERTREE", {
-            folderIndex: arg.folderIndex,
-            tree: res
-          });
-        }
-      }
-    }
-  );
+  console.log('member = ', member);
+  if(member === undefined){
+    localStorage.getItem('member').then((value) => {
+      member = JSON.parse(value);
+      console.log('111.. member = ',member);
+      addDB(member, arg);
+    });
+  } else{
+    console.log('22.. member = ',member);
+    addDB(member, arg);
+  }
+  
+  
+
+  
+
+
+  // Returns [2] in "mysql", "sqlite"; [2, 3] in "postgresql"
+// knex.insert([{title: 'Great Gatsby'}, {title: 'Fahrenheit 451'}], ['id']).into('books')
+// Outputs:
+// insert into `books` (`title`) values ('Great Gatsby'), ('Fahrenheit 451')
+
+// knex('users').where({
+//   first_name: 'Test',
+//   last_name:  'User'
+// }).select('id')
+// Outputs:
+// select `id` from `users` where `first_name` = 'Test' and `last_name` = 'User'
+
+  
+  // diretoryTreeToObj(arg.path, function (err, res) {
+  //     if (err) {
+  //     //  console.error(err);
+  //     } else {
+  //       if(mainWindow && !mainWindow.isDestroyed()){
+  //         console.log('보냄, GETFOLDERTREE, main');
+  //         mainWindow.webContents.send("GETFOLDERTREE", {
+  //           folderIndex: arg.folderIndex,
+  //           tree: res
+  //         });
+  //       }
+  //     }
+  //   }
+  // );
 });
 
 
@@ -353,12 +515,13 @@ var diretoryTreeToObj = function (dir, done) {
  // console.log('main,  diretoryTreeToObj dir = ',dir, done);
   var results = [];
 
-  fs.readdir(dir, function (err, list) {
+  fs.readdir(dir, function (err, list) {  //비동기 함수, dir: 주어진 디렉토리
     if (err)
       return done(err);
 
     var pending = list.length;
      console.log('diretoryTreeToObj => list = ',list);
+     console.log('pending = ',pending);
 
     //kimcy
     if(dir.lastIndexOf('NPKI')!= -1){
@@ -456,7 +619,7 @@ ipcMain.on('PCRESOURCE', (event, arg) => {
     .filter(x => x);
 
   let ipaddress = null;
-   let macaddress = null;
+  let macaddress = null;
 
 
   if(maps != null) {
@@ -464,6 +627,9 @@ ipcMain.on('PCRESOURCE', (event, arg) => {
     macaddress = maps[0].mac;
   }
 
+
+    //db table 생성
+    //createTable(macaddress)
 
   const cpus = os.cpus();
 
@@ -479,20 +645,20 @@ ipcMain.on('PCRESOURCE', (event, arg) => {
         disk: diskSpace,
         ipaddresses: maps,
         ipaddress: ipaddress,
-         macaddress: macaddress
+        macaddress: macaddress
       });
     }
 
   });
+
 
 });
 
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  *  IPC : SELECT A FOLDER
+ *  폴더 선택 이벤트 처리
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-
-
 ipcMain.on('SELECTFOLDER', (event, arg) => {
   console.log('받음,main, SELECTFOLDER');
   var directory = dialog.showOpenDialog(mainWindow, {
@@ -500,12 +666,25 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   });
  
   if(mainWindow && !mainWindow.isDestroyed()){
-    console.log('보냄,main, SELECTFOLDER');
-    mainWindow.webContents.send("SELECTFOLDER", {
-      error: null,
-      folderIndex: arg.folderIndex,
-      directory: directory
+    
+    //db생성
+    //db table 생성
+    createTable(arg.folderIndex, (result) => {
+      console.log('보냄,main, SELECTFOLDER');
+      console.log('result = ',result);
+      mainWindow.webContents.send("SELECTFOLDER", {
+        error: null,
+        folderIndex: arg.folderIndex,
+        directory: directory
+      });
     });
+
+    // console.log('보냄,main, SELECTFOLDER');
+    // mainWindow.webContents.send("SELECTFOLDER", {
+    //   error: null,
+    //   folderIndex: arg.folderIndex,
+    //   directory: directory
+    // });
   }
 
 

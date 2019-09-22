@@ -97,7 +97,7 @@ export class UploadFiletreeService {
    *  Constructor
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   fillFollders() {
-    console.log('fillFollders ');
+    //console.log('fillFollders ');
     this.folders = new Array(4);
 
 
@@ -107,7 +107,7 @@ export class UploadFiletreeService {
       };
     }
 
-    console.log('this.folders = ',this.folders);
+    //console.log('this.folders = ',this.folders);
   }
 
 
@@ -149,10 +149,38 @@ export class UploadFiletreeService {
       });
     });
     /*----------------------------------------------------
-     *  IPC Response : Get FileTree
+     *  IPC Response : Get FileTree 예는 아래와 같다.
+     * (3) [{…}, {…}, {…}]
+          0:
+          filename: ".DS_Store"
+          fullpath: "/Users/kimcy/Downloads/bk2/.DS_Store"
+          size: 6148
+          type: "file"
+          __proto__: Object
+          1:
+          filename: "main.js"
+          fullpath: "/Users/kimcy/Downloads/bk2/main.js"
+          size: 11685
+          type: "file"
+          __proto__: Object
+          2:
+          filename: "손예진!.jpg"
+          fullpath: "/Users/kimcy/Downloads/bk2/손예진!.jpg"
+          size: 5023
+          type: "file"
+          __proto__: Object
+          length: 3
+          __proto__: Array(0)
+          folderIndex: 0,
+          index: 3,
+          children: {children: Array(0), name: "kim", type: "folder"}
+          filename: "kim"
+          fullpath: "/Users/kimcy/Downloads/bk2/kim"
+          size: 64
+          type: "folder"
      ----------------------------------------------------*/
     this.electronService.ipcRenderer.on('GETFOLDERTREE', (event: Electron.IpcMessageEvent, response: any) => {
-        const fileTree = response.tree;
+        const fileTree = response.tree;   //파일의 tree구성
         console.log('fileTree = ',fileTree);
         let folderSize = 0;
         this.folderIndex = response.folderIndex;
@@ -760,8 +788,8 @@ export class UploadFiletreeService {
         size: size
       });
 
-      const used1 = process.memoryUsage().heapUsed / 1024 / 1024;
-      console.log(`22 ..The script uses approximately ${Math.round(used1 * 100) / 100} MB`);
+      // const used1 = process.memoryUsage().heapUsed / 1024 / 1024;
+      // console.log(`22 ..The script uses approximately ${Math.round(used1 * 100) / 100} MB`);
       return size;
 
     } else if (fileItem.type === 'file') {
@@ -1163,14 +1191,14 @@ export class UploadFiletreeService {
 
     this.fillFollders();
     
-
+    console.log('folders[folderIndex] =  ', this.folders[folderIndex]);
     if (this.folders[folderIndex] == null) {
-      console.log('폴더가 null');
+      //console.log('폴더가 null');
       this.folders[folderIndex] = [];
-      console.log('11..폴더가 ', this.folders[folderIndex]);
+     // console.log('11..폴더가 ', this.folders[folderIndex]);
     }
 
-    console.log('22..폴더가 ', this.folders);
+    //console.log('22..폴더가 ', this.folders);
     console.log('this.folders[folderIndex].path = ',this.folders[folderIndex].path);
     if (this.folders[folderIndex].path === undefined) {
       this.uploading = false;
@@ -1203,7 +1231,7 @@ export class UploadFiletreeService {
               folderIndex: folderIndex //this.folderIndex
             });
           }else{
-            console.log('폴더 지정,,folderIndex = ',folderIndex);
+            console.log('폴더 지정,,folderIndex = ',folderIndex, );
             this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
             this.notification.next({
               cmd: 'FOLDER.SENT',
@@ -1242,134 +1270,20 @@ export class UploadFiletreeService {
       );
     }
 
-
-    
-
-
-
-    // this.uploading = true;
-    // this.folderIndex = folderIndex;
-
-    // console.log('this.folders[folderIndex]',folderIndex, this.folders[folderIndex]);
-    // //kimcy
-    // if (this.folders[folderIndex] == null) {
-    //   console.log('폴더가 mull');
-    //   this.folders[folderIndex] = [];
-    //   console.log('폴더가 ', this.folders[folderIndex]);
-    // }
-
-    // //console.log('this.folders[folderIndex].path = ',this.folders[folderIndex].path);
-    // if (this.folders[folderIndex].path === undefined) {
-    //   this.uploading = false;
-    //   if (this.electronService.isElectronApp) {
-    //     //kimcy: 지정되지 않음이 계속나와 this.folderIndex를 +1시킴 -> 다음폴더이동, 했더니 문제가 있어서 원복
-    //     if(this.member.private){
-    //       if(folderIndex > 0){
-    //         this.notification.next({
-    //           cmd: 'FOLDER.SENT',
-    //           folderIndex: this.folderIndex
-    //         });
-    //       }else{
-    //         this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
-    //         this.notification.next({
-    //           cmd: 'FOLDER.SENT',
-    //           folderIndex: this.folderIndex
-    //         });
-    //       }
-          
-    //     }else{
-    //       if(folderIndex == 2){
-    //         this.notification.next({
-    //           cmd: 'FOLDER.SENT',
-    //           folderIndex: this.folderIndex
-    //         });
-    //       }else{
-    //         this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
-    //         this.notification.next({
-    //           cmd: 'FOLDER.SENT',
-    //           folderIndex: this.folderIndex
-    //         });
-    //       }
-    //     }
-    //     // this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
-    //     // this.notification.next({
-    //     //   cmd: 'FOLDER.SENT',
-    //     //   folderIndex: this.folderIndex
-    //     // });
-
-    //   }
-    // } else {
-    //   this.folders[folderIndex].path = fullpath;
-    //   if (this.electronService.isElectronApp) { //앱이 실행중이라면..
-    //     console.log('11..upload ->앱이실행중이라 업로드');
-    //     this.notification.next({cmd: 'LOG', message: this.folders[folderIndex].path + ' 업로드를 시작합니다.'});
-    //     console.log('보냄, GETFOLDERTREE, upload-filetree');
-    //     this.electronService.ipcRenderer.send('GETFOLDERTREE', {
-    //       folderIndex: folderIndex,
-    //       path: this.folders[folderIndex].path
-    //     });
-    //   }
-    // }
   }
 
   initUpLoad(folderIndex,fullpath){
     this.uploading = true;
     this.folderIndex = folderIndex;
-
-    // console.log('this.folders[folderIndex]',folderIndex, this.folders[folderIndex]);
-    // //kimcy
-    // if (this.folders[folderIndex] == null) {
-    //   console.log('폴더가 mull');
-    //   this.folders[folderIndex] = [];
-    //   console.log('폴더가 ', this.folders[folderIndex]);
-    // }
-
-    // //console.log('this.folders[folderIndex].path = ',this.folders[folderIndex].path);
-    // if (this.folders[folderIndex].path === undefined) {
-    //   this.uploading = false;
-    //   if (this.electronService.isElectronApp) {
-    //     //kimcy: 지정되지 않음이 계속나와 this.folderIndex를 +1시킴 -> 다음폴더이동, 했더니 문제가 있어서 원복
-    //     if(this.member.private){
-    //       if(folderIndex > 0){
-    //         this.notification.next({
-    //           cmd: 'FOLDER.SENT',
-    //           folderIndex: this.folderIndex
-    //         });
-    //       }else{
-    //         this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
-    //         this.notification.next({
-    //           cmd: 'FOLDER.SENT',
-    //           folderIndex: this.folderIndex
-    //         });
-    //       }
-          
-    //     }else{
-    //       if(folderIndex == 2){
-    //         this.notification.next({
-    //           cmd: 'FOLDER.SENT',
-    //           folderIndex: this.folderIndex
-    //         });
-    //       }else{
-    //         this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
-    //         this.notification.next({
-    //           cmd: 'FOLDER.SENT',
-    //           folderIndex: this.folderIndex
-    //         });
-    //       }
-    //     }
-    //   }
-    // } else 
-    {
-      this.folders[folderIndex].path = fullpath;
-      if (this.electronService.isElectronApp) { //앱이 실행중이라면..
-        console.log('11..upload ->앱이실행중이라 업로드');
-        this.notification.next({cmd: 'LOG', message: this.folders[folderIndex].path + ' 업로드를 시작합니다.'});
-        console.log('보냄, GETFOLDERTREE, upload-filetree');
-        this.electronService.ipcRenderer.send('GETFOLDERTREE', {
-          folderIndex: folderIndex,
-          path: this.folders[folderIndex].path
-        });
-      }
+    this.folders[folderIndex].path = fullpath;
+    if (this.electronService.isElectronApp) { //앱이 실행중이라면..
+      console.log('11..upload ->앱이실행중이라 업로드');
+      this.notification.next({cmd: 'LOG', message: this.folders[folderIndex].path + ' 업로드를 시작합니다.'});
+      console.log('보냄, GETFOLDERTREE, upload-filetree');
+      this.electronService.ipcRenderer.send('GETFOLDERTREE', {
+        folderIndex: folderIndex,
+        path: this.folders[folderIndex].path
+      });
     }
   }
 
