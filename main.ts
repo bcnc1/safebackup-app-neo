@@ -347,7 +347,7 @@ if (!gotTheLock) {
     // });
  }
 
- function createTable(index, callback){
+ function createTable(index, window, callback){
    console.log('createTable');
    localStorage.getItem('member').then((value) => {
       member = JSON.parse(value);
@@ -355,18 +355,20 @@ if (!gotTheLock) {
       var user = member.username;
       var tableName = user+':'+index;
 
-      //localStorage.setItem('')
-
       knex.schema.hasTable(tableName).then(function(exists) {
         if (!exists) {
-          return knex.schema.createTable(tableName, function(t) {
+          knex.schema.createTable(tableName, function(t) {
             t.increments('id').primary();
             t.text('filename');
             t.string('property');  //data_bakup, npki
-            //t.integer('filesize')
-            t.decimal('filesize')
+            t.integer('filesize');
+            t.string('fileupdate');
             t.boolean('upload');
             t.boolean('chain');
+          }).then(()=>{
+            callback(true);
+          }).catch(()=>{
+            callback(false);
           });
         }else{
           return true;
@@ -459,18 +461,33 @@ if (!gotTheLock) {
     return;
   }
 
-  console.log('member = ', member);
-  if(member === undefined){
-    localStorage.getItem('member').then((value) => {
-      member = JSON.parse(value);
-      console.log('111.. member = ',member);
-      addDB(member, arg);
-    });
-  } else{
-    console.log('22.. member = ',member);
-    addDB(member, arg);
-  }
+  //chokdir 프로그램으로 파일을 읽어서 db에 넣을려고 했으나 그럴 필요가 없을 듯 하여 막음
+  // console.log('member = ', member);
+  // if(member === undefined){
+  //   localStorage.getItem('member').then((value) => {
+  //     member = JSON.parse(value);
+  //     console.log('111.. member = ',member);
+  //     addDB(member, arg);
+  //   });
+  // } else{
+  //   console.log('22.. member = ',member);
+  //   addDB(member, arg);
+  // }
   
+  diretoryTreeToObj(arg.path, function (err, res) {
+      if (err) {
+      //  console.error(err);
+      } else {
+        if(mainWindow && !mainWindow.isDestroyed()){
+          console.log('보냄, GETFOLDERTREE, main');
+          mainWindow.webContents.send("GETFOLDERTREE", {
+            folderIndex: arg.folderIndex,
+            tree: res
+          });
+        }
+      }
+    }
+  );
   
 
   
@@ -489,20 +506,7 @@ if (!gotTheLock) {
 // select `id` from `users` where `first_name` = 'Test' and `last_name` = 'User'
 
   
-  // diretoryTreeToObj(arg.path, function (err, res) {
-  //     if (err) {
-  //     //  console.error(err);
-  //     } else {
-  //       if(mainWindow && !mainWindow.isDestroyed()){
-  //         console.log('보냄, GETFOLDERTREE, main');
-  //         mainWindow.webContents.send("GETFOLDERTREE", {
-  //           folderIndex: arg.folderIndex,
-  //           tree: res
-  //         });
-  //       }
-  //     }
-  //   }
-  // );
+  
 });
 
 
@@ -512,7 +516,7 @@ if (!gotTheLock) {
 
 
 var diretoryTreeToObj = function (dir, done) {
- // console.log('main,  diretoryTreeToObj dir = ',dir, done);
+  console.log('main,  diretoryTreeToObj dir = ',dir, done);
   var results = [];
 
   fs.readdir(dir, function (err, list) {  //비동기 함수, dir: 주어진 디렉토리
@@ -529,16 +533,21 @@ var diretoryTreeToObj = function (dir, done) {
       return done(null, {name: dir, type: 'folder', children: results});
     }
 
-    if (!pending)
+    if (!pending){
+      console.log('33, pending = ', pending, 'dir = ',dir);
       return done(null, {name: path.basename(dir), type: 'folder', children: results});
+    }
+      
 
     list.forEach(function (file) {
-      file = path.resolve(dir, file);
-      console.log('main,  file = ',file);
+      console.log('main, 11.. file = ',file);
+      file = path.resolve(dir, file); //fullpath만들어주기
+      console.log('main, 22.. file = ',file);
       fs.stat(file, function (err, stat) {
         if (stat) {
           if (stat.isDirectory()) {
             diretoryTreeToObj(file, function (err, res) {
+              console.log('폴더넣기 file = ,',file,' pending = ',pending);
               results.push({  //폴더의 속성을 만든다
                 type: 'folder',
 
@@ -552,10 +561,12 @@ var diretoryTreeToObj = function (dir, done) {
                 children: res
               });
               if (!--pending) {
+                console.log('11 done = ', results,'pending = ',pending);
                 done(null, results);
               }
             });
           } else {
+            console.log('파일넣기 file =',file, 'pending = ',pending);
             results.push({  //파일의 속성을 만든다.
               type: 'file',
 
@@ -567,8 +578,11 @@ var diretoryTreeToObj = function (dir, done) {
               // updated: stat.mtime, //파일이 수정된 마지막 시간
               // created: stat.ctime, //파일상태가 변경된 마지막시간
             });
-            if (!--pending)
+            if (!--pending){
+              console.log('22 done = ', results, 'pending = ',pending);
               done(null, results);
+            }
+              
           }
         }
       });
@@ -669,14 +683,19 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
     
     //db생성
     //db table 생성
-    createTable(arg.folderIndex, (result) => {
+    createTable(arg.folderIndex, mainWindow,(result) => {
       console.log('보냄,main, SELECTFOLDER');
       console.log('result = ',result);
-      mainWindow.webContents.send("SELECTFOLDER", {
-        error: null,
-        folderIndex: arg.folderIndex,
-        directory: directory
-      });
+      if(result){
+        mainWindow.webContents.send("SELECTFOLDER", {
+          error: null,
+          folderIndex: arg.folderIndex,
+          directory: directory
+        });
+      }else{
+        log.warn('데이터베이스 생성 실패');
+      }
+      
     });
 
     // console.log('보냄,main, SELECTFOLDER');

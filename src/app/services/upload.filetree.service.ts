@@ -91,7 +91,7 @@ export class UploadFiletreeService {
 
   private uploading = false;
   private notification;
-  //private kim;
+  private test; //kimcy
 
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    *  Constructor
@@ -294,6 +294,7 @@ export class UploadFiletreeService {
           }
           
           fileTree.forEach(element => {
+            console.log('fileTree => element = ',element);
             folderSize += this.processTreeElement(this.folderIndex, element);
   
           });
@@ -303,17 +304,17 @@ export class UploadFiletreeService {
           //this.logger.debug('GETFOLDERTREE***********', folderSize);
           //log.ingo('folderSize = ',folderSize);
 
-          this.notification.next({
-            cmd: 'FOLDER.INFO',
-            folderData: {
-              index: this.folderIndex,
-              size: folderSize
-            }
-          });
+          // this.notification.next({
+          //   cmd: 'FOLDER.INFO',
+          //   folderData: {
+          //     index: this.folderIndex,
+          //     size: folderSize
+          //   }
+          // });
         }
 
 
-        this.logger.debug('GETFOLDERTREE***********', folderSize);
+        console.log('GETFOLDERTREE***********', folderSize);
         this.notification.next({
           cmd: 'FOLDER.INFO',
           folderData: {
@@ -766,6 +767,9 @@ export class UploadFiletreeService {
     console.log('fileItem 타입 :',fileItem.type); //하나의 파일
     console.log('filesToSend :',this.filesToSend);  //어디서 값을 넣어줬을끼?, 현재는 배열로 폴더에 있는 파일들을 가르킨다.
     let size = 0;
+    this.test ++;
+    console.log('test = ',this.test);
+
     if (this.filesToSend == null) {
       this.filesToSend = [];
     }
