@@ -807,8 +807,8 @@ export class UploadFiletreeService {
         file: fileItem
       });
 
-      const used = process.memoryUsage().heapUsed / 1024 / 1024;
-      console.log(`11..The script uses approximately ${Math.round(used * 100) / 100} MB`);
+      // const used = process.memoryUsage().heapUsed / 1024 / 1024;
+      // console.log(`11..The script uses approximately ${Math.round(used * 100) / 100} MB`);
       size += fileItem.size;
     }
     return size;

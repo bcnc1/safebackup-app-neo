@@ -41,6 +41,7 @@ var knex = require('knex')({
 });
 var member;
 
+
 //StorageService.get()
 //console.log('knex = ',knex);
 
@@ -355,16 +356,19 @@ if (!gotTheLock) {
       var user = member.username;
       var tableName = user+':'+index;
 
+      //timezone 챀고
+      //https://stackoverflow.com/questions/46152833/timestamp-fields-in-knex-js-migrations
       knex.schema.hasTable(tableName).then(function(exists) {
         if (!exists) {
           knex.schema.createTable(tableName, function(t) {
             t.increments('id').primary();
             t.text('filename');
-            t.string('property');  //data_bakup, npki
+           // t.string('property');  //data_bakup, npki
             t.integer('filesize');
-            t.string('fileupdate');
-            t.boolean('upload');
-            t.boolean('chain');
+            t.timestamp('fileupdate',{ useTz: true }); //2019-07-25T07:02:31.587Z 저장이되어야 하느데
+            t.boolean('uploadstatus');
+            t.string('chain');
+            t.boolean('chainstatus');
           }).then(()=>{
             callback(true);
           }).catch(()=>{
@@ -389,7 +393,7 @@ if (!gotTheLock) {
   //   });
  }
 
- function addDB(member, arg){
+ function addDBWithWatcher(member, arg){
   console.log('addDB');
   var tableName = member.username+':'+arg.folderIndex;
 
@@ -448,7 +452,96 @@ if (!gotTheLock) {
   
     })
   }
-}
+ }
+
+ function insertAndupdate(folderIndex, tableName, filePath, fileSize, fileMtime, callback){
+  knex.schema.hasTable(tableName).then(function(exists){
+    if(exists){
+      console.log('path = ',filePath);
+      knex(tableName).where('filename', filePath).then((results)=>{
+        if(results.length == 0 ){
+          console.log('22..일치하는 값 없음 insert');
+          knex(tableName).insert({filename: filePath, 
+            filesize : fileSize,
+            fileupdate : fileMtime,
+            uploadstatus: false,
+            chain: "create",
+            chainstatus: false
+          }).then(()=>{
+           console.log('일차하는 값 없어서 insert');
+           callback(true);
+          });
+        } else{
+          console.log('파일이름이 존재', filePath, '따라서 사이즈 가 다르거나, stats = ', fileSize
+          , 'update시간이 다르면 ', fileMtime, '업데이트');
+         // console.log('stats 타입 = ', typeof stats.size);
+          knex(tableName).where({filename: filePath})
+            .where({filesize: fileSize})
+            .where({fileupdate: fileMtime})
+            .select('id').then((results) => {
+              if(results.length == 0){
+                // console.log('tableName = ',tableName);
+                // console.log('filePath = ',filePath);
+
+                knex(tableName).where({filename: filePath}).select('id')
+                .then((results)=>{
+                  // console.log('동일한 파일명을 갖는 id = ',results);
+                  // console.log('동일한 파일명을 갖는 id = ',results[0]);
+                  console.log('동일한 파일명을 갖는 id = ',results[0]['id']); //number
+                  var id = results[0]['id'];
+                  knex(tableName)
+                  .where({id: id})
+                  .update({filesize : fileSize,fileupdate : fileMtime,
+                    uploadstatus: false,chain: "update",chainstatus:false})
+                    .then(()=>{
+                      console.log('update');
+                      callback(true);
+                    })
+                });
+
+              }else{
+                console.log('파일이 같음으로 skip = ',request.id);
+                callback(true);
+              }
+            });
+
+        }
+      });
+
+    }else{
+      log.error('테이블 없음');
+      callback(false);
+    }
+  });
+ }
+ function addDB(folderIndex, member, filePath, fileSize, fileMtime, callback){
+  console.log('addDB');
+  if(member == undefined){
+    localStorage.getItem('member').then((result) =>{
+      member = JSON.parse(result);
+      var user = member.username;
+      var tableName = member.username+':'+folderIndex;
+      insertAndupdate(folderIndex, tableName, filePath, fileSize, fileMtime, callback);
+    });
+    
+  } else{
+    var tableName = member.username+':'+folderIndex;
+    insertAndupdate(folderIndex, tableName, filePath, fileSize, fileMtime, callback);
+  }
+  // var tableName = member.username+':'+folderIndex;
+
+  // console.log('File', filePath, 'has been added'); 
+  // //console.log('22.. tableName = ', tableName, 'has been added'); 
+
+
+  // // if(mainWindow && !mainWindow.isDestroyed()){
+  // //   watcher
+  // //   .on('add', function(path, stats) { 
+      
+
+  // //   })
+  // // }
+ }
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  *  IPC : GET FILES
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
@@ -474,9 +567,9 @@ if (!gotTheLock) {
   //   addDB(member, arg);
   // }
   
-  diretoryTreeToObj(arg.path, function (err, res) {
+  diretoryTreeToObj(arg.path, arg.folderIndex, member, function (err, res) {
       if (err) {
-      //  console.error(err);
+        log.error(err);
       } else {
         if(mainWindow && !mainWindow.isDestroyed()){
           console.log('보냄, GETFOLDERTREE, main');
@@ -512,10 +605,12 @@ if (!gotTheLock) {
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  *  디렉토리 구조를 JSON으로 변환
+ * 파일들 모두를 알아낼 수 있고 최종적으로 끝나면 선택된 폴더의 파일과
+ * 첫번째 서브폴더와 그안의 파일들을 넘겨준다.
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
 
-var diretoryTreeToObj = function (dir, done) {
+var diretoryTreeToObj = function (dir, foderindex, member, done) {   
   console.log('main,  diretoryTreeToObj dir = ',dir, done);
   var results = [];
 
@@ -546,42 +641,52 @@ var diretoryTreeToObj = function (dir, done) {
       fs.stat(file, function (err, stat) {
         if (stat) {
           if (stat.isDirectory()) {
-            diretoryTreeToObj(file, function (err, res) {
-              console.log('폴더넣기 file = ,',file,' pending = ',pending);
-              results.push({  //폴더의 속성을 만든다
-                type: 'folder',
+            diretoryTreeToObj(file, foderindex, member, function (err, res) { //res는 callback으로 넘겨받은 file array(result)
+              console.log('폴더넣기 file = ,',file,' pending = ',pending, 'res = ',res);
+              // results.push({  //폴더의 속성을 만든다
+              //   type: 'folder',
 
-                filename: path.basename(file),
-                fullpath: file,
+              //   filename: path.basename(file),
+              //   fullpath: file,
 
-                size: stat.size,
-                // accessed: stat.atime,
-                // updated: stat.mtime,
-                // created: stat.ctime,
-                children: res
-              });
+              //   size: stat.size,
+              //   // accessed: stat.atime,
+              //   // updated: stat.mtime,
+              //   // created: stat.ctime,
+              //   children: res
+              // });
               if (!--pending) {
                 console.log('11 done = ', results,'pending = ',pending);
                 done(null, results);
               }
             });
           } else {
-            console.log('파일넣기 file =',file, 'pending = ',pending);
-            results.push({  //파일의 속성을 만든다.
-              type: 'file',
+            console.log('파일넣기 file =',file, 'pending = ',pending);  //선택한 폴더의 모든 파일(서브포함)다 찾을 수 있다.
+            // results.push({  //파일의 속성을 만든다.
+            //   type: 'file',
 
-              filename: path.basename(file),
-              fullpath: file,
+            //   filename: path.basename(file),
+            //   fullpath: file,
 
-              size: stat.size,
-              // accessed: stat.atime, //파일에 접근한 마지막 시간
-              // updated: stat.mtime, //파일이 수정된 마지막 시간
-              // created: stat.ctime, //파일상태가 변경된 마지막시간
+            //   size: stat.size,
+            //   // accessed: stat.atime, //파일에 접근한 마지막 시간
+            //   // updated: stat.mtime, //파일이 수정된 마지막 시간
+            //   // created: stat.ctime, //파일상태가 변경된 마지막시간
+            // });
+            addDB(foderindex,member, file, stat.size, stat.mtime, (result)=> {
+              if(result){
+                if (!--pending){
+                  console.log('22 done = ', results, 'pending = ',pending);
+                  done(null, results);
+                }
+              }else{
+                log.error('error add db');
+              }
             });
-            if (!--pending){
-              console.log('22 done = ', results, 'pending = ',pending);
-              done(null, results);
-            }
+            // if (!--pending){
+            //   console.log('22 done = ', results, 'pending = ',pending);
+            //   done(null, results);
+            // }
               
           }
         }
