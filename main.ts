@@ -455,7 +455,7 @@ if (!gotTheLock) {
  }
 
  function insertAndupdate(folderIndex, tableName, filePath, fileSize, fileMtime, callback){
-  setInterval(()=>{
+
     knex(tableName).where('filename', filePath).then((results)=>{
       if(results.length == 0 ){
         knex(tableName).insert({filename: filePath, 
@@ -471,7 +471,7 @@ if (!gotTheLock) {
         });
       }
     });
-  },10);
+
   
   // knex.schema.hasTable(tableName).then(function(exists){
   //   if(exists){
@@ -630,6 +630,8 @@ if (!gotTheLock) {
  *  디렉토리 구조를 JSON으로 변환
  * 파일들 모두를 알아낼 수 있고 최종적으로 끝나면 선택된 폴더의 파일과
  * 첫번째 서브폴더와 그안의 파일들을 넘겨준다.
+ * https://stackoverflow.com/questions/56225403/how-to-insert-10-million-rows-into-mysql-database-with-knex-js
+ * https://medium.com/@trustyoo86/async-await%EB%A5%BC-%EC%9D%B4%EC%9A%A9%ED%95%9C-%EB%B9%84%EB%8F%99%EA%B8%B0-loop-%EB%B3%91%EB%A0%AC%EB%A1%9C-%EC%88%9C%EC%B0%A8-%EC%B2%98%EB%A6%AC%ED%95%98%EA%B8%B0-315f31b72ccc
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
 
@@ -657,11 +659,11 @@ var diretoryTreeToObj = function (dir, foderindex, member, done) {
     }
       
 
-    list.forEach(function (file) {
+    list.forEach( function (file) {
       console.log('main, 11.. file = ',file);
       file = path.resolve(dir, file); //fullpath만들어주기
       console.log('main, 22.. file = ',file);
-      fs.stat(file, function (err, stat) {
+      fs.stat(file, async function (err, stat) {
         if (stat) {
           if (stat.isDirectory()) {
             diretoryTreeToObj(file, foderindex, member, function (err, res) { //res는 callback으로 넘겨받은 file array(result)
@@ -696,7 +698,7 @@ var diretoryTreeToObj = function (dir, foderindex, member, done) {
             //   // updated: stat.mtime, //파일이 수정된 마지막 시간
             //   // created: stat.ctime, //파일상태가 변경된 마지막시간
             // });
-            addDB(foderindex,member, file, stat.size, stat.mtime, (result)=> {
+            await addDB(foderindex,member, file, stat.size, stat.mtime, (result)=> {
               if(result){
                 if (!--pending){
                   console.log('22 done = ', results, 'pending = ',pending);
