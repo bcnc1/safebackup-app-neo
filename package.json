@@ -99,6 +99,7 @@
     "angular-font-awesome": "^3.1.2",
     "angular-notifier": "^4.1.1",
     "angular-pipes": "^9.0.2",
+    "async": "^3.1.0",
     "auto-launch": "^5.0.5",
     "bootstrap": "^4.3.1",
     "bower": "^1.8.8",

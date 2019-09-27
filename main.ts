@@ -330,22 +330,19 @@ if (!gotTheLock) {
  var sqlite3 = require('sqlite3').verbose();
  
  function createSBDatabBase(){
+  localStorage.getItem('member').then((value) => {
+    member = JSON.parse(value);
+    
+
     if (fs.existsSync(app.getPath('userData')+'/'+ 'sb.db')) {
-          console.log('exists');
+      console.log('exists');
     } else{
       console.log('does not');
       var db = new sqlite3.Database(app.getPath('userData')+'/'+ 'sb.db');
       db.close();
     }
+  });
 
-
-    // knex.schema.createTable('users', function (table) {
-    //   table.increments();
-    //   table.string('name');
-    //  // table.timestamps();
-    // }).then(()=>{
-    //   console.log('create');
-    // });
  }
 
  function createTable(index, window, callback){
@@ -577,6 +574,7 @@ if (!gotTheLock) {
     return;
   }
 
+ 
   //chokdir 프로그램으로 파일을 읽어서 db에 넣을려고 했으나 그럴 필요가 없을 듯 하여 막음
   // console.log('member = ', member);
   // if(member === undefined){
@@ -633,7 +631,7 @@ if (!gotTheLock) {
  * https://stackoverflow.com/questions/56225403/how-to-insert-10-million-rows-into-mysql-database-with-knex-js
  * https://medium.com/@trustyoo86/async-await%EB%A5%BC-%EC%9D%B4%EC%9A%A9%ED%95%9C-%EB%B9%84%EB%8F%99%EA%B8%B0-loop-%EB%B3%91%EB%A0%AC%EB%A1%9C-%EC%88%9C%EC%B0%A8-%EC%B2%98%EB%A6%AC%ED%95%98%EA%B8%B0-315f31b72ccc
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-
+ var async = require("async");
 
 var diretoryTreeToObj = function (dir, foderindex, member, done) {   
   console.log('main,  diretoryTreeToObj dir = ',dir, done);
@@ -658,67 +656,127 @@ var diretoryTreeToObj = function (dir, foderindex, member, done) {
       return done(null, {name: path.basename(dir), type: 'folder', children: results});
     }
       
-
-    list.forEach( function (file) {
-      console.log('main, 11.. file = ',file);
-      file = path.resolve(dir, file); //fullpath만들어주기
-      console.log('main, 22.. file = ',file);
-      fs.stat(file, async function (err, stat) {
+    
+   
+    async.each(list, function(file, next){
+      file = path.resolve(dir, file);
+      console.log('file = ',file);
+      fs.stat(file,  function (err, stat){
         if (stat) {
           if (stat.isDirectory()) {
             diretoryTreeToObj(file, foderindex, member, function (err, res) { //res는 callback으로 넘겨받은 file array(result)
-              console.log('폴더넣기 file = ,',file,' pending = ',pending, 'res = ',res);
-              // results.push({  //폴더의 속성을 만든다
-              //   type: 'folder',
-
-              //   filename: path.basename(file),
-              //   fullpath: file,
-
-              //   size: stat.size,
-              //   // accessed: stat.atime,
-              //   // updated: stat.mtime,
-              //   // created: stat.ctime,
-              //   children: res
-              // });
               if (!--pending) {
                 console.log('11 done = ', results,'pending = ',pending);
                 done(null, results);
               }
             });
-          } else {
-            console.log('파일넣기 file =',file, 'pending = ',pending);  //선택한 폴더의 모든 파일(서브포함)다 찾을 수 있다.
-            // results.push({  //파일의 속성을 만든다.
-            //   type: 'file',
-
-            //   filename: path.basename(file),
-            //   fullpath: file,
-
-            //   size: stat.size,
-            //   // accessed: stat.atime, //파일에 접근한 마지막 시간
-            //   // updated: stat.mtime, //파일이 수정된 마지막 시간
-            //   // created: stat.ctime, //파일상태가 변경된 마지막시간
-            // });
-            await addDB(foderindex,member, file, stat.size, stat.mtime, (result)=> {
-              if(result){
-                if (!--pending){
-                  console.log('22 done = ', results, 'pending = ',pending);
-                  done(null, results);
-                }
-              }else{
-                log.error('error add db');
+          }else{
+            var tableName = member.username+':'+foderindex;
+            knex(tableName).where('filename', file).then((results)=>{
+              if(results.length == 0 ){
+                knex(tableName).insert({filename: file, 
+                  filesize : stat.size,
+                  fileupdate : stat.mtime,
+                  uploadstatus: false,
+                  chain: "create",
+                  chainstatus: false
+                }).then(()=>{
+                  console.log('일차하는 값 없어서 insert');
+                  //console.log('time = ', (new Date().getTime() - start));
+                  next();
+                });
               }
             });
-            // if (!--pending){
-            //   console.log('22 done = ', results, 'pending = ',pending);
-            //   done(null, results);
-            // }
-              
           }
         }
       });
+    }, function(err){
+      if( err ) {
+        // One of the iterations produced an error.
+        // All processing will now stop.
+        console.log('A file failed to process');
+      } else {
+        console.log('All files have been processed successfully');
+      }
     });
+
+
+
+    // list.forEach( function (file) {
+    //   console.log('main, 11.. file = ',file);
+    //   file = path.resolve(dir, file); //fullpath만들어주기
+    //   console.log('main, 22.. file = ',file);
+    //   fs.stat(file,  function (err, stat) {
+    //     if (stat) {
+    //       if (stat.isDirectory()) {
+    //         diretoryTreeToObj(file, foderindex, member, function (err, res) { //res는 callback으로 넘겨받은 file array(result)
+    //           console.log('폴더넣기 file = ,',file,' pending = ',pending, 'res = ',res);
+    //           // results.push({  //폴더의 속성을 만든다
+    //           //   type: 'folder',
+
+    //           //   filename: path.basename(file),
+    //           //   fullpath: file,
+
+    //           //   size: stat.size,
+    //           //   // accessed: stat.atime,
+    //           //   // updated: stat.mtime,
+    //           //   // created: stat.ctime,
+    //           //   children: res
+    //           // });
+    //           if (!--pending) {
+    //             console.log('11 done = ', results,'pending = ',pending);
+    //             done(null, results);
+    //           }
+    //         });
+    //       } else {
+    //         console.log('파일넣기 file =',file, 'pending = ',pending);  //선택한 폴더의 모든 파일(서브포함)다 찾을 수 있다.
+    //         // results.push({  //파일의 속성을 만든다.
+    //         //   type: 'file',
+
+    //         //   filename: path.basename(file),
+    //         //   fullpath: file,
+
+    //         //   size: stat.size,
+    //         //   // accessed: stat.atime, //파일에 접근한 마지막 시간
+    //         //   // updated: stat.mtime, //파일이 수정된 마지막 시간
+    //         //   // created: stat.ctime, //파일상태가 변경된 마지막시간
+    //         // });
+    //          addDB(foderindex,member, file, stat.size, stat.mtime, (result)=> {
+    //           if(result){
+    //             if (!--pending){
+    //               console.log('22 done = ', results, 'pending = ',pending);
+    //               done(null, results);
+    //             }
+    //           }else{
+    //             log.error('error add db');
+    //           }
+    //         });
+    //         // if (!--pending){
+    //         //   console.log('22 done = ', results, 'pending = ',pending);
+    //         //   done(null, results);
+    //         // }
+              
+    //       }
+    //     }
+    //   });
+    // });
   });
 };
+
+
+// async.each(channel, function(entry, next) {
+//   knex('albums')
+//        .select(knex.raw('count(id) as album_count'))
+//        .where('channel_id', entry.id)
+//        .then(function (terms) {
+//           var count = terms[0].album_count;
+//           entry.attributes["totalAlbums"] = count;
+//           next();
+//        });
+// }, function(err) {
+//   console.log("I want this to be printed once the foreach is finished");
+//   res.json({error: false, status: 200, data: channel});
+// });
 
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=

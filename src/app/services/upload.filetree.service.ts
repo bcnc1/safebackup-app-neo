@@ -19,6 +19,14 @@ const request = require('request');
 const fs = require('fs');
 const log = require('electron-log');
 const PAGE_COUNT = 1000;
+// const {app} = require("electron");
+
+// var knex = require('knex')({
+//   client: 'sqlite3',
+//   connection: {
+//     filename: app.getPath('userData')+'/'+ 'sb.db'
+//   }
+// });
 
  function getObjList(containername, token,  marker, list) {
     
@@ -299,7 +307,7 @@ export class UploadFiletreeService {
   
           });
 
-
+         
 
           //this.logger.debug('GETFOLDERTREE***********', folderSize);
           //log.ingo('folderSize = ',folderSize);
