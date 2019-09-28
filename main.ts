@@ -36,7 +36,8 @@ let isQuiting = false;
 var knex = require('knex')({
   client: 'sqlite3',
   connection: {
-    filename: app.getPath('userData')+'/'+ 'sb.db'
+    filename: app.getPath('userData')+'/'+ 'sb.db',
+    timezone     : 'utc',   //time존 적용을 연구해야..
   }
 });
 var member;
@@ -362,7 +363,7 @@ if (!gotTheLock) {
             t.text('filename');
            // t.string('property');  //data_bakup, npki
             t.integer('filesize');
-            t.timestamp('fileupdate',{ useTz: true }); //2019-07-25T07:02:31.587Z 저장이되어야 하느데
+            t.time('fileupdate'); //2019-07-25T07:02:31.587Z 저장이되어야 하느데
             t.boolean('uploadstatus');
             t.string('chain');
             t.boolean('chainstatus');
@@ -410,47 +411,110 @@ if (!gotTheLock) {
     .on('ready', function() 
     { 
       log.info('Initial scan complete. Ready for changes.');
-      //console.log('result = ', result);
+      console.log('result = ', result);
   
       async.eachSeries(result, function(item, next) {
-        //console.log('item = ', item);
-        knex(tableName).where('filename', item.fullpath).then((results)=>{
+        console.log('item = ', item);
+        knex(tableName)
+        .where('filename', item.fullpath)
+        .then((results)=>{
           if(results.length == 0 ){
-            //console.log('22..일치하는 값 없음');
+            console.log('22..일치하는 값 없음 = results = ', results);
             knex(tableName)
-            .insert({filename: item.fullpath, filesize : item.size, fileupdate: item.updated})
+            .insert({filename: item.fullpath, filesize : item.size, 
+              fileupdate: item.updated, uploadstatus: false, 
+              chain: "create", chainstatus: false})
             .then(()=>{
              //console.log('일차하는 값 없어서 insert');
              next();
             });
           }else{
-            console.log('result = ',result);
-            var id = results[0]['id'];
-            knex(tableName)
-            .where({id: id}).then((result)=> {
-              console.log('result = ',result);
+            
+            console.log('업데이트, item = ', item);
 
+            knex(tableName)
+            .where({filename: item.fullpath}).select('id')
+            .then((result)=>{
+               var id = results[0]['id'];
+               var fsize = results[0]['filesize'];
+               var fupdate = results[0]['fileupdate'];
+               console.log('fsize 타입 = ',typeof fsize);
+               console.log('item.size 타입 = ',typeof item.size);
+               //log.info('id = ',id,  'fsize = ',fsize, 'fupdate = ',fupdate);
+               //log.info('item.size = ',item.size,  'item.update = ',item.updated);
+               if(fsize != item.size /*|| fupdate != item.updated*/){
+                  knex(tableName)
+                  .where({id: id})
+                  .update({filesize: item.size, fileupdate: item.update
+                    , uploadstatus: false, chain: "update", chainstatus: false})
+                  .then((result)=> {
+                    log.info('업데이트, result = ',result);
+                    next();
+                  });
+               }else{
+                log.info('변경없음 = ',result);
+                next();
+               }
             });
+            //next();
+            // knex(tableName)
+            // .where({filename: item.fullpath})
+            // .then(item,(result)=>{
+            //   log.info('같은이름 result = ',result);
+            //   var id = results[0]['id'];
+            //   var fsize = results[0]['filesize'];
+            //   var fupdate = results[0]['fileupdate'];
+            //   log.info('id = ',id,  'fsize = ',fsize, 'fupdate = ',fupdate);
+            //   log.info('item.size = ',item.size,  'item.update = ',item.updated);
+            //   if(fsize != item.size || fupdate != item.updated){
+            //       knex(tableName)
+            //       .where({id: id})
+            //       .update({filesize: item.size, fileupdate: item.update
+            //         , uploadstatus: false, chain: "update", chainstatus: false})
+            //       .then((result)=> {
+            //         log.info('업데이트, result = ',result);
+            //         next();
+            //       }).catch((err)=>{
+            //         log.info('11..에러 = ',err);
+            //       });
+            //   }else{
+            //     log.info('변경없음 = ',result);
+            //     next();
+            //   }
+            // }).catch((err)=>{
+            //   log.info('22..에러 = ',err);
+            // });
 
             // knex(tableName)
             // .where({filename: item.fullpath})
-            // .
-            // .then((result)=> {
-            //   console.log('result = ',result);
-
-            // });
-            // .where({filename: item.fullpath})
-            // .where({filesize: item.size})
-            // .where({fileupdate: item.updated})
-            // .select('id').then((results) => {
-
+            // .returning(['id','filesize', 'fileupdate'])
+            // .then((result)=>{
+            //   console.log('11..같은이름 result = ',result);
             // });
 
+            //next();
+            // var id = results[0]['id'];
+            // console.log('id = ',id);
+            // if(results[0].filesize != item.size || results[0].fileupdate != item.update){
+            //   console.log('업데이트')
+            //   knex(tableName)
+            //   .where({id: id})
+            //   .update({filesize: item.size, fileupdate: item.update
+            //     , uploadstatus: false, chain: "update", chainstatus: false})
+            //   .then((result)=> {
+            //     console.log('업데이트, result = ',result);
+            //     next();
+            //   });
+            // }else{
+            //   console.log('동일한 파일이라 skip');
+            //   next();
+            // }
           }
 
     });
     }, function(err) {
       log.info("끝 = ", err);
+      watcher.close();
     })
 
 
@@ -459,66 +523,66 @@ if (!gotTheLock) {
 
  }
 
- function addDBWithWatcher(member, arg){
-  console.log('addDB');
-  var tableName = member.username+':'+arg.folderIndex;
+//  function addDBWithWatcher(member, arg){
+//   console.log('addDB');
+//   var tableName = member.username+':'+arg.folderIndex;
 
-  const watcher = chokidar.watch(arg.path, {
-    ignored: /(^|[\/\\])\../, // ignore dotfiles
-    persistent: true
-  });
+//   const watcher = chokidar.watch(arg.path, {
+//     ignored: /(^|[\/\\])\../, // ignore dotfiles
+//     persistent: true
+//   });
 
-  //const log = console.log.bind(console);
+//   //const log = console.log.bind(console);
 
-  if(mainWindow && !mainWindow.isDestroyed()){
-    watcher
-    .on('add', function(path, stats) { 
+//   if(mainWindow && !mainWindow.isDestroyed()){
+//     watcher
+//     .on('add', function(path, stats) { 
       
-      console.log('File', path, 'has been added'); 
-      //console.log('22.. tableName = ', tableName, 'has been added'); 
-      knex.schema.hasTable(tableName).then(function(exists){
-        if(exists){
-          console.log('path = ',path);
-          knex(tableName).where('filename', path).then((results)=>{
-            if(results.length == 0 ){
-              //console.log('22..일치하는 값 없음');
-              knex(tableName).insert({filename: path, filesize : stats.size}).then(()=>{
-               console.log('일차하는 값 없어서 insert');
-              });
-            } else{
-              console.log('파일이름이 존재, 따라서 사이즈 비교, stats = ', stats.size);
-              console.log('stats 타입 = ', typeof stats.size);
-              knex(tableName).where({
-                filename: path,
-                filesize: stats.size
-              }).select('id').then((results)=>{
-                console.log('results = ',results);
-                if(results.length == 0){
-                  console.log('새로운 값임으로 insert');
-                  knex(tableName).insert({filename: path, filesize : stats.size}).then(()=>{
-                    console.log('11..일차하는 값 없어서 insert');
-                   });
-                }else{
-                  console.log('db에 저장된 값임으로 skip');
-                }
-              });
-            }
-          });
+//       console.log('File', path, 'has been added'); 
+//       //console.log('22.. tableName = ', tableName, 'has been added'); 
+//       knex.schema.hasTable(tableName).then(function(exists){
+//         if(exists){
+//           console.log('path = ',path);
+//           knex(tableName).where('filename', path).then((results)=>{
+//             if(results.length == 0 ){
+//               //console.log('22..일치하는 값 없음');
+//               knex(tableName).insert({filename: path, filesize : stats.size}).then(()=>{
+//                console.log('일차하는 값 없어서 insert');
+//               });
+//             } else{
+//               console.log('파일이름이 존재, 따라서 사이즈 비교, stats = ', stats.size);
+//               console.log('stats 타입 = ', typeof stats.size);
+//               knex(tableName).where({
+//                 filename: path,
+//                 filesize: stats.size
+//               }).select('id').then((results)=>{
+//                 console.log('results = ',results);
+//                 if(results.length == 0){
+//                   console.log('새로운 값임으로 insert');
+//                   knex(tableName).insert({filename: path, filesize : stats.size}).then(()=>{
+//                     console.log('11..일차하는 값 없어서 insert');
+//                    });
+//                 }else{
+//                   console.log('db에 저장된 값임으로 skip');
+//                 }
+//               });
+//             }
+//           });
 
-        }else{
-          console.log('테이블 없음');
-        }
-      });
-    })
+//         }else{
+//           console.log('테이블 없음');
+//         }
+//       });
+//     })
    
-    .on('ready', function() 
-    { 
-      console.log('Initial scan complete. Ready for changes.');
+//     .on('ready', function() 
+//     { 
+//       console.log('Initial scan complete. Ready for changes.');
    
   
-    })
-  }
- }
+//     })
+//   }
+//  }
 
  function insertAndupdate(folderIndex, tableName, filePath, fileSize, fileMtime, callback){
 
