@@ -377,21 +377,10 @@ if (!gotTheLock) {
         }
       });
    });
- 
-   
 
-   
-
-  //  knex.schema.createTable('users', function (table) {
-  //     table.increments();
-  //     table.string('name');
-  //    // table.timestamps();
-  //   }).then(()=>{
-  //     console.log('create');
-  //   });
  }
 
- function addFileFromDir(arg){
+ function addFileFromDir(arg, window, callback){
   var tableName = member.username+':'+arg.folderIndex;
   const watcher = chokidar.watch(arg.path, {
     ignored: /(^|[\/\\])\../, // ignore dotfiles
@@ -437,7 +426,7 @@ if (!gotTheLock) {
             .then((result)=>{
                var id = results[0]['id'];
                var fsize = results[0]['filesize'];
-               var fupdate = results[0]['fileupdate'];
+               var fupdate = results[0]['fileupdate']; //utc값으로 기록안되어 추후구현
                console.log('fsize 타입 = ',typeof fsize);
                console.log('item.size 타입 = ',typeof item.size);
                //log.info('id = ',id,  'fsize = ',fsize, 'fupdate = ',fupdate);
@@ -456,70 +445,15 @@ if (!gotTheLock) {
                 next();
                }
             });
-            //next();
-            // knex(tableName)
-            // .where({filename: item.fullpath})
-            // .then(item,(result)=>{
-            //   log.info('같은이름 result = ',result);
-            //   var id = results[0]['id'];
-            //   var fsize = results[0]['filesize'];
-            //   var fupdate = results[0]['fileupdate'];
-            //   log.info('id = ',id,  'fsize = ',fsize, 'fupdate = ',fupdate);
-            //   log.info('item.size = ',item.size,  'item.update = ',item.updated);
-            //   if(fsize != item.size || fupdate != item.updated){
-            //       knex(tableName)
-            //       .where({id: id})
-            //       .update({filesize: item.size, fileupdate: item.update
-            //         , uploadstatus: false, chain: "update", chainstatus: false})
-            //       .then((result)=> {
-            //         log.info('업데이트, result = ',result);
-            //         next();
-            //       }).catch((err)=>{
-            //         log.info('11..에러 = ',err);
-            //       });
-            //   }else{
-            //     log.info('변경없음 = ',result);
-            //     next();
-            //   }
-            // }).catch((err)=>{
-            //   log.info('22..에러 = ',err);
-            // });
-
-            // knex(tableName)
-            // .where({filename: item.fullpath})
-            // .returning(['id','filesize', 'fileupdate'])
-            // .then((result)=>{
-            //   console.log('11..같은이름 result = ',result);
-            // });
-
-            //next();
-            // var id = results[0]['id'];
-            // console.log('id = ',id);
-            // if(results[0].filesize != item.size || results[0].fileupdate != item.update){
-            //   console.log('업데이트')
-            //   knex(tableName)
-            //   .where({id: id})
-            //   .update({filesize: item.size, fileupdate: item.update
-            //     , uploadstatus: false, chain: "update", chainstatus: false})
-            //   .then((result)=> {
-            //     console.log('업데이트, result = ',result);
-            //     next();
-            //   });
-            // }else{
-            //   console.log('동일한 파일이라 skip');
-            //   next();
-            // }
           }
-
     });
     }, function(err) {
       log.info("끝 = ", err);
       watcher.close();
+      callback(true);
     })
 
-
-
-    })
+  })
 
  }
 
@@ -707,7 +641,13 @@ if (!gotTheLock) {
     return;
   }
 
-  addFileFromDir(arg);
+  addFileFromDir(arg, mainWindow, (result)=>{
+    console.log('폴더 트리 결과 = ',result);
+    if(mainWindow && !mainWindow.isDestroyed()){
+      mainWindow.webContents.send("GETFOLDERTREE", "Complete Scanning Folder"
+      );
+    }
+  });
  
   //chokdir 프로그램으로 파일을 읽어서 db에 넣을려고 했으나 그럴 필요가 없을 듯 하여 막음
   // console.log('member = ', member);
@@ -738,22 +678,7 @@ if (!gotTheLock) {
   //     }
   //   }
   // );
-  
-
-  
-
-
-  // Returns [2] in "mysql", "sqlite"; [2, 3] in "postgresql"
-// knex.insert([{title: 'Great Gatsby'}, {title: 'Fahrenheit 451'}], ['id']).into('books')
-// Outputs:
-// insert into `books` (`title`) values ('Great Gatsby'), ('Fahrenheit 451')
-
-// knex('users').where({
-//   first_name: 'Test',
-//   last_name:  'User'
-// }).select('id')
-// Outputs:
-// select `id` from `users` where `first_name` = 'Test' and `last_name` = 'User'
+ 
 
   
   
