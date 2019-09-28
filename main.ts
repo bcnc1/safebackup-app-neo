@@ -409,26 +409,48 @@ if (!gotTheLock) {
     })
     .on('ready', function() 
     { 
-      console.log('Initial scan complete. Ready for changes.');
-      console.log('result = ', result);
+      log.info('Initial scan complete. Ready for changes.');
+      //console.log('result = ', result);
   
       async.eachSeries(result, function(item, next) {
-        console.log('item = ', item);
+        //console.log('item = ', item);
         knex(tableName).where('filename', item.fullpath).then((results)=>{
           if(results.length == 0 ){
             //console.log('22..일치하는 값 없음');
             knex(tableName)
             .insert({filename: item.fullpath, filesize : item.size, fileupdate: item.updated})
             .then(()=>{
-             console.log('일차하는 값 없어서 insert');
+             //console.log('일차하는 값 없어서 insert');
              next();
             });
+          }else{
+            console.log('result = ',result);
+            var id = results[0]['id'];
+            knex(tableName)
+            .where({id: id}).then((result)=> {
+              console.log('result = ',result);
+
+            });
+
+            // knex(tableName)
+            // .where({filename: item.fullpath})
+            // .
+            // .then((result)=> {
+            //   console.log('result = ',result);
+
+            // });
+            // .where({filename: item.fullpath})
+            // .where({filesize: item.size})
+            // .where({fileupdate: item.updated})
+            // .select('id').then((results) => {
+
+            // });
+
           }
 
     });
     }, function(err) {
-      console.log("I want this to be printed once the foreach is finished");
-      //res.json({error: false, status: 200, data: channel});
+      log.info("끝 = ", err);
     })
 
 
