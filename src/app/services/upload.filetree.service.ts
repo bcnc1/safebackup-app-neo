@@ -19,7 +19,7 @@ const request = require('request');
 const fs = require('fs');
 const log = require('electron-log');
 const PAGE_COUNT = 1000;
-// const {app} = require("electron");
+const {app} = require("electron");
 
 // var knex = require('knex')({
 //   client: 'sqlite3',

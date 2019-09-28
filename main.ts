@@ -390,6 +390,53 @@ if (!gotTheLock) {
   //   });
  }
 
+ function addFileFromDir(arg){
+  var tableName = member.username+':'+arg.folderIndex;
+  const watcher = chokidar.watch(arg.path, {
+    ignored: /(^|[\/\\])\../, // ignore dotfiles
+    persistent: true
+  });
+
+  var result = [];
+  watcher
+    .on('add', function(path, stats){
+
+      result.push({
+        fullpath: path,
+        size: stats.size,
+        updated: stats.mtime
+      })
+    })
+    .on('ready', function() 
+    { 
+      console.log('Initial scan complete. Ready for changes.');
+      console.log('result = ', result);
+  
+      async.eachSeries(result, function(item, next) {
+        console.log('item = ', item);
+        knex(tableName).where('filename', item.fullpath).then((results)=>{
+          if(results.length == 0 ){
+            //console.log('22..일치하는 값 없음');
+            knex(tableName)
+            .insert({filename: item.fullpath, filesize : item.size, fileupdate: item.updated})
+            .then(()=>{
+             console.log('일차하는 값 없어서 insert');
+             next();
+            });
+          }
+
+    });
+    }, function(err) {
+      console.log("I want this to be printed once the foreach is finished");
+      //res.json({error: false, status: 200, data: channel});
+    })
+
+
+
+    })
+
+ }
+
  function addDBWithWatcher(member, arg){
   console.log('addDB');
   var tableName = member.username+':'+arg.folderIndex;
@@ -574,6 +621,7 @@ if (!gotTheLock) {
     return;
   }
 
+  addFileFromDir(arg);
  
   //chokdir 프로그램으로 파일을 읽어서 db에 넣을려고 했으나 그럴 필요가 없을 듯 하여 막음
   // console.log('member = ', member);
@@ -588,20 +636,22 @@ if (!gotTheLock) {
   //   addDB(member, arg);
   // }
   
-  diretoryTreeToObj(arg.path, arg.folderIndex, member, function (err, res) {
-      if (err) {
-        log.error(err);
-      } else {
-        if(mainWindow && !mainWindow.isDestroyed()){
-          console.log('보냄, GETFOLDERTREE, main');
-          mainWindow.webContents.send("GETFOLDERTREE", {
-            folderIndex: arg.folderIndex,
-            tree: res
-          });
-        }
-      }
-    }
-  );
+  // diretoryTreeToObj(arg.path, arg.folderIndex, member, function (err, res) {
+  //     if (err) {
+  //       log.error(err);
+  //     } else {
+  //       if(mainWindow && !mainWindow.isDestroyed()){
+  //         console.log('보냄, GETFOLDERTREE, main');
+
+  //         //tree
+  //         mainWindow.webContents.send("GETFOLDERTREE", {
+  //           folderIndex: arg.folderIndex,
+  //           tree: res
+  //         });
+  //       }
+  //     }
+  //   }
+  // );
   
 
   
