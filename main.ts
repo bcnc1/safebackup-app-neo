@@ -1,4 +1,4 @@
-import { isFormattedError } from "@angular/compiler";
+import { isFormattedError, ConditionalExpr } from "@angular/compiler";
 import {environment} from './src/environments/environment';
 import { Router } from '@angular/router';
 import {LOCAL_STORAGE, StorageService} from 'ngx-webstorage-service';
@@ -41,7 +41,7 @@ var knex = require('knex')({
   }
 });
 var member;
-
+const env = environment;
 
 //StorageService.get()
 //console.log('knex = ',knex);
@@ -715,68 +715,33 @@ var diretoryTreeToObj = function (dir, foderindex, member, done) {
       }
     });
 
-
-
-    // list.forEach( function (file) {
-    //   console.log('main, 11.. file = ',file);
-    //   file = path.resolve(dir, file); //fullpath만들어주기
-    //   console.log('main, 22.. file = ',file);
-    //   fs.stat(file,  function (err, stat) {
-    //     if (stat) {
-    //       if (stat.isDirectory()) {
-    //         diretoryTreeToObj(file, foderindex, member, function (err, res) { //res는 callback으로 넘겨받은 file array(result)
-    //           console.log('폴더넣기 file = ,',file,' pending = ',pending, 'res = ',res);
-    //           // results.push({  //폴더의 속성을 만든다
-    //           //   type: 'folder',
-
-    //           //   filename: path.basename(file),
-    //           //   fullpath: file,
-
-    //           //   size: stat.size,
-    //           //   // accessed: stat.atime,
-    //           //   // updated: stat.mtime,
-    //           //   // created: stat.ctime,
-    //           //   children: res
-    //           // });
-    //           if (!--pending) {
-    //             console.log('11 done = ', results,'pending = ',pending);
-    //             done(null, results);
-    //           }
-    //         });
-    //       } else {
-    //         console.log('파일넣기 file =',file, 'pending = ',pending);  //선택한 폴더의 모든 파일(서브포함)다 찾을 수 있다.
-    //         // results.push({  //파일의 속성을 만든다.
-    //         //   type: 'file',
-
-    //         //   filename: path.basename(file),
-    //         //   fullpath: file,
-
-    //         //   size: stat.size,
-    //         //   // accessed: stat.atime, //파일에 접근한 마지막 시간
-    //         //   // updated: stat.mtime, //파일이 수정된 마지막 시간
-    //         //   // created: stat.ctime, //파일상태가 변경된 마지막시간
-    //         // });
-    //          addDB(foderindex,member, file, stat.size, stat.mtime, (result)=> {
-    //           if(result){
-    //             if (!--pending){
-    //               console.log('22 done = ', results, 'pending = ',pending);
-    //               done(null, results);
-    //             }
-    //           }else{
-    //             log.error('error add db');
-    //           }
-    //         });
-    //         // if (!--pending){
-    //         //   console.log('22 done = ', results, 'pending = ',pending);
-    //         //   done(null, results);
-    //         // }
-              
-    //       }
-    //     }
-    //   });
-    // });
   });
 };
+
+/*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+ *  IPC : SEND-FILE
+ -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
+ ipcMain.on("SEND-FILE", (event, arg) => {
+  console.log('받음, main, SEND-FILE ');
+  try {
+    fileupload(arg);
+  } catch (e) {
+    log.error('SEND-FILE',e);
+  }
+});
+
+/*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+ *  IPC : SEND-CHAINFILE
+ -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
+ ipcMain.on("SEND-CHAINFILE", (event, arg) => {
+  console.log('받음, main, SEND-CHAINFILE ');
+  try {
+    chainupload(arg);
+  } catch (e) {
+    log.error('SEND-CHAINFILE',e);
+  }
+});
+
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  *  IPC : SEND FILE
@@ -887,6 +852,101 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
 });
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+ *  chain upload
+ -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
+ var chainupload = function (arg){
+
+  function chainuploadCb(error, response, body) {
+    if (!error && response.statusCode == 200) {
+      console.log('chain응답 = ',body);
+
+      mainWindow.webContents.send("RES-CHAINFILE", {
+        error: null,
+        body: body,
+        index: arg.folderIndex,
+      });
+    }else{
+      console.log('chain응답 실패 = ',body);
+      if (mainWindow && !mainWindow.isDestroyed()){
+        mainWindow.webContents.send("RES-CHAINFILE", {error: error});
+      }
+    }
+  }
+  
+
+  var options = {  
+    method: 'POST',
+    uri: env.CREATE, 
+    headers:{
+        'Content-Type': 'application/json',
+        'X-Auth-Token': arg.token
+    },
+    body: {
+      'id': arg.container , 
+      'file': arg.filename   //decodeURI(arg.filename)
+    }
+  };
+
+  reqestProm(options, chainuploadCb);
+ }
+/*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+ *  FILE을 KT 스토리지에 저장하고 db에 기록
+ *  KT Storage 서버에 사용자 키를 가져오고 저장한다. promise로 구현
+ *  container명은 로그인시 id로...
+ -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
+ var fileupload = function (arg){
+  
+  //const STORAGE_URL = env.STORAGE_URL;
+  let startTime = new Date().getTime();
+  let tableName = arg.container+':'+arg.folderIndex;
+
+  function fileuploadCb(error, response, body) {
+    if (!error && response.statusCode == 201) {
+      console.log('업로드 성공');
+      console.log('tablename = ', tableName);
+      knex(tableName)
+      .where({id: arg.fileid})
+      .update({uploadstatus: 1})
+      .then(()=>{
+        if(mainWindow && !mainWindow.isDestroyed()){
+          mainWindow.webContents.send("RES-FILE", {
+            error: null,
+            body: body,
+            index: arg.folderIndex,
+            startTime: startTime,
+            //uploadPath: encodeURI(arg.filename),
+            endTime: new Date().getTime(),
+          });
+        }
+      });
+    }else{
+      console.log('업로드 실패, 보냄, main, RES-FILE  ');
+      if (mainWindow && !mainWindow.isDestroyed()){
+      mainWindow.webContents.send("RES-FILE", {error: error});
+      }
+    }
+  }
+
+  var options = {  
+    method: 'PUT',
+    uri: env.STORAGE_URL+'/'+arg.container+'/'+ encodeURI(arg.filename), 
+    headers:{
+        'X-Auth-Token': arg.token,
+        'X-Object-Meta-ctime': startTime
+    }
+  };
+
+  var upload = fs.createReadStream(arg.filepath,{highWaterMark : 256*1024});
+    var r = reqestProm(options, fileuploadCb);
+    
+    console.log('11..업로드 시작');
+    upload.pipe(r).catch(function(err){
+      log.error('업로드 에러 : ',err);
+    });
+ }
+
+
+/*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  *  FILE을 M5에 전송
  *  KT Storage 서버에 사용자 키를 가져오고 저장한다. promise로 구현
  *  container명은 로그인시 id로...
@@ -957,6 +1017,8 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
     }
   }
 };
+
+
 
 function handleSquirrelEvent(application) {
   if (process.argv.length === 1) {
