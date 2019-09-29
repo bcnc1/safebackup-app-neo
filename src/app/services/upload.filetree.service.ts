@@ -198,6 +198,22 @@ export class UploadFiletreeService {
      ----------------------------------------------------*/
      this.electronService.ipcRenderer.on('GETFOLDERTREE', (event: Electron.IpcMessageEvent, response: any) => {
       console.log('업로드, response = ',response);
+
+      //fullpath 변수 사용? 안하게?
+      //목록 구성이 끝난 폴더의 사이즈 요청
+      //1. 블록체인 에러 목록 요청 하고 업로드
+      this.requestChainErrorList();
+
+      //2. 업로드 목록 요청 하고 업로드
+      this.requestUploadList();
+
+      //3. 업데이트 목록 요청()하고 업로드;
+      this.requestUpdateList();
+
+      //4.npki폴더 압축하고 db에 저장하라고? / npki폴더 압축하고 바로 업로드
+
+      //5.선택된 폴더 완료 되면 다음 폴더가 있으면 다음폴더 진행
+
      });
 
 
@@ -525,7 +541,7 @@ export class UploadFiletreeService {
     //   }
     // );
 
-
+    
     /*----------------------------------------------------
      *  IPC Response : Send File Response
      *  다음 파일을 보내도록 next에 밀어넣기
@@ -683,6 +699,98 @@ export class UploadFiletreeService {
 
  
 
+  private requestChainErrorList(){
+    console.log('블록체인 업로드 실패 목록 요청');
+    console.log('선택된 폴더 = ', this.folders[this.folderIndex]);
+
+
+    this.electronService.ipcRenderer.send('REQ-CHAINTREE', {
+      folderIndex: this.folderIndex
+    });
+
+
+    this.electronService.ipcRenderer.on('CHAINTREE', (event: Electron.IpcMessageEvent, response: any) => {
+      console.log('받음 CHAINTREE ');
+      const fileTree = response.tree; 
+      // console.log('fileTree 타입 = ', typeof fileTree);
+      // console.log('fileTree 갯수 = ', fileTree.length);
+      //const code = file.fullpath.replace(/\\/g, '/');  //비교대상
+      //메모리 줄일려고 filepath만
+      this.filesToSend = [];
+
+      for(let i =0; i<fileTree.length; i++){
+        this.filesToSend.push({
+          folderIndex: this.folderIndex,
+          file: this.deviceResource.macaddress+fileTree[i]['filename'].replace(/\\/g, '/')
+        });
+      }
+
+      console.log('filesToSend = ',this.filesToSend);
+
+    });
+  }
+
+  private requestUploadList(){
+    console.log('업로드 목록 요청');
+    console.log('선택된 폴더 = ', this.folders[this.folderIndex]);
+
+    this.electronService.ipcRenderer.send('REQ-UPLOADTREE', {
+      folderIndex: this.folderIndex
+    });
+
+
+    this.electronService.ipcRenderer.on('UPLOADTREE', (event: Electron.IpcMessageEvent, response: any) => {
+      console.log('받음 UPLOADTREE ');
+      const fileTree = response.tree; 
+      // console.log('fileTree 타입 = ', typeof fileTree);
+      // console.log('fileTree 갯수 = ', fileTree.length);
+      //const code = file.fullpath.replace(/\\/g, '/');  //비교대상
+      //메모리 줄일려고 filepath만
+      this.filesToSend = [];
+
+      for(let i =0; i<fileTree.length; i++){
+        this.filesToSend.push({
+          folderIndex: this.folderIndex,
+          file: this.deviceResource.macaddress+fileTree[i]['filename'].replace(/\\/g, '/')
+        });
+      }
+      
+      console.log('filesToSend = ',this.filesToSend);
+
+    });
+  }
+
+  private requestUpdateList(){
+    console.log('업데이트 요청');
+    console.log('선택된 폴더 = ', this.folders[this.folderIndex]);
+
+    this.electronService.ipcRenderer.send('REQ-UPDATETREE', {
+      folderIndex: this.folderIndex
+    });
+
+
+    this.electronService.ipcRenderer.on('UPDATETREE', (event: Electron.IpcMessageEvent, response: any) => {
+      console.log('받음 UPDATETREE ');
+      const fileTree = response.tree; 
+      // console.log('fileTree 타입 = ', typeof fileTree);
+      // console.log('fileTree 갯수 = ', fileTree.length);
+      //const code = file.fullpath.replace(/\\/g, '/');  //비교대상
+      //메모리 줄일려고 filepath만
+      this.filesToSend = [];
+
+      for(let i =0; i<fileTree.length; i++){
+        this.filesToSend.push({
+          folderIndex: this.folderIndex,
+          file: this.deviceResource.macaddress+fileTree[i]['filename'].replace(/\\/g, '/')
+        });
+      }
+      
+      console.log('filesToSend = ',this.filesToSend);
+
+    });
+  }
+
+  //스토리지에 저장된 폴더의 키를 반환한다.
   private getFolderKey(folderIndex) {
     // if (this.member == null) {
     //   this.member = this.memberAPI.isLoggedin();
@@ -1306,6 +1414,8 @@ export class UploadFiletreeService {
       console.log('11..upload ->앱이실행중이라 업로드');
       this.notification.next({cmd: 'LOG', message: this.folders[folderIndex].path + ' 업로드를 시작합니다.'});
       console.log('보냄, GETFOLDERTREE, upload-filetree');
+      //path: this.folders[folderIndex].path 설정안됨
+      console.log('선택된 폴더 = ', this.folders[folderIndex]);
       this.electronService.ipcRenderer.send('GETFOLDERTREE', {
         folderIndex: folderIndex,
         path: this.folders[folderIndex].path

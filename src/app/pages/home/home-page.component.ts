@@ -265,7 +265,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     console.log('home-page, fillFolders MAXFOLDERLENGTH = ', this.MAXFOLDERLENGTH);
     for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
       const folderKey = this.getFolderKey(i);
-      this.storedFolders[i] = this.storageService.get(folderKey); //선택한폴더
+      this.storedFolders[i] = this.storageService.get(folderKey); //얻은키를 활용하여 선택된 폴더를 반환한다.
       if (this.selectedFolderIndex === i) {
         this.showingFolderName = this.storedFolders[i];
       }
