@@ -15,6 +15,10 @@ export const environment = {
   STORAGE_URL : 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3',
   AUTH_URL :'https://ssproxy.ucloudbiz.olleh.com/auth/v1.0',
   CREATE : 'http://211.252.85.59:3000/api/v1/proof/create',
-  UPDATE : 'http://211.252.85.59:3000/api/v1/proof/update'
+  UPDATE : 'http://211.252.85.59:3000/api/v1/proof/update',
+  CREATE_DEV : 'http://localhost:3000/api/v1/proof/create',
+  UPDATE_DEV : 'http://localhost:3000/api/v1/proof/update'
+  
+
 
 };

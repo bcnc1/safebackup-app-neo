@@ -144,7 +144,7 @@ export class UploadFiletreeService {
 
     this.notification = new Subject();
     this.subject = new Subject();
-    this.subscription = this.subject.subscribe(response => this.processFile(response));
+    //this.subscription = this.subject.subscribe(response => this.processFile(response));
 
     /*----------------------------------------------------
      *  IPC Response : Get FileTree
@@ -206,12 +206,19 @@ export class UploadFiletreeService {
           4. 업로드 목록구성하고 해당폴더의 전체 사이즈 계산하야여 전달
      ----------------------------------------------------*/
      this.electronService.ipcRenderer.on('GETFOLDERTREE', (event: Electron.IpcMessageEvent, response: any) => {
-      console.log('업로드, response = ',response);
+      log.info('새로만든, 받음 GETFOLDERTREE, response = ',response);
+      log.info('콘솔, GETFOLDERTREE, response = ',response);
 
       //fullpath 변수 사용? 안하게?
       //목록 구성이 끝난 폴더의 사이즈 요청
       //1. 블록체인 에러 목록 요청 하고 업로드
-      this.requestChainErrorList();
+      log.info('this.member.private = ',this.member.private);
+      if(this.member.private){
+        this.requestUploadList();
+      }else{
+        this.requestChainErrorList();
+      }
+      
 
       //2. 업로드 목록 요청 하고 업로드
       //this.requestUploadList();
@@ -224,6 +231,252 @@ export class UploadFiletreeService {
       //5.선택된 폴더 완료 되면 다음 폴더가 있으면 다음폴더 진행
 
      });
+
+     /*----------------------------------------------------
+       *  IPC Response : Get CHAINTREE
+       
+      ----------------------------------------------------*/
+      this.electronService.ipcRenderer.on('CHAINTREE', (event: Electron.IpcMessageEvent, response: any) => {
+        log.info('받음 CHAINTREE ');
+        console.log('requestChainErrorList =>CHAINTREE');
+        const fileTree = response.tree; 
+  
+        this.chainsToSend = [];
+  
+        for(let i =0; i<fileTree.length; i++){
+          this.chainsToSend.push({
+            fileid:fileTree[i]['id'],
+            folderIndex: this.folderIndex,
+            file: this.deviceResource.macaddress+fileTree[i]['filename'].replace(/\\/g, '/'),
+            filepath: fileTree[i]['filename'].replace(/\\/g, '/'),
+            filesize: fileTree[i]['filesize']
+          });
+        }
+  
+        log.info('chainsToSend = ',this.chainsToSend);
+  
+        if(this.chainsToSend.length > 0){
+          //파일 업로드 
+          log.info('블록체인 업로드 실패목록 전송, sendIndex = ', this.sendIndex);
+          this.uploadManager(this.chainsToSend[this.sendIndex], "chain-error");
+        } else{
+          //2. 업로드 목록 요청 하고 업로드
+          log.info('11..업로드 목록으로 이동 ');
+          this.requestUploadList(); 
+        }
+        this.electronService.ipcRenderer.removeListener('CHAINTREE', (event: Electron.IpcMessageEvent, response: any)=>{
+          log.info('블록체인에러, 콜백한번만 호출되게...');
+        });
+
+      });
+  
+      /*----------------------------------------------------
+       *  IPC Response : Get chain-error
+       
+      ----------------------------------------------------*/
+      this.electronService.ipcRenderer.on('chain-error', (event: Electron.IpcMessageEvent, response: any) => {
+        log.info('받음 chain-error ');
+  
+        if(response.body.key.code == 10000 ){
+          this.sendIndex++;
+          log.info('11..업로드 완료후 sendIndex = ',this.sendIndex);
+          log.info('11..this.chainsToSend.length = ',this.chainsToSend.length);
+          if(this.chainsToSend.length > this.sendIndex){
+            this.uploadManager(this.chainsToSend[this.sendIndex], "chain-error");
+          }else{
+            log.info('22..업로드 목록으로 이동 ');
+            this.requestUploadList(); 
+          }
+  
+        }else{
+          log.error('에러 목록 업데이트중, 블록체인에러, 백업시작버튼을 눌러 다시 시작해야 한다. = ',response.body.code 
+                   , 'id = ', this.addfilesToSend[this.sendIndex].fileid);
+        }
+      });
+      
+     /*----------------------------------------------------
+       *  IPC Response : Get UPLOADTREE
+       
+      ----------------------------------------------------*/
+     this.electronService.ipcRenderer.on('UPLOADTREE', (event: Electron.IpcMessageEvent, response: any) => {
+     //this.electronService.ipcRenderer.once('UPLOADTREE', (event: Electron.IpcMessageEvent, response: any) => {
+      log.info('받음 UPLOADTREE ');
+      const fileTree = response.tree; 
+
+      this.addfilesToSend = [];
+
+      for(let i =0; i<fileTree.length; i++){
+        this.addfilesToSend.push({
+          fileid:fileTree[i]['id'],
+          folderIndex: this.folderIndex,
+          file: this.deviceResource.macaddress+fileTree[i]['filename'].replace(/\\/g, '/'),
+          filepath:fileTree[i]['filename'].replace(/\\/g, '/'),
+          filesize:fileTree[i]['filesize']
+        });
+      }
+      
+      //log.info('addfilesToSend = ',this.addfilesToSend);
+
+      if(this.addfilesToSend.length > 0){
+        //파일 업로드 
+        log.info('처음, 업로드, sendIndex = ', this.sendIndex);
+        log.info('this.addfilesToSend.length = ',this.addfilesToSend.length);
+        this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
+      } else{
+        //2. 업데이트 목록 요청 하고 업로드
+        log.info('목록없음으로, 업데이트 목록 요청');
+        this.requestUpdateList();
+      }
+
+      this.electronService.ipcRenderer.removeListener('UPLOADTREE', (event: Electron.IpcMessageEvent, response: any)=>{
+        log.info('콜백한번만 호출되게...');
+      });
+    });
+
+    /*----------------------------------------------------
+       *  IPC Response : Get add-file
+       
+      ----------------------------------------------------*/
+    this.electronService.ipcRenderer.on("add-file", (event: Electron.IpcMessageEvent, response: any) => {
+      log.info('받음, 업로드,  add-file ');
+
+      log.info('this.member.private = ' , this.member.private)
+
+      if(this.member.private){
+        if(response.error === null ){
+          this.sendIndex++;
+          log.info('22..업로드 완료후 sendIndex = ',this.sendIndex);
+          if(this.addfilesToSend.length > this.sendIndex){
+            log.info('22..다음파일업로드 addfilesToSend.length = ',this.addfilesToSend.length);
+            this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
+          }else{
+            log.info('개인계정, 업데이트 목록 요청');
+            this.requestUpdateList();
+          }
+  
+        }
+      }else{
+        if(response.error === null ){ //파일업로드 완료
+          log.info('파일업로드완료 , 블록체인으로 이동')
+          this.uploadManager(this.addfilesToSend[this.sendIndex], "chain-create");
+        }
+      }
+    });
+
+          
+    /*----------------------------------------------------
+       *  IPC Response : Get chain-create
+       
+      ----------------------------------------------------*/
+    this.electronService.ipcRenderer.on("chain-create", (event: Electron.IpcMessageEvent, response: any) => {
+      log.info('create proof = ',response);
+
+      if(response.body.key.code == 10000){
+        this.sendIndex++;
+        log.info('33..this.addfilesToSend.length = ',this.addfilesToSend.length);
+        if(this.addfilesToSend.length > this.sendIndex){
+          log.info('블록체인업로드완료 , 파일업로드로 이동')
+          this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
+        }else{
+          log.info('파일업로드완료 , 업데이트으로 이동')
+          this.requestUpdateList();
+        }
+
+      }else{
+        log.error('블록체인에러, 백업시작버튼을 눌러 다시 시작해야 한다. = ',response.body.code 
+                 , 'id = ', this.addfilesToSend[this.sendIndex].fileid);
+      }
+    });
+
+
+      /*----------------------------------------------------
+       *  IPC Response : Get UPDATETREE
+       
+      ----------------------------------------------------*/
+    this.electronService.ipcRenderer.on('UPDATETREE', (event: Electron.IpcMessageEvent, response: any) => {
+    //this.electronService.ipcRenderer.once('UPDATETREE', (event: Electron.IpcMessageEvent, response: any) => {
+      log.info('받음 UPDATETREE ');
+      const fileTree = response.tree; 
+
+      this.changefilesToSend = [];
+
+      for(let i =0; i<fileTree.length; i++){
+        this.changefilesToSend.push({
+          fileid:fileTree[i]['id'],
+          folderIndex: this.folderIndex,
+          file: this.deviceResource.macaddress+fileTree[i]['filename'].replace(/\\/g, '/'),
+          filepath:fileTree[i]['filename'].replace(/\\/g, '/'),
+          filesize:fileTree[i]['filesize']
+        });
+      }
+      
+      log.info('changefilesToSend = ',this.changefilesToSend);
+
+      if(this.changefilesToSend.length > 0){
+        //파일 업로드 
+        log.info('처음, 업데이트, sendIndex = ', this.sendIndex);
+        this.uploadManager(this.changefilesToSend[this.sendIndex], "change-file");
+      } else{
+        //2. 업데이트 목록 요청 하고 업로드
+        log.info('1. 한폴더에 대한 모든 업로드/업데이트 완료');
+      }
+
+      this.electronService.ipcRenderer.removeListener('UPDATETREE', (event: Electron.IpcMessageEvent, response: any)=>{
+        log.info('업데이트 목록 콜백한번만 호출되게...');
+      });
+
+    });
+
+    /*----------------------------------------------------
+       *  IPC Response : Get change-file
+       
+      ----------------------------------------------------*/
+    this.electronService.ipcRenderer.on("change-file", (event: Electron.IpcMessageEvent, response: any) => {
+      console.log('받음 업데이트, change-file ');
+
+      if(this.member.private){
+        if(response.error === null ){
+          this.sendIndex++;
+          log.info('44..업데이트 완료후 sendIndex = ',this.sendIndex);
+          log.info('44..this.changefilesToSend.length = ',this.changefilesToSend.length);
+          if(this.changefilesToSend.length > this.sendIndex){
+            this.uploadManager(this.changefilesToSend[this.sendIndex], "change-file");
+          }else{
+            log.info('2. 한폴더에 대한 모든 업로드 완료');
+          }
+  
+        }
+      }else{
+        if(response.error === null ){ //파일업로드 완료
+          log.info('11..파일업데이트완료 , 블록체인으로 이동')
+          this.uploadManager(this.changefilesToSend[this.sendIndex], "chain-update");
+        }
+      }
+    });
+
+     /*----------------------------------------------------
+       *  IPC Response : Get chain-update
+       
+      ----------------------------------------------------*/
+    this.electronService.ipcRenderer.on("chain-update", (event: Electron.IpcMessageEvent, response: any) => {
+      log.info('받음 업데이트 chain-update ');
+
+      if(response.body.key.code == 10000){
+        this.sendIndex++;
+        //console.log('11..업로드 완료후 sendIndex = ',this.sendIndex);
+        if(this.changefilesToSend.length > this.sendIndex){
+          log.info('블록체인업데이트 완료 , 파일업데이트 이동')
+          log.info('this.changefilesToSend.length = ', this.changefilesToSend.length);
+          this.uploadManager(this.changefilesToSend[this.sendIndex], "change-file");
+        }else{
+          log.info('2. 한폴더에 대한 모든 업로드 완료');
+        }
+
+      }else{
+        log.error('블록체인에러, 백업시작버튼을 눌러 다시 시작해야 한다. = ',response.body.code 
+                 , 'id = ', this.changefilesToSend[this.sendIndex].fileid);
+      }
+    }); 
 
 
     // this.electronService.ipcRenderer.on('GETFOLDERTREE', (event: Electron.IpcMessageEvent, response: any) => {
@@ -708,214 +961,246 @@ export class UploadFiletreeService {
 
  
 
-  private requestChainErrorList(){
-    console.log('블록체인 업로드 실패 목록 요청');
-    console.log('선택된 폴더 = ', this.folders[this.folderIndex]);
+   requestChainErrorList(){
+    console.log('requestChainErrorList');
+    log.info('블록체인 업로드 실패 목록 요청');
+    log.info('선택된 폴더 = ', this.folders[this.folderIndex]);
 
     this.sendIndex = 0;
     this.electronService.ipcRenderer.send('REQ-CHAINTREE', {
-      folderIndex: this.folderIndex
+      folderIndex: this.folderIndex,
+      username: this.member.username
     });
 
 
-    this.electronService.ipcRenderer.on('CHAINTREE', (event: Electron.IpcMessageEvent, response: any) => {
-      console.log('받음 CHAINTREE ');
-      const fileTree = response.tree; 
-      // console.log('fileTree 타입 = ', typeof fileTree);
-      // console.log('fileTree 갯수 = ', fileTree.length);
-      //const code = file.fullpath.replace(/\\/g, '/');  //비교대상
-      //메모리 줄일려고 filepath만
-      this.chainsToSend = [];
+    // this.electronService.ipcRenderer.on('CHAINTREE', (event: Electron.IpcMessageEvent, response: any) => {
+    //   log.info('받음 CHAINTREE ');
+    //   console.log('requestChainErrorList =>CHAINTREE');
+    //   const fileTree = response.tree; 
 
-      for(let i =0; i<fileTree.length; i++){
-        this.chainsToSend.push({
-          fileid:fileTree[i]['id'],
-          folderIndex: this.folderIndex,
-          file: this.deviceResource.macaddress+fileTree[i]['filename'].replace(/\\/g, '/'),
-          filepath: fileTree[i]['filename'].replace(/\\/g, '/'),
-          filesize: fileTree[i]['filesize']
-        });
-      }
+    //   this.chainsToSend = [];
 
-      console.log('chainsToSend = ',this.chainsToSend);
+    //   for(let i =0; i<fileTree.length; i++){
+    //     this.chainsToSend.push({
+    //       fileid:fileTree[i]['id'],
+    //       folderIndex: this.folderIndex,
+    //       file: this.deviceResource.macaddress+fileTree[i]['filename'].replace(/\\/g, '/'),
+    //       filepath: fileTree[i]['filename'].replace(/\\/g, '/'),
+    //       filesize: fileTree[i]['filesize']
+    //     });
+    //   }
 
-      if(this.chainsToSend.length > 0){
-        //파일 업로드 
-        console.log('처음, sendIndex = ', this.sendIndex);
-        this.uploadManager(this.chainsToSend[this.sendIndex], "chain");
-      } else{
-        //2. 업로드 목록 요청 하고 업로드
-        this.requestUploadList(); 
-      }
+    //   log.info('chainsToSend = ',this.chainsToSend);
 
-    });
+    //   if(this.chainsToSend.length > 0){
+    //     //파일 업로드 
+    //     log.info('블록체인 업로드 실패목록 전송, sendIndex = ', this.sendIndex);
+    //     this.uploadManager(this.chainsToSend[this.sendIndex], "chain-error");
+    //   } else{
+    //     //2. 업로드 목록 요청 하고 업로드
+    //     log.info('11..업로드 목록으로 이동 ');
+    //     this.requestUploadList(); 
+    //   }
 
-    this.electronService.ipcRenderer.on('RES-CHAINFILE', (event: Electron.IpcMessageEvent, response: any) => {
-      console.log('받음 RES-CHAINFILE ');
+    // });
 
-      if(response.error === null ){
-        this.sendIndex++;
-        console.log('11..업로드 완료후 sendIndex = ',this.sendIndex);
-        if(this.chainsToSend.length > this.sendIndex){
-          this.uploadManager(this.chainsToSend[this.sendIndex], "chain");
-        }else{
-          this.requestUploadList(); 
-        }
+    // this.electronService.ipcRenderer.on('chain-error', (event: Electron.IpcMessageEvent, response: any) => {
+    //   log.info('받음 chain-error ');
 
-      }else{
-        // message = ' : 파일 업로드 실패 , 다음파일을 업로드 합니다.';
-        // console.log(message, this.filesToSend[response.index]);
-        // this.notification.next({
-        //      cmd: 'LOG',
-        //      //message: '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[response.index].file.filename + message
-        //      message: '[' + (this.folderIndex + 1) + '] ' +  message
-        //   });
+    //   if(response.body.key.code == 10000 ){
+    //     this.sendIndex++;
+    //     log.info('11..업로드 완료후 sendIndex = ',this.sendIndex);
+    //     log.info('11..this.chainsToSend.length = ',this.chainsToSend.length);
+    //     if(this.chainsToSend.length > this.sendIndex){
+    //       this.uploadManager(this.chainsToSend[this.sendIndex], "chain-error");
+    //     }else{
+    //       log.info('22..업로드 목록으로 이동 ');
+    //       this.requestUploadList(); 
+    //     }
 
-        // this.gotoNextFile(response.index);
-      }
-    });
+    //   }else{
+    //     log.error('에러 목록 업데이트중, 블록체인에러, 백업시작버튼을 눌러 다시 시작해야 한다. = ',response.body.code 
+    //              , 'id = ', this.addfilesToSend[this.sendIndex].fileid);
+    //   }
+    // });
 
   }
 
-  private requestUploadList(){
-    console.log('업로드 목록 요청');
-    console.log('선택된 폴더 = ', this.folders[this.folderIndex]);
+   requestUploadList(){
+    console.log('requestUploadList');
+    log.info('업로드 목록 요청 username = ',this.member.username);
+    log.info('선택된 폴더 = ', this.folders[this.folderIndex]);
     this.sendIndex = 0;
     this.electronService.ipcRenderer.send('REQ-UPLOADTREE', {
-      folderIndex: this.folderIndex
+      folderIndex: this.folderIndex,
+      username: this.member.username
     });
 
 
-    this.electronService.ipcRenderer.on('UPLOADTREE', (event: Electron.IpcMessageEvent, response: any) => {
-      console.log('받음 UPLOADTREE ');
-      const fileTree = response.tree; 
-      // console.log('fileTree 타입 = ', typeof fileTree);
-      // console.log('fileTree 갯수 = ', fileTree.length);
-      //const code = file.fullpath.replace(/\\/g, '/');  //비교대상
-      //메모리 줄일려고 filepath만
-      this.addfilesToSend = [];
+    // this.electronService.ipcRenderer.on('UPLOADTREE', (event: Electron.IpcMessageEvent, response: any) => {
+    //   log.info('받음 UPLOADTREE ');
+    //   const fileTree = response.tree; 
 
-      for(let i =0; i<fileTree.length; i++){
-        this.addfilesToSend.push({
-          fileid:fileTree[i]['id'],
-          folderIndex: this.folderIndex,
-          file: this.deviceResource.macaddress+fileTree[i]['filename'].replace(/\\/g, '/'),
-          filepath:fileTree[i]['filename'].replace(/\\/g, '/'),
-          filesize:fileTree[i]['filesize']
-        });
-      }
+    //   this.addfilesToSend = [];
+
+    //   for(let i =0; i<fileTree.length; i++){
+    //     this.addfilesToSend.push({
+    //       fileid:fileTree[i]['id'],
+    //       folderIndex: this.folderIndex,
+    //       file: this.deviceResource.macaddress+fileTree[i]['filename'].replace(/\\/g, '/'),
+    //       filepath:fileTree[i]['filename'].replace(/\\/g, '/'),
+    //       filesize:fileTree[i]['filesize']
+    //     });
+    //   }
       
-      console.log('addfilesToSend = ',this.addfilesToSend);
+    //   log.info('addfilesToSend = ',this.addfilesToSend);
 
-      if(this.addfilesToSend.length > 0){
-        //파일 업로드 
-        console.log('처음, sendIndex = ', this.sendIndex);
-        this.uploadManager(this.addfilesToSend[this.sendIndex], "add");
-      } else{
-        //2. 업데이트 목록 요청 하고 업로드
-        this.requestUpdateList(); 
-      }
+    //   if(this.addfilesToSend.length > 0){
+    //     //파일 업로드 
+    //     log.info('처음, sendIndex = ', this.sendIndex);
+    //     log.info('this.addfilesToSend.length = ',this.addfilesToSend.length);
+    //     this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
+    //   } else{
+    //     //2. 업데이트 목록 요청 하고 업로드
+    //     log.info('목록없음으로, 업데이트 목록 요청');
+    //     this.requestUpdateList();
+    //   }
 
-    });
+    // });
 
 
-    this.electronService.ipcRenderer.on('RES-FILE', (event: Electron.IpcMessageEvent, response: any) => {
-      console.log('받음 RES-FILE ');
+    // this.electronService.ipcRenderer.on("add-file", (event: Electron.IpcMessageEvent, response: any) => {
+    //   log.info('받음, 업로드,  add-file ');
 
-      if(response.error === null ){
-        this.sendIndex++;
-        console.log('22..업로드 완료후 sendIndex = ',this.sendIndex);
-        if(this.addfilesToSend.length > this.sendIndex){
-          console.log('다음파일업로드 addfilesToSend.length = ',this.addfilesToSend.length);
-          this.uploadManager(this.addfilesToSend[this.sendIndex], "add");
-        }else{
-          this.requestUpdateList(); 
-        }
+    //   log.info('this.member.private = ' , this.member.private)
 
-      }else{
-        //블록체인 에러 받을때는 업로드 중지.
+    //   if(this.member.private){
+    //     if(response.error === null ){
+    //       this.sendIndex++;
+    //       log.info('22..업로드 완료후 sendIndex = ',this.sendIndex);
+    //       if(this.addfilesToSend.length > this.sendIndex){
+    //         log.info('22..다음파일업로드 addfilesToSend.length = ',this.addfilesToSend.length);
+    //         this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
+    //       }else{
+    //         log.info('개인계정, 업데이트 목록 요청');
+    //         this.requestUpdateList();
+    //       }
+  
+    //     }
+    //   }else{
+    //     if(response.error === null ){ //파일업로드 완료
+    //       log.info('파일업로드완료 , 블록체인으로 이동')
+    //       this.uploadManager(this.addfilesToSend[this.sendIndex], "chain-create");
+    //     }
+    //   }
+    // });
 
-        // message = ' : 파일 업로드 실패 , 다음파일을 업로드 합니다.';
-        // console.log(message, this.filesToSend[response.index]);
-        // this.notification.next({
-        //      cmd: 'LOG',
-        //      //message: '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[response.index].file.filename + message
-        //      message: '[' + (this.folderIndex + 1) + '] ' +  message
-        //   });
+          
+      
+    // this.electronService.ipcRenderer.on("chain-create", (event: Electron.IpcMessageEvent, response: any) => {
+    //   log.info('create proof = ',response);
 
-        // this.gotoNextFile(response.index);
-      }
-    });
+    //   if(response.body.key.code == 10000){
+    //     this.sendIndex++;
+    //     log.info('33..this.addfilesToSend.length = ',this.addfilesToSend.length);
+    //     if(this.addfilesToSend.length > this.sendIndex){
+    //       log.info('블록체인업로드완료 , 파일업로드로 이동')
+    //       this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
+    //     }else{
+    //       log.info('파일업로드완료 , 업데이트으로 이동')
+    //       this.requestUpdateList();
+    //     }
+
+    //   }else{
+    //     log.error('블록체인에러, 백업시작버튼을 눌러 다시 시작해야 한다. = ',response.body.code 
+    //              , 'id = ', this.addfilesToSend[this.sendIndex].fileid);
+    //   }
+    // });
   }
 
-  private requestUpdateList(){
-    console.log('업데이트 요청');
-    console.log('선택된 폴더 = ', this.folders[this.folderIndex]);
+   requestUpdateList(){
+    log.info('업데이트 요청');
+    log.info('선택된 폴더 = ', this.folders[this.folderIndex]);
     this.sendIndex = 0;
 
     this.electronService.ipcRenderer.send('REQ-UPDATETREE', {
-      folderIndex: this.folderIndex
+      folderIndex: this.folderIndex,
+      username: this.member.username
     });
 
 
-    this.electronService.ipcRenderer.on('UPDATETREE', (event: Electron.IpcMessageEvent, response: any) => {
-      console.log('받음 UPDATETREE ');
-      const fileTree = response.tree; 
-      // console.log('fileTree 타입 = ', typeof fileTree);
-      // console.log('fileTree 갯수 = ', fileTree.length);
-      //const code = file.fullpath.replace(/\\/g, '/');  //비교대상
-      //메모리 줄일려고 filepath만
-      this.changefilesToSend = [];
+    // this.electronService.ipcRenderer.on('UPDATETREE', (event: Electron.IpcMessageEvent, response: any) => {
+    //   log.info('받음 UPDATETREE ');
+    //   const fileTree = response.tree; 
 
-      for(let i =0; i<fileTree.length; i++){
-        this.changefilesToSend.push({
-          fileid:fileTree[i]['id'],
-          folderIndex: this.folderIndex,
-          file: this.deviceResource.macaddress+fileTree[i]['filename'].replace(/\\/g, '/'),
-          filepath:fileTree[i]['filename'].replace(/\\/g, '/'),
-          filesize:fileTree[i]['filesize']
-        });
-      }
+    //   this.changefilesToSend = [];
+
+    //   for(let i =0; i<fileTree.length; i++){
+    //     this.changefilesToSend.push({
+    //       fileid:fileTree[i]['id'],
+    //       folderIndex: this.folderIndex,
+    //       file: this.deviceResource.macaddress+fileTree[i]['filename'].replace(/\\/g, '/'),
+    //       filepath:fileTree[i]['filename'].replace(/\\/g, '/'),
+    //       filesize:fileTree[i]['filesize']
+    //     });
+    //   }
       
-      console.log('changefilesToSend = ',this.changefilesToSend);
+    //   log.info('changefilesToSend = ',this.changefilesToSend);
 
-      if(this.changefilesToSend.length > 0){
-        //파일 업로드 
-        console.log('처음, sendIndex = ', this.sendIndex);
-        this.uploadManager(this.changefilesToSend[this.sendIndex], "change");
-      } else{
-        //2. 업데이트 목록 요청 하고 업로드
-        log.info('1. 한폴더에 대한 모든 업로드 완료');
-      }
+    //   if(this.changefilesToSend.length > 0){
+    //     //파일 업로드 
+    //     log.info('처음, sendIndex = ', this.sendIndex);
+    //     this.uploadManager(this.changefilesToSend[this.sendIndex], "change-file");
+    //   } else{
+    //     //2. 업데이트 목록 요청 하고 업로드
+    //     log.info('1. 한폴더에 대한 모든 업로드 완료');
+    //   }
 
-    });
+    // });
 
-    this.electronService.ipcRenderer.on('RES-FILE', (event: Electron.IpcMessageEvent, response: any) => {
-      console.log('받음 RES-FILE ');
+    // this.electronService.ipcRenderer.on("change-file", (event: Electron.IpcMessageEvent, response: any) => {
+    //   console.log('받음 업데이트, change-file ');
 
-      if(response.error === null ){
-        this.sendIndex++;
-        console.log('33..업로드 완료후 sendIndex = ',this.sendIndex);
-        if(this.changefilesToSend.length > this.sendIndex){
-          this.uploadManager(this.changefilesToSend[this.sendIndex], "change");
-        }else{
-          log.info('2. 한폴더에 대한 모든 업로드 완료');
-        }
+    //   if(this.member.private){
+    //     if(response.error === null ){
+    //       this.sendIndex++;
+    //       log.info('44..업데이트 완료후 sendIndex = ',this.sendIndex);
+    //       log.info('44..this.changefilesToSend.length = ',this.changefilesToSend.length);
+    //       if(this.changefilesToSend.length > this.sendIndex){
+    //         this.uploadManager(this.changefilesToSend[this.sendIndex], "change-file");
+    //       }else{
+    //         log.info('2. 한폴더에 대한 모든 업로드 완료');
+    //       }
+  
+    //     }
+    //   }else{
+    //     if(response.error === null ){ //파일업로드 완료
+    //       log.info('11..파일업데이트완료 , 블록체인으로 이동')
+    //       this.uploadManager(this.changefilesToSend[this.sendIndex], "chain-update");
+    //     }
+    //   }
+    // });
 
-      }else{
-        //블록체인 에러 받을때는 업로드 중지.
+          
+    // this.electronService.ipcRenderer.on("chain-update", (event: Electron.IpcMessageEvent, response: any) => {
+    //   log.info('받음 업데이트 chain-update ');
 
-        // message = ' : 파일 업로드 실패 , 다음파일을 업로드 합니다.';
-        // console.log(message, this.filesToSend[response.index]);
-        // this.notification.next({
-        //      cmd: 'LOG',
-        //      //message: '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[response.index].file.filename + message
-        //      message: '[' + (this.folderIndex + 1) + '] ' +  message
-        //   });
+    //   if(response.body.key.code == 10000){
+    //     this.sendIndex++;
+    //     //console.log('11..업로드 완료후 sendIndex = ',this.sendIndex);
+    //     if(this.changefilesToSend.length > this.sendIndex){
+    //       log.info('블록체인업데이트 완료 , 파일업데이트 이동')
+    //       log.info('this.changefilesToSend.length = ', this.changefilesToSend.length);
+    //       this.uploadManager(this.changefilesToSend[this.sendIndex], "change-file");
+    //     }else{
+    //       log.info('2. 한폴더에 대한 모든 업로드 완료');
+    //     }
 
-        // this.gotoNextFile(response.index);
-      }
-    });
+    //   }else{
+    //     log.error('블록체인에러, 백업시작버튼을 눌러 다시 시작해야 한다. = ',response.body.code 
+    //              , 'id = ', this.changefilesToSend[this.sendIndex].fileid);
+    //   }
+    // }); 
   }
 
   //스토리지에 저장된 폴더의 키를 반환한다.
@@ -1140,10 +1425,11 @@ export class UploadFiletreeService {
       folderIndex: item.folderIndex,
       uploadtype: type
     };
-    if(type == 'chian'){
+
+    if(type == 'chain-error' || type == 'chain-create' || type == 'chain-update'){
       this.electronService.ipcRenderer.send('SEND-CHAINFILE', post);
     }else{
-      this.electronService.ipcRenderer.send('SEND-FILE', post);
+      this.electronService.ipcRenderer.send('SEND-FILE', post); //비동기
     }
     
   }
@@ -1155,310 +1441,310 @@ export class UploadFiletreeService {
    4. 업로드할 파일은 업로드 
    5. 업로드된 파일은 이미 업데이트 되었다고 알려준다.
   -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-  private processFile(item) {
-    console.log('업로드처리 시작 processFile');
-    log.info('processFile, 업로드 프로세스 시작 사이즈 = ', item.length);
-    log.info('processFile, item : ',item , 'this.folders[item.folderIndex].path : ',this.folders[item.folderIndex].path);
-    if (item == null || this.folders[item.folderIndex].path === undefined) {  //this.folders[item.folderIndex].path: 설정한 업로드패스
-      return;
-    }
-    //this.logger.debug('===', item);
-    console.log('===', item);
-    const file = item.file;
-    let post;
-    this.member = this.memberAPI.isLoggedin();
-   //console.log('55..맴버 = ',this.member);
-    console.log('업로드 file: ',file);
-    /*---------------------------------------------------------------
-        폴더도 Post를 하나 추가해놓아야함
-     ----------------------------------------------------------------*/
+  // private processFile(item) {
+  //   console.log('업로드처리 시작 processFile');
+  //   log.info('processFile, 업로드 프로세스 시작 사이즈 = ', item.length);
+  //   log.info('processFile, item : ',item , 'this.folders[item.folderIndex].path : ',this.folders[item.folderIndex].path);
+  //   if (item == null || this.folders[item.folderIndex].path === undefined) {  //this.folders[item.folderIndex].path: 설정한 업로드패스
+  //     return;
+  //   }
+  //   //this.logger.debug('===', item);
+  //   console.log('===', item);
+  //   const file = item.file;
+  //   let post;
+  //   this.member = this.memberAPI.isLoggedin();
+  //  //console.log('55..맴버 = ',this.member);
+  //   console.log('업로드 file: ',file);
+  //   /*---------------------------------------------------------------
+  //       폴더도 Post를 하나 추가해놓아야함
+  //    ----------------------------------------------------------------*/
 
-    const paths = path.dirname(file.fullpath).split(path.sep);  //fullpath를 /로 분리하여 저장
-    //console.log('업로드 paths: ',paths);  
-    const parentPath = (paths.slice(0, paths.length).join(path.sep)).replace(/\\/g, '/');
-   //console.log('업로드 parentPath: ',parentPath);
-    const folderName = this.folders[item.folderIndex].path.replace(/\\/g, '/');
-    //console.log('업로드 folderName: ',folderName);
-    const code = file.fullpath.replace(/\\/g, '/');  //비교대상
-    //console.log('업로드 code: ',code);
-    const deviceId = this.deviceResource.macaddress;
+  //   const paths = path.dirname(file.fullpath).split(path.sep);  //fullpath를 /로 분리하여 저장
+  //   //console.log('업로드 paths: ',paths);  
+  //   const parentPath = (paths.slice(0, paths.length).join(path.sep)).replace(/\\/g, '/');
+  //  //console.log('업로드 parentPath: ',parentPath);
+  //   const folderName = this.folders[item.folderIndex].path.replace(/\\/g, '/');
+  //   //console.log('업로드 folderName: ',folderName);
+  //   const code = file.fullpath.replace(/\\/g, '/');  //비교대상
+  //   //console.log('업로드 code: ',code);
+  //   const deviceId = this.deviceResource.macaddress;
 
-    let userToken = this.member.token;
-    let username = this.member.username;
+  //   let userToken = this.member.token;
+  //   let username = this.member.username;
 
-    if (item.file.type === 'folder') {
-      let uertoken = 
-      post = {
-        index: item.index,
-        file: file,
-        formData: {
-          type: 'item',
-          categories: [parentPath],                     // 파일이 포함된 path
-          subtype: file.type,
-          title: file.filename,
-          status: folderName,                           // 사용자가 선택한 폴더
-          code: this.deviceResource.macaddress + '/' + code,                                   // 파일의 fullpath
-          subtitle: code,
-          checkCode: 'true',
-          checkCodeAction: 'update',
-          userData: {
-            parentPath: parentPath,
-            totalSize: item.size,
-            // created: file.created,
-            // updated: file.updated,
-            // accessed: file.accessed,
-          }
-        },
-        accessToken: userToken,
-        username:username,
-      };
-    } else {
-     // console.log('file  타입: ',this.storageService.get('userToken'));
-      post = {
-        index: item.index,
-        file: file,
-        formData: {
-          type: 'item',
-          categories: [parentPath],                     // 파일이 포함된 path
-          subtype: file.type,
-          title: file.filename,
-          status: folderName,                           // 사용자가 선택한 폴더
-          code: this.deviceResource.macaddress + '/' + code,                                   
-          subtitle: code,
-          checkCode: 'true',
-          checkCodeAction: 'create',  
-          chain:'create',
-          userData: {
-            parentPath: parentPath,
-            totalSize: file.size,
-            // created: file.created,
-            // updated: file.updated,
-            // accessed: file.accessed,
-          }
-        },
-        accessToken: userToken,
-        username:username,
-      };
-    }
+  //   if (item.file.type === 'folder') {
+  //     let uertoken = 
+  //     post = {
+  //       index: item.index,
+  //       file: file,
+  //       formData: {
+  //         type: 'item',
+  //         categories: [parentPath],                     // 파일이 포함된 path
+  //         subtype: file.type,
+  //         title: file.filename,
+  //         status: folderName,                           // 사용자가 선택한 폴더
+  //         code: this.deviceResource.macaddress + '/' + code,                                   // 파일의 fullpath
+  //         subtitle: code,
+  //         checkCode: 'true',
+  //         checkCodeAction: 'update',
+  //         userData: {
+  //           parentPath: parentPath,
+  //           totalSize: item.size,
+  //           // created: file.created,
+  //           // updated: file.updated,
+  //           // accessed: file.accessed,
+  //         }
+  //       },
+  //       accessToken: userToken,
+  //       username:username,
+  //     };
+  //   } else {
+  //    // console.log('file  타입: ',this.storageService.get('userToken'));
+  //     post = {
+  //       index: item.index,
+  //       file: file,
+  //       formData: {
+  //         type: 'item',
+  //         categories: [parentPath],                     // 파일이 포함된 path
+  //         subtype: file.type,
+  //         title: file.filename,
+  //         status: folderName,                           // 사용자가 선택한 폴더
+  //         code: this.deviceResource.macaddress + '/' + code,                                   
+  //         subtitle: code,
+  //         checkCode: 'true',
+  //         checkCodeAction: 'create',  
+  //         chain:'create',
+  //         userData: {
+  //           parentPath: parentPath,
+  //           totalSize: file.size,
+  //           // created: file.created,
+  //           // updated: file.updated,
+  //           // accessed: file.accessed,
+  //         }
+  //       },
+  //       accessToken: userToken,
+  //       username:username,
+  //     };
+  //   }
 
-    /*---------------------------------------------------------------
-          이미 존재하는지 체크, 
-        ----------------------------------------------------------------*/
-    //공용과 블록체인을 나워야...
-    let existPost = null;
-    var listObj = this.storageService.get('list');
-    log.warn('listObj = ',listObj);
-    //console.log('upload.filetree, 리스트목록 = ',listObj);
-   // console.log('리스트목록 갯수 = ',listObj.length);
-    if(listObj != '[]' && listObj != 'No Content' && file.type != 'folder' 
-       && listObj != undefined){
-      let jsonExitPost = JSON.parse(listObj);
-      // console.log('json, 리스트목록  = ',jsonExitPost);
-       console.log('리스트목록 갯수 = ',jsonExitPost.length);
-       log.info('리스트목록 갯수 = ',jsonExitPost.length);
-      // console.log('deviceId = ',deviceId);
-     // console.log('item.name = ',item.name);
+  //   /*---------------------------------------------------------------
+  //         이미 존재하는지 체크, 
+  //       ----------------------------------------------------------------*/
+  //   //공용과 블록체인을 나워야...
+  //   let existPost = null;
+  //   var listObj = this.storageService.get('list');
+  //   log.warn('listObj = ',listObj);
+  //   //console.log('upload.filetree, 리스트목록 = ',listObj);
+  //  // console.log('리스트목록 갯수 = ',listObj.length);
+  //   if(listObj != '[]' && listObj != 'No Content' && file.type != 'folder' 
+  //      && listObj != undefined){
+  //     let jsonExitPost = JSON.parse(listObj);
+  //     // console.log('json, 리스트목록  = ',jsonExitPost);
+  //      console.log('리스트목록 갯수 = ',jsonExitPost.length);
+  //      log.info('리스트목록 갯수 = ',jsonExitPost.length);
+  //     // console.log('deviceId = ',deviceId);
+  //    // console.log('item.name = ',item.name);
 
 
-     console.log('deviceId = ',deviceId);
+  //    console.log('deviceId = ',deviceId);
 
-      let diffJsonPost = jsonExitPost.filter(function (item){
-           console.log('item = ',item);
-           return item.name.startsWith(deviceId);
+  //     let diffJsonPost = jsonExitPost.filter(function (item){
+  //          console.log('item = ',item);
+  //          return item.name.startsWith(deviceId);
            
-      });
-     // process.takeHeapSnapshot('/Users/kimcy/dev/SafeBackUp')
+  //     });
+  //    // process.takeHeapSnapshot('/Users/kimcy/dev/SafeBackUp')
 
-      //log.warn(process.getHeapStatistics());
+  //     //log.warn(process.getHeapStatistics());
       
-      //log.warn('listObj = ', listObj);
-      //log.warn('jsonExitPost = ', listObj);
-      listObj = null;
-      jsonExitPost = null;
+  //     //log.warn('listObj = ', listObj);
+  //     //log.warn('jsonExitPost = ', listObj);
+  //     listObj = null;
+  //     jsonExitPost = null;
 
-      console.log('diffJsonPost = ',diffJsonPost);
-      console.log('post.formData.code = ',post.formData.code);
-      for(var ele in diffJsonPost){
-        if(diffJsonPost[ele].name === post.formData.code){
-          if(diffJsonPost[ele].bytes === file.size){
-            existPost = 'already-exists';
-            //console.log('업데이트된 파일');
-            diffJsonPost.splice(ele,1);
-            var list = JSON.stringify(diffJsonPost);
-            //console.log('list = ', list);
-            this.storageService.set('list',list);
-            break;
-          }else if(diffJsonPost[ele].bytes != file.size){
-            //파일 이름은 같은데 파일사이즈가 다르면 신규파일이지만 블록체인에는 update로 기록해야 한다.
-            existPost = 'need-update';
-          }
-        }
-      }
+  //     console.log('diffJsonPost = ',diffJsonPost);
+  //     console.log('post.formData.code = ',post.formData.code);
+  //     for(var ele in diffJsonPost){
+  //       if(diffJsonPost[ele].name === post.formData.code){
+  //         if(diffJsonPost[ele].bytes === file.size){
+  //           existPost = 'already-exists';
+  //           //console.log('업데이트된 파일');
+  //           diffJsonPost.splice(ele,1);
+  //           var list = JSON.stringify(diffJsonPost);
+  //           //console.log('list = ', list);
+  //           this.storageService.set('list',list);
+  //           break;
+  //         }else if(diffJsonPost[ele].bytes != file.size){
+  //           //파일 이름은 같은데 파일사이즈가 다르면 신규파일이지만 블록체인에는 update로 기록해야 한다.
+  //           existPost = 'need-update';
+  //         }
+  //       }
+  //     }
 
-      diffJsonPost = null;
+  //     diffJsonPost = null;
 
-      //2. 목록 안지우고 비교
-      // for(var ele in jsonExitPost){
-      //   //동일한 이름값이면 filesize체크해서 변경유무 파악
-      //   // console.log('목록있음,,,jsonExitPost[ele].name = ',ele, jsonExitPost[ele].name);
-      //    console.log('한글 = ', code);
-      //   if(jsonExitPost[ele].name === post.formData.code){
-      //     if(jsonExitPost[ele].bytes === file.size){
-      //       existPost = 'update-already';
-      //       console.log('업데이트된 파일');
-      //       jsonExitPost.splice(ele,1);
-      //       var list = JSON.stringify(jsonExitPost);
-      //       console.log('list = ', list);
-      //       this.storageService.set('list',list);
-      //       break;
-      //     }
-      //   }
-      // }
-    }else if(listObj === '[]' || listObj === 'No Content'){
-      console.log('맨 처음 올리는것임');
-      log.info('processFile, 맨 처음 업로드');
-    }else{
-      console.log('에러 => 처음부터 다시 올림?? 맞나??');
-      log.error('processFile, 에러발생');
-    }
+  //     //2. 목록 안지우고 비교
+  //     // for(var ele in jsonExitPost){
+  //     //   //동일한 이름값이면 filesize체크해서 변경유무 파악
+  //     //   // console.log('목록있음,,,jsonExitPost[ele].name = ',ele, jsonExitPost[ele].name);
+  //     //    console.log('한글 = ', code);
+  //     //   if(jsonExitPost[ele].name === post.formData.code){
+  //     //     if(jsonExitPost[ele].bytes === file.size){
+  //     //       existPost = 'update-already';
+  //     //       console.log('업데이트된 파일');
+  //     //       jsonExitPost.splice(ele,1);
+  //     //       var list = JSON.stringify(jsonExitPost);
+  //     //       console.log('list = ', list);
+  //     //       this.storageService.set('list',list);
+  //     //       break;
+  //     //     }
+  //     //   }
+  //     // }
+  //   }else if(listObj === '[]' || listObj === 'No Content'){
+  //     console.log('맨 처음 올리는것임');
+  //     log.info('processFile, 맨 처음 업로드');
+  //   }else{
+  //     console.log('에러 => 처음부터 다시 올림?? 맞나??');
+  //     log.error('processFile, 에러발생');
+  //   }
 
     
 
 
-    /*---------------------------------------------------------------
-        업로드 제외 파일
-      ----------------------------------------------------------------*/
-    //data_backup/zip파일을 날짜별로 소팅해서 오래된것에는 doNotSend flag를 셋팅했음
-    if (this.filesToSend[item.index].doNotSend === true) {
-      log.info('processFile, data_backup의 zip파일중 예전데이터 처리');
-      console.log('업로드제외파일');
-      const message = '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[item.index].file.filename;
-      this.notification.next({
-        cmd: 'LOG',
-        message: message + ' : 업로드 제외 파일입니다. (' + (item.index + 1) + '/' + this.filesToSend.length + ')'
-      });
+  //   /*---------------------------------------------------------------
+  //       업로드 제외 파일
+  //     ----------------------------------------------------------------*/
+  //   //data_backup/zip파일을 날짜별로 소팅해서 오래된것에는 doNotSend flag를 셋팅했음
+  //   if (this.filesToSend[item.index].doNotSend === true) {
+  //     log.info('processFile, data_backup의 zip파일중 예전데이터 처리');
+  //     console.log('업로드제외파일');
+  //     const message = '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[item.index].file.filename;
+  //     this.notification.next({
+  //       cmd: 'LOG',
+  //       message: message + ' : 업로드 제외 파일입니다. (' + (item.index + 1) + '/' + this.filesToSend.length + ')'
+  //     });
       
 
-      //kimcy: 서버에 data_backup/zip파일(이전) 삭제에 관한 것 더 논의하여 작업
-      // if (existPost != null) {
-      //   this.notification.next({
-      //     cmd: 'LOG',
-      //     message: message + ' : 클라우드에서 삭제됩니다. (' + (item.index + 1) + '/' + this.filesToSend.length + ')'
-      //   });
-      //   this.postAPI.delete(existPost.id, {}).subscribe(
-      //     response => {
-      //       this.gotoNextFile(item.index);
-      //     },
-      //     error => {
-      //       this.gotoNextFile(item.index);
-      //     }
-      //   );
-      // }
-      //else 
-      {
-        //console.log('upload.filetree, item.index = ',item.index);
-        log.info('processFile, data_backup의 zip파일 처리, 다음파일 : ',item.index);
-        this.gotoNextFile(item.index);
-      }
+  //     //kimcy: 서버에 data_backup/zip파일(이전) 삭제에 관한 것 더 논의하여 작업
+  //     // if (existPost != null) {
+  //     //   this.notification.next({
+  //     //     cmd: 'LOG',
+  //     //     message: message + ' : 클라우드에서 삭제됩니다. (' + (item.index + 1) + '/' + this.filesToSend.length + ')'
+  //     //   });
+  //     //   this.postAPI.delete(existPost.id, {}).subscribe(
+  //     //     response => {
+  //     //       this.gotoNextFile(item.index);
+  //     //     },
+  //     //     error => {
+  //     //       this.gotoNextFile(item.index);
+  //     //     }
+  //     //   );
+  //     // }
+  //     //else 
+  //     {
+  //       //console.log('upload.filetree, item.index = ',item.index);
+  //       log.info('processFile, data_backup의 zip파일 처리, 다음파일 : ',item.index);
+  //       this.gotoNextFile(item.index);
+  //     }
 
-    }
-    /*---------------------------------------------------------------
-        업로드해야할 파일 판단, 업로드 시작
-      ----------------------------------------------------------------*/
-    else {
+  //   }
+  //   /*---------------------------------------------------------------
+  //       업로드해야할 파일 판단, 업로드 시작
+  //     ----------------------------------------------------------------*/
+  //   else {
 
-      console.log('업로드 해야 할 파일 판단, 업로드 시작',  code);
-      log.warn('processFile, 업로드해야할 파일 처리 code : ',code);
-      if (existPost == null && file.type != 'folder') {
-        const pipe = new BytesPipe();
-        const size = pipe.transform(this.filesToSend[item.index].file.size);
-        this.notification.next({
-          cmd: 'SENDING.STARTED',
-          message: '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[item.index].file.filename + ' 업로딩...' + size 
-        });
-        // console.log('보냄, upload.filetree, SENDFILE ');
-        //  console.log('보냄, code =  ', post.formData.code);
-        //  console.log('보냄, code11 =  ', post.formData.code.replace(/\\/g, '/'));
-        log.warn('processFile, 신규파일 업로드 : ',post.formData.code);
-         post.formData.chain = 'chain-create';
-        this.electronService.ipcRenderer.send('SENDFILE', post);
-      } else if(existPost === 'need-update'){
-        const pipe = new BytesPipe();
-        const size = pipe.transform(this.filesToSend[item.index].file.size);
-        this.notification.next({
-          cmd: 'SENDING.STARTED',
-          message: '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[item.index].file.filename + ' 업로딩...' + size 
-        });
-        log.warn('processFile, 변경파일 업로드 : ',post.formData.code);
-        post.formData.chain = 'chain-update';  //블록체인
-        this.electronService.ipcRenderer.send('SENDFILE', post);
-      } else if(existPost == null && file.type === 'folder'){
-        console.log('폴더는 업로드 하지 않음');
-        log.warn('processFile, 폴더는 업로드 제외 ',post.formData.code);
-        this.gotoNextFile(item.index);
-      } else {
-        //이미 있는 파일인데 무슨이유에서인지 블록체인에는 없는 파일(둘다올림?)
-        console.log('chain , post.formData.code =',post.formData.code);
-        // if(existPost === 'already-exists'){
-        //   var jsonChainPost = this.storageService.get('chain');
-        //   console.log('chainObj = ',jsonChainPost);
-        //   for(var ele in jsonChainPost){
-        //     if(jsonChainPost[ele].name === post.formData.code){
-        //       existPost = 'already-exists'
-        //       console.log('체인에 있음 ');
-        //       break;
-        //     }else{
-        //       console.log('체인에 없음 ');
-        //       existPost = null;
-        //     }
-        //   }
-        // }
+  //     console.log('업로드 해야 할 파일 판단, 업로드 시작',  code);
+  //     log.warn('processFile, 업로드해야할 파일 처리 code : ',code);
+  //     if (existPost == null && file.type != 'folder') {
+  //       const pipe = new BytesPipe();
+  //       const size = pipe.transform(this.filesToSend[item.index].file.size);
+  //       this.notification.next({
+  //         cmd: 'SENDING.STARTED',
+  //         message: '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[item.index].file.filename + ' 업로딩...' + size 
+  //       });
+  //       // console.log('보냄, upload.filetree, SENDFILE ');
+  //       //  console.log('보냄, code =  ', post.formData.code);
+  //       //  console.log('보냄, code11 =  ', post.formData.code.replace(/\\/g, '/'));
+  //       log.warn('processFile, 신규파일 업로드 : ',post.formData.code);
+  //        post.formData.chain = 'chain-create';
+  //       this.electronService.ipcRenderer.send('SENDFILE', post);
+  //     } else if(existPost === 'need-update'){
+  //       const pipe = new BytesPipe();
+  //       const size = pipe.transform(this.filesToSend[item.index].file.size);
+  //       this.notification.next({
+  //         cmd: 'SENDING.STARTED',
+  //         message: '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[item.index].file.filename + ' 업로딩...' + size 
+  //       });
+  //       log.warn('processFile, 변경파일 업로드 : ',post.formData.code);
+  //       post.formData.chain = 'chain-update';  //블록체인
+  //       this.electronService.ipcRenderer.send('SENDFILE', post);
+  //     } else if(existPost == null && file.type === 'folder'){
+  //       console.log('폴더는 업로드 하지 않음');
+  //       log.warn('processFile, 폴더는 업로드 제외 ',post.formData.code);
+  //       this.gotoNextFile(item.index);
+  //     } else {
+  //       //이미 있는 파일인데 무슨이유에서인지 블록체인에는 없는 파일(둘다올림?)
+  //       console.log('chain , post.formData.code =',post.formData.code);
+  //       // if(existPost === 'already-exists'){
+  //       //   var jsonChainPost = this.storageService.get('chain');
+  //       //   console.log('chainObj = ',jsonChainPost);
+  //       //   for(var ele in jsonChainPost){
+  //       //     if(jsonChainPost[ele].name === post.formData.code){
+  //       //       existPost = 'already-exists'
+  //       //       console.log('체인에 있음 ');
+  //       //       break;
+  //       //     }else{
+  //       //       console.log('체인에 없음 ');
+  //       //       existPost = null;
+  //       //     }
+  //       //   }
+  //       // }
 
-       // jsonChainPost = null;
+  //      // jsonChainPost = null;
 
-        // if (existPost == null && file.type != 'folder'){
-        //   console.log('체인에 없어서 다시 보냄');
-        //   const pipe = new BytesPipe();
-        //   const size = pipe.transform(this.filesToSend[item.index].file.size);
-        //   this.notification.next({
-        //     cmd: 'SENDING.STARTED',
-        //     message: '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[item.index].file.filename + ' 업로딩...' + size 
-        //   });
-        //   console.log('chain, 보냄, upload.filetree, SENDFILE ');
-        //    console.log('chain, 보냄, code =  ', post.formData.code);
-        //    console.log('chain, 보냄, code11 =  ', post.formData.code.replace(/\\/g, '/'));
-        //    //post.formData.chain = 'chain-create';
-        //    post.formData.chain = 'chain-create'; //이경우는 update록..
-        //   this.electronService.ipcRenderer.send('SENDFILE', post);
-        // }else
+  //       // if (existPost == null && file.type != 'folder'){
+  //       //   console.log('체인에 없어서 다시 보냄');
+  //       //   const pipe = new BytesPipe();
+  //       //   const size = pipe.transform(this.filesToSend[item.index].file.size);
+  //       //   this.notification.next({
+  //       //     cmd: 'SENDING.STARTED',
+  //       //     message: '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[item.index].file.filename + ' 업로딩...' + size 
+  //       //   });
+  //       //   console.log('chain, 보냄, upload.filetree, SENDFILE ');
+  //       //    console.log('chain, 보냄, code =  ', post.formData.code);
+  //       //    console.log('chain, 보냄, code11 =  ', post.formData.code.replace(/\\/g, '/'));
+  //       //    //post.formData.chain = 'chain-create';
+  //       //    post.formData.chain = 'chain-create'; //이경우는 update록..
+  //       //   this.electronService.ipcRenderer.send('SENDFILE', post);
+  //       // }else
         
-        {
-          //블록체인에도 있고 서버에도 있는 경우
-          //this.logger.debug('이미 업로드된 파일', code);
-          log.warn('이미 업로드된 파일', code);
-          const message = '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[item.index].file.filename + ' (' + (item.index + 1) + '/' + this.filesToSend.length + ')';
-          this.notification.next({
-            cmd: 'LOG',
-            message: message + ' : 이미 업로드된 파일입니다. ' // + response.posts[0].id
-          });
-          log.warn('다음 파일', item.index);
-          this.gotoNextFile(item.index);
-        }
-      }
+  //       {
+  //         //블록체인에도 있고 서버에도 있는 경우
+  //         //this.logger.debug('이미 업로드된 파일', code);
+  //         log.warn('이미 업로드된 파일', code);
+  //         const message = '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[item.index].file.filename + ' (' + (item.index + 1) + '/' + this.filesToSend.length + ')';
+  //         this.notification.next({
+  //           cmd: 'LOG',
+  //           message: message + ' : 이미 업로드된 파일입니다. ' // + response.posts[0].id
+  //         });
+  //         log.warn('다음 파일', item.index);
+  //         this.gotoNextFile(item.index);
+  //       }
+  //     }
 
 
-      console.log('11..filesToSend.length = ',this.filesToSend.length,'item.index = ',item.index);
-      //kimcy: 왜 다음파일을 보낼려고 하지?
-      // if (this.filesToSend.length - 1 > item.index) {
-      //   console.log('this.subject.next');
-      //   this.subject.next(this.filesToSend[item.index + 1]);
-      // } else {
-      //   this.gotoNextFile(item.index);
-      // }
+  //     console.log('11..filesToSend.length = ',this.filesToSend.length,'item.index = ',item.index);
+  //     //kimcy: 왜 다음파일을 보낼려고 하지?
+  //     // if (this.filesToSend.length - 1 > item.index) {
+  //     //   console.log('this.subject.next');
+  //     //   this.subject.next(this.filesToSend[item.index + 1]);
+  //     // } else {
+  //     //   this.gotoNextFile(item.index);
+  //     // }
 
-    }
+  //   }
 
-  }
+  // }
 
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    *  main entry
@@ -1488,94 +1774,114 @@ export class UploadFiletreeService {
 
     //console.log('22..폴더가 ', this.folders);
     console.log('this.folders[folderIndex].path = ',this.folders[folderIndex].path);
-    if (this.folders[folderIndex].path === undefined) {
-      this.uploading = false;
-      if (this.electronService.isElectronApp) {
-        //kimcy: 지정되지 않음이 계속나와 this.folderIndex를 +1시킴 -> 다음폴더이동, 했더니 문제가 있어서 원복
-        if(this.member == null){
-          this.member = this.memberAPI.isLoggedin();
-        }
-        console.log('cc.. 맴버 = ',this.member);
-        if(this.member.private){
-          console.log('private. folderIndex = ',folderIndex);
-          if(folderIndex > 0){
-            this.notification.next({
-              cmd: 'FOLDER.SENT',
-              folderIndex:  folderIndex //this.folderIndex
-            });
-          }else{
-            this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
-            this.notification.next({
-              cmd: 'FOLDER.SENT',
-              folderIndex:  folderIndex //this.folderIndex
-            });
-          }
+    // if (this.folders[folderIndex].path === undefined) {
+    //   this.uploading = false;
+    //   if (this.electronService.isElectronApp) {
+    //     //kimcy: 지정되지 않음이 계속나와 this.folderIndex를 +1시킴 -> 다음폴더이동, 했더니 문제가 있어서 원복
+    //     if(this.member == null){
+    //       this.member = this.memberAPI.isLoggedin();
+    //     }
+    //     console.log('cc.. 맴버 = ',this.member);
+    //     if(this.member.private){
+    //       console.log('private. folderIndex = ',folderIndex);
+    //       if(folderIndex > 0){
+    //         this.notification.next({
+    //           cmd: 'FOLDER.SENT',
+    //           folderIndex:  folderIndex //this.folderIndex
+    //         });
+    //       }else{
+    //         this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
+    //         this.notification.next({
+    //           cmd: 'FOLDER.SENT',
+    //           folderIndex:  folderIndex //this.folderIndex
+    //         });
+    //       }
           
-        }else{
-          console.log('public, folderIndex = ',folderIndex);
-          if( /*folderIndex >=  1*/folderIndex ==  2){
-            this.notification.next({
-              cmd: 'FOLDER.SENT',
-              folderIndex: folderIndex //this.folderIndex
-            });
-          }else{
-            console.log('폴더 지정,,folderIndex = ',folderIndex, );
-            this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
-            this.notification.next({
-              cmd: 'FOLDER.SENT',
-              folderIndex:  folderIndex //this.folderIndex
-            });
-          }
-        }
-      }
-    } else{
-      console.log('99.. 맴버 = ',this.member);
-      if(this.member == null){ //로그아웃후 로그인
-         this.member = this.memberAPI.isLoggedin();
-      }
-      console.log('00.. 맴버 = ',this.member);
-      this.postAPI.getNewToken(M5MemberService.login, this.member).subscribe(
-        response => {
-          this.member.token = response;
-          console.log('77.. 맴버 = ',this.member);
-          this.storageService.set('member',this.member);
-          console.log("신규토큰 ,,member :",this.storageService.get('member'));
+    //     }else{
+    //       console.log('public, folderIndex = ',folderIndex);
+    //       if( /*folderIndex >=  1*/folderIndex ==  2){
+    //         this.notification.next({
+    //           cmd: 'FOLDER.SENT',
+    //           folderIndex: folderIndex //this.folderIndex
+    //         });
+    //       }else{
+    //         console.log('폴더 지정,,folderIndex = ',folderIndex, );
+    //         this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
+    //         this.notification.next({
+    //           cmd: 'FOLDER.SENT',
+    //           folderIndex:  folderIndex //this.folderIndex
+    //         });
+    //       }
+    //     }
+    //   }
+    // } else
+    
+    // {
+    //   console.log('99.. 맴버 = ',this.member);
+    //   if(this.member == null){ //로그아웃후 로그인
+    //      this.member = this.memberAPI.isLoggedin();
+    //   }
+    //   log.info('00.. 호출 토큰얻기 ');
+    //   this.postAPI.getNewToken(M5MemberService.login, this.member).subscribe(
+    //     response => {
+    //       this.member.token = response;
+    //       console.log('77.. 맴버 = ',this.member);
+    //       this.storageService.set('member',this.member);
+    //       console.log("신규토큰 ,,member :",this.storageService.get('member'));
   
-          this.getContainerList(this.storageService, (result)=>{
-            if(result == true){
-              this.initUpLoad(folderIndex, fullpath)
-            }else{
-              console.log('목록을 가져오지 못했음'); //이 경우 다시 처음부터 올려야 하나? 그럴경우 블록체인에서 에러 나옴..
-              this.notification.next({cmd: 'LOG', message: 'KT서버 응답을 받지 못했습니다. 다시 로그인하세요'});
-            }
-          });
+    //       this.getContainerList(this.storageService, (result)=>{
+    //         if(result == true){
+    //           log.info("업로드 초기화 ");
+    //           this.initUpLoad(folderIndex, fullpath)
+    //         }else{
+    //           console.log('목록을 가져오지 못했음'); //이 경우 다시 처음부터 올려야 하나? 그럴경우 블록체인에서 에러 나옴..
+    //           this.notification.next({cmd: 'LOG', message: 'KT서버 응답을 받지 못했습니다. 다시 로그인하세요'});
+    //         }
+    //       });
   
-        },
-        error => {
-          console.log('업로딩 시작, 토큰갱신 못함');
-          this.notification.next({cmd: 'LOG', message: 'KT서버 응답을 받지 못했습니다. 다시 로그인하세요'});
-        }
-      );
-    }
+    //     },
+    //     error => {
+    //       console.log('업로딩 시작, 토큰갱신 못함');
+    //       this.notification.next({cmd: 'LOG', message: 'KT서버 응답을 받지 못했습니다. 다시 로그인하세요'});
+    //     }
+    //   );
+    // }
+
+    
+      this.uploading = true;
+      this.folderIndex = folderIndex;
+      this.folders[folderIndex].path = fullpath;
+      if (this.electronService.isElectronApp) { //앱이 실행중이라면..
+        console.log('11..upload ->앱이실행중이라 업로드');
+        this.notification.next({cmd: 'LOG', message: this.folders[folderIndex].path + ' 업로드를 시작합니다.'});
+        log.info('보냄, GETFOLDERTREE, upload-filetree');
+        //path: this.folders[folderIndex].path 설정안됨
+        console.log('선택된 폴더 = ', this.folders[folderIndex]);
+        this.electronService.ipcRenderer.send('GETFOLDERTREE', {
+          folderIndex: folderIndex,
+          path: this.folders[folderIndex].path,
+          username: this.member.username
+        });
+      }
 
   }
 
-  initUpLoad(folderIndex,fullpath){
-    this.uploading = true;
-    this.folderIndex = folderIndex;
-    this.folders[folderIndex].path = fullpath;
-    if (this.electronService.isElectronApp) { //앱이 실행중이라면..
-      console.log('11..upload ->앱이실행중이라 업로드');
-      this.notification.next({cmd: 'LOG', message: this.folders[folderIndex].path + ' 업로드를 시작합니다.'});
-      console.log('보냄, GETFOLDERTREE, upload-filetree');
-      //path: this.folders[folderIndex].path 설정안됨
-      console.log('선택된 폴더 = ', this.folders[folderIndex]);
-      this.electronService.ipcRenderer.send('GETFOLDERTREE', {
-        folderIndex: folderIndex,
-        path: this.folders[folderIndex].path
-      });
-    }
-  }
+  // initUpLoad(folderIndex,fullpath){
+  //   this.uploading = true;
+  //   this.folderIndex = folderIndex;
+  //   this.folders[folderIndex].path = fullpath;
+  //   if (this.electronService.isElectronApp) { //앱이 실행중이라면..
+  //     console.log('11..upload ->앱이실행중이라 업로드');
+  //     this.notification.next({cmd: 'LOG', message: this.folders[folderIndex].path + ' 업로드를 시작합니다.'});
+  //     log.info('보냄, GETFOLDERTREE, upload-filetree');
+  //     //path: this.folders[folderIndex].path 설정안됨
+  //     console.log('선택된 폴더 = ', this.folders[folderIndex]);
+  //     this.electronService.ipcRenderer.send('GETFOLDERTREE', {
+  //       folderIndex: folderIndex,
+  //       path: this.folders[folderIndex].path
+  //     });
+  //   }
+  // }
 
   getFolderPath(folderIndex) {
     return this.folders[folderIndex].path;

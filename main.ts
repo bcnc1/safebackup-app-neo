@@ -42,7 +42,7 @@ var knex = require('knex')({
 });
 var member;
 const env = environment;
-
+const  async = require("async");
 //StorageService.get()
 //console.log('knex = ',knex);
 
@@ -346,17 +346,13 @@ if (!gotTheLock) {
 
  }
 
- function createTable(index, window, callback){
+ function createTable(tableName, window, callback){
    console.log('createTable');
-   localStorage.getItem('member').then((value) => {
-      member = JSON.parse(value);
-      console.log('createTable, member = ',member);
-      var user = member.username;
-      var tableName = user+':'+index;
 
       //timezone 챀고
       //https://stackoverflow.com/questions/46152833/timestamp-fields-in-knex-js-migrations
       knex.schema.hasTable(tableName).then(function(exists) {
+        log.info('createTable, exists = ',exists);
         if (!exists) {
           knex.schema.createTable(tableName, function(t) {
             t.increments('id').primary();
@@ -365,24 +361,25 @@ if (!gotTheLock) {
             t.integer('filesize');
             t.time('fileupdate',{useTz: true}); //2019-07-25T07:02:31.587Z 저장이되어야 하느데
             t.integer('uploadstatus'); //0: 초기값(업로드해야), 1: 업로드완료 2:업데이트(아직업로드안됨, 업로드되면 1)
-            t.string('chain');
-            t.integer('chainstatus'); //0: 초기값(업로드해야), 1: 완료 2:실패
+           // t.string('chain');
+            t.integer('chainstatus'); //0: 초기값(업로드해야), 10000: 완료 나머지는 문서참고:https://docs.google.com/document/d/1wQLVJuTEIoAh5Jfno4N1ntXUFX-pa1YsJOQMKvQVuXg/edit#
           }).then(()=>{
+            log.info('11..callback true');
             callback(true);
           }).catch(()=>{
             callback(false);
           });
         }else{
-          return true;
+          log.info('22..callback true');
+          callback(true);
         }
       });
-   });
 
  }
 
  function addFileFromDir(arg, window, callback){
-  console.log('folderIndex = ', arg);
-  var tableName = member.username+':'+arg.folderIndex;
+  console.log('addFileFromDir => folderIndex = ', arg);
+  var tableName = arg.username+':'+arg.folderIndex;
   const watcher = chokidar.watch(arg.path, {
     ignored: /(^|[\/\\])\../, // ignore dotfiles
     persistent: true
@@ -391,7 +388,7 @@ if (!gotTheLock) {
   var result = [];
   watcher
     .on('add', function(path, stats){
-
+      log.info('add path = ',path, 'stats = ',stats);
       result.push({
         fullpath: path,
         size: stats.size,
@@ -404,21 +401,21 @@ if (!gotTheLock) {
     .on('ready', function() 
     { 
       log.info('Initial scan complete. Ready for changes.');
-      console.log('result = ', result);
+      log.info('result = ', result);
   
       async.eachSeries(result, function(item, next) {
-        console.log('item = ', item);
+        log.info('tableName = ', tableName);
+        log.info('item = ', item);
         knex(tableName)
         .where('filename', item.fullpath)
         .then((results)=>{
           if(results.length == 0 ){
-            console.log('22..일치하는 값 없음 = results = ', results);
+            log.info('22..일치하는 값 없음 = results = ', results);
             knex(tableName)
             .insert({filename: item.fullpath, filesize : item.size, 
-              fileupdate: item.updated, uploadstatus: 0, 
-              chain: "create", chainstatus: 0})
+              fileupdate: item.updated, uploadstatus: 0, chainstatus: 0})
             .then(()=>{
-             //console.log('일차하는 값 없어서 insert');
+             //log.info('일차하는 값 없어서 insert');
              next();
             });
           }else{
@@ -431,15 +428,15 @@ if (!gotTheLock) {
                var id = results[0]['id'];
                var fsize = results[0]['filesize'];
                var fupdate = results[0]['fileupdate']; //utc값으로 기록안되어 추후구현
-               console.log('fsize 타입 = ',typeof fsize);
-               console.log('item.size 타입 = ',typeof item.size);
+              //  console.log('fsize 타입 = ',typeof fsize);
+              //  console.log('item.size 타입 = ',typeof item.size);
                //log.info('id = ',id,  'fsize = ',fsize, 'fupdate = ',fupdate);
                //log.info('item.size = ',item.size,  'item.update = ',item.updated);
                if(fsize != item.size /*|| fupdate != item.updated*/){
                   knex(tableName)
                   .where({id: id})
                   .update({filesize: item.size, fileupdate: item.update
-                    , uploadstatus: 2, chain: "update", chainstatus: 0})
+                    , uploadstatus: 2, /*chain: "update",*/ chainstatus: 0})
                   .then((result)=> {
                     log.info('업데이트, result = ',result);
                     next();
@@ -564,8 +561,7 @@ if (!gotTheLock) {
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
  ipcMain.on("REQ-UPDATETREE", (event, arg) => {
   console.log('받음, REQ-UPDATETREE, main folderIndex = ',arg.folderIndex);
-  var tableName = member.username+':'+arg.folderIndex;
- // var mainWindow = mainWindow;
+  var tableName = arg.username+':'+arg.folderIndex;
 
     knex(tableName).where({
       uploadstatus: 2
@@ -583,15 +579,14 @@ if (!gotTheLock) {
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
  ipcMain.on("REQ-UPLOADTREE", (event, arg) => {
   console.log('받음, REQ-UPLOADTREE, main folderIndex = ',arg.folderIndex);
-  var tableName = member.username+':'+arg.folderIndex;
- // var mainWindow = mainWindow;
+  var tableName = arg.username+':'+arg.folderIndex;
 
     knex(tableName).where({
       uploadstatus: 0
     }).then((results)=>{
-      log.info(' 조회 결과  = ', results);
+      log.info(' UPLOADTREE, 조회 결과  = ', results);
       if(mainWindow && !mainWindow.isDestroyed()){
-        //log.info('보냄 CHAINTREE, main ', results);
+        log.info('보냄 UPLOADTREE, main ', results);
         mainWindow.webContents.send("UPLOADTREE", {tree:results});
       }
     })
@@ -603,11 +598,12 @@ if (!gotTheLock) {
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
  ipcMain.on("REQ-CHAINTREE", (event, arg) => {
   console.log('받음, REQ-CHAINTREE, main folderIndex = ',arg.folderIndex);
-  var tableName = member.username+':'+arg.folderIndex;
- // var mainWindow = mainWindow;
+  var tableName = arg.username+':'+arg.folderIndex;
 
-    knex(tableName).where({
-      chainstatus: 2
+    knex(tableName)
+    .where({uploadstatus: 1})
+    .whereNot({
+      chainstatus: 10000
     }).then((results)=>{
       log.info('블록체인 조회 결과  = ', results);
       if(mainWindow && !mainWindow.isDestroyed()){
@@ -622,16 +618,16 @@ if (!gotTheLock) {
 
  ipcMain.on("GETFOLDERTREE", (event, arg) => {
   
-  console.log('받음, GETFOLDERTREE, main');
+  log.info('받음, GETFOLDERTREE, main');
   if (arg.path == null) {  //이게 없으면 watcher동작 안함
     console.log('arg.path == null');
     return;
   }
 
   addFileFromDir(arg, mainWindow, (result)=>{
-    console.log('폴더 트리 결과 = ',result);
+    log.info('폴더 트리 결과 = ',result);
     if(mainWindow && !mainWindow.isDestroyed()){
-      console.log('GETFOLDERTREE => 젆송 ');
+      log.info('GETFOLDERTREE => 젆송 ');
       mainWindow.webContents.send("GETFOLDERTREE", "Complete Scanning Folder");
     }
   });
@@ -646,77 +642,77 @@ if (!gotTheLock) {
  * https://stackoverflow.com/questions/56225403/how-to-insert-10-million-rows-into-mysql-database-with-knex-js
  * https://medium.com/@trustyoo86/async-await%EB%A5%BC-%EC%9D%B4%EC%9A%A9%ED%95%9C-%EB%B9%84%EB%8F%99%EA%B8%B0-loop-%EB%B3%91%EB%A0%AC%EB%A1%9C-%EC%88%9C%EC%B0%A8-%EC%B2%98%EB%A6%AC%ED%95%98%EA%B8%B0-315f31b72ccc
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
- var async = require("async");
 
-var diretoryTreeToObj = function (dir, foderindex, member, done) {   
-  console.log('main,  diretoryTreeToObj dir = ',dir, done);
-  var results = [];
 
-  fs.readdir(dir, function (err, list) {  //비동기 함수, dir: 주어진 디렉토리
-    if (err)
-      return done(err);
+// var diretoryTreeToObj = function (dir, foderindex, member, done) {   
+//   console.log('main,  diretoryTreeToObj dir = ',dir, done);
+//   var results = [];
 
-    var pending = list.length;
-     console.log('diretoryTreeToObj => list = ',list);
-     console.log('pending = ',pending);
+//   fs.readdir(dir, function (err, list) {  //비동기 함수, dir: 주어진 디렉토리
+//     if (err)
+//       return done(err);
 
-    //kimcy
-    if(dir.lastIndexOf('NPKI')!= -1){
-      console.log('NPKI폴더')
-      return done(null, {name: dir, type: 'folder', children: results});
-    }
+//     var pending = list.length;
+//      console.log('diretoryTreeToObj => list = ',list);
+//      console.log('pending = ',pending);
 
-    if (!pending){
-      console.log('33, pending = ', pending, 'dir = ',dir);
-      return done(null, {name: path.basename(dir), type: 'folder', children: results});
-    }
+//     //kimcy
+//     if(dir.lastIndexOf('NPKI')!= -1){
+//       console.log('NPKI폴더')
+//       return done(null, {name: dir, type: 'folder', children: results});
+//     }
+
+//     if (!pending){
+//       console.log('33, pending = ', pending, 'dir = ',dir);
+//       return done(null, {name: path.basename(dir), type: 'folder', children: results});
+//     }
       
     
    
-    async.each(list, function(file, next){
-      file = path.resolve(dir, file);
-      console.log('file = ',file);
-      fs.stat(file,  function (err, stat){
-        if (stat) {
-          if (stat.isDirectory()) {
-            diretoryTreeToObj(file, foderindex, member, function (err, res) { //res는 callback으로 넘겨받은 file array(result)
-              if (!--pending) {
-                console.log('11 done = ', results,'pending = ',pending);
-                done(null, results);
-              }
-            });
-          }else{
-            var tableName = member.username+':'+foderindex;
-            knex(tableName).where('filename', file).then((results)=>{
-              if(results.length == 0 ){
-                knex(tableName).insert({filename: file, 
-                  filesize : stat.size,
-                  fileupdate : stat.mtime,
-                  uploadstatus: 0,
-                  chain: "create",
-                  chainstatus: 0
-                }).then(()=>{
-                  console.log('일차하는 값 없어서 insert');
-                  //console.log('time = ', (new Date().getTime() - start));
-                  next();
-                });
-              }
-            });
-          }
-        }
-      });
-    }, function(err){
-      if( err ) {
-        // One of the iterations produced an error.
-        // All processing will now stop.
-        console.log('A file failed to process');
-      } else {
-        console.log('All files have been processed successfully');
-      }
-    });
+//     async.each(list, function(file, next){
+//       file = path.resolve(dir, file);
+//       console.log('file = ',file);
+//       fs.stat(file,  function (err, stat){
+//         if (stat) {
+//           if (stat.isDirectory()) {
+//             diretoryTreeToObj(file, foderindex, member, function (err, res) { //res는 callback으로 넘겨받은 file array(result)
+//               if (!--pending) {
+//                 console.log('11 done = ', results,'pending = ',pending);
+//                 done(null, results);
+//               }
+//             });
+//           }else{
+//             var tableName = member.username+':'+foderindex;
+//             knex(tableName).where('filename', file).then((results)=>{
+//               if(results.length == 0 ){
+//                 knex(tableName).insert({filename: file, 
+//                   filesize : stat.size,
+//                   fileupdate : stat.mtime,
+//                   uploadstatus: 0,
+//                  // chain: "create",
+//                   chainstatus: 0
+//                 }).then(()=>{
+//                   console.log('일차하는 값 없어서 insert');
+//                   //console.log('time = ', (new Date().getTime() - start));
+//                   next();
+//                 });
+//               }
+//             });
+//           }
+//         }
+//       });
+//     }, function(err){
+//       if( err ) {
+//         // One of the iterations produced an error.
+//         // All processing will now stop.
+//         console.log('A file failed to process');
+//       } else {
+//         console.log('All files have been processed successfully');
+//       }
+//     });
 
-  });
-};
+//   });
+// };
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  *  IPC : SEND-FILE
@@ -728,6 +724,54 @@ var diretoryTreeToObj = function (dir, foderindex, member, done) {
   } catch (e) {
     log.error('SEND-FILE',e);
   }
+
+    // let startTime = new Date().getTime();
+    // let tableName = arg.container+':'+arg.folderIndex;
+  
+    // function fileuploadCb(error, response, body) {
+    //   if (!error && response.statusCode == 201) {
+    //     console.log('업로드 성공');
+    //     console.log('tablename = ', tableName);
+    //     console.log('arg = ', arg);
+    //     knex(tableName)
+    //     .where({id: arg.fileid})
+    //     .update({uploadstatus: 1})
+    //     .then(()=>{
+    //       if(mainWindow && !mainWindow.isDestroyed()){
+    //         mainWindow.webContents.send(arg.uploadtype, {
+    //           error: null,
+    //           body: body,
+    //           index: arg.folderIndex,
+    //           startTime: startTime,
+    //           endTime: new Date().getTime(),
+    //         });
+    //       }
+    //     });
+    //   }else{
+    //     console.log('업로드 실패, 보냄');
+    //     if (mainWindow && !mainWindow.isDestroyed()){
+    //       mainWindow.webContents.send(arg.uploadtype, {error: error});
+    //     }
+    //   }
+    // }
+  
+    // var options = {  
+    //   method: 'PUT',
+    //   uri: env.STORAGE_URL+'/'+arg.container+'/'+ encodeURI(arg.filename), 
+    //   //uri: env.STORAGE_URL+'/'+arg.container+'/'+ encodeURIComponent(arg.filename), 
+    //   headers:{
+    //       'X-Auth-Token': arg.token,
+    //       'X-Object-Meta-ctime': startTime
+    //   }
+    // };
+  
+    // var upload = fs.createReadStream(arg.filepath,{highWaterMark : 256*1024});
+    //   var r = reqestProm(options, fileuploadCb);
+      
+    //   console.log('11..업로드 시작');
+    //   upload.pipe(r).catch(function(err){
+    //     log.error('업로드 에러 : ',err);
+    //   });
 });
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -738,7 +782,7 @@ var diretoryTreeToObj = function (dir, foderindex, member, done) {
   try {
     chainupload(arg);
   } catch (e) {
-    log.error('SEND-CHAINFILE',e);
+    log.error('에러, SEND-CHAINFILE',e);
   }
 });
 
@@ -820,33 +864,82 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   var directory = dialog.showOpenDialog(mainWindow, {
     properties: ['openDirectory']
   });
- 
+
+
+  var tableName = arg.username +':'+arg.folderIndex;
+
   if(mainWindow && !mainWindow.isDestroyed()){
     
+    var tableName = arg.username +':'+arg.folderIndex;
     //db생성
     //db table 생성
-    createTable(arg.folderIndex, mainWindow,(result) => {
-      console.log('보냄,main, SELECTFOLDER');
-      console.log('result = ',result);
+    createTable(tableName, mainWindow,(result) => {
+      log.info('보냄,main, SELECTFOLDER');
+
       if(result){
+        log.info('result = ',result);
         mainWindow.webContents.send("SELECTFOLDER", {
           error: null,
           folderIndex: arg.folderIndex,
           directory: directory
         });
       }else{
-        log.warn('데이터베이스 생성 실패');
+        log.error('데이터베이스 생성 실패');
       }
       
     });
-
-    // console.log('보냄,main, SELECTFOLDER');
-    // mainWindow.webContents.send("SELECTFOLDER", {
-    //   error: null,
-    //   folderIndex: arg.folderIndex,
-    //   directory: directory
-    // });
   }
+
+  // knex.schema.hasTable(tableName).then(function(exists) {
+  //   if (!exists) {
+  //     return knex.schema.createTable(tableName, function(t) {
+  //       t.increments('id').primary();
+  //       t.text('filename');
+  //       t.integer('filesize');
+  //       t.time('fileupdate',{useTz: true}); //2019-07-25T07:02:31.587Z 저장이되어야 하느데
+  //       t.integer('uploadstatus'); //0: 초기값(업로드해야), 1: 업로드완료 2:업데이트(아직업로드안됨, 업로드되면 1)
+  //       t.integer('chainstatus'); //0: 초기값(업로드해야), 10000: 완료 나머지는 문서참고:https://docs.google.com/document/d/1wQLVJuTEIoAh5Jfno4N1ntXUFX-pa1YsJOQMKvQVuXg/edit#
+  //     });
+  //   }
+  // });
+  
+  // setTimeout(() => {
+  //   if(mainWindow && !mainWindow.isDestroyed()){
+  //     mainWindow.webContents.send("SELECTFOLDER", {
+  //       error: null,
+  //       folderIndex: arg.folderIndex,
+  //       directory: directory
+  //     });
+  //   }
+  // },1000);
+
+  
+  // if(mainWindow && !mainWindow.isDestroyed()){
+  //   knex.schema.hasTable(tableName).then(function(exists) {
+  //     if (!exists) {
+  //        knex.schema.createTable(tableName, function(t) {
+  //         t.increments('id').primary();
+  //         t.text('filename');
+  //         t.integer('filesize');
+  //         t.time('fileupdate',{useTz: true}); //2019-07-25T07:02:31.587Z 저장이되어야 하느데
+  //         t.integer('uploadstatus'); //0: 초기값(업로드해야), 1: 업로드완료 2:업데이트(아직업로드안됨, 업로드되면 1)
+  //         t.integer('chainstatus'); //0: 초기값(업로드해야), 10000: 완료 나머지는 문서참고:https://docs.google.com/document/d/1wQLVJuTEIoAh5Jfno4N1ntXUFX-pa1YsJOQMKvQVuXg/edit#
+  //       }).then(()=>{
+  //         mainWindow.webContents.send("SELECTFOLDER", {
+  //           error: null,
+  //           folderIndex: arg.folderIndex,
+  //           directory: directory
+  //         });
+  //       });
+  //     }else{
+  //       mainWindow.webContents.send("SELECTFOLDER", {
+  //         error: null,
+  //         folderIndex: arg.folderIndex,
+  //         directory: directory
+  //       });
+  //     }
+  //   });
+  // }
 
 
 });
@@ -855,39 +948,94 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
  *  chain upload
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
  var chainupload = function (arg){
+   console.log('블록체인 기록을 위한 api');
+  let method, url;
+
+  if(arg.uploadtype == 'chain-create'){
+    console.log('chain-create');
+      method = 'POST';
+      url = env.CREATE;
+      //url = env.CREATE_DEV; //개발용
+  }else{
+    method = 'PUT';
+    url = env.UPDATE;
+    //url = env.UPDATE_DEV;
+  }
+  let tableName = arg.container+':'+arg.folderIndex;
 
   function chainuploadCb(error, response, body) {
+    // console.log('chain응답 = ',typeof body.code);
+    // console.log('chain응답 = ',body.key['code']);
+    console.log('chain응답 = ',body.key.code);
+    
+    //console.log('chain응답 = ',response);
     if (!error && response.statusCode == 200) {
-      console.log('chain응답 = ',body);
-
-      mainWindow.webContents.send("RES-CHAINFILE", {
-        error: null,
-        body: body,
-        index: arg.folderIndex,
-      });
+      log.info('체인코드 업데이트 성공');
+      // if(body.code == 10000){
+      //   //db에저장
+      //   knex(tableName)
+      //   .where({id: arg.fileid})
+      //   .update({chainstatus: 1})
+      //   .then(()=>{
+      //     mainWindow.webContents.send("RES-CHAINFILE", {
+      //       error: null,
+      //       body: body,
+      //       index: arg.folderIndex,
+      //     });
+      //   });
+      // }else{
+      //   knex(tableName)
+      //   .where({id: arg.fileid})
+      //   .update({chainstatus: body.code})
+      //   .then(()=>{
+      //     mainWindow.webContents.send("RES-CHAINFILE", {
+      //       error: null,
+      //       body: body,
+      //       index: arg.folderIndex,
+      //     });
+      //   });
+      // }
+      knex(tableName)
+        .where({id: arg.fileid})
+        .update({chainstatus: body.key.code})  //SuccessCode = 10000,
+        .then(()=>{
+          console.log('arg.uploadtype = ',arg.uploadtype);
+          mainWindow.webContents.send(arg.uploadtype, {
+            error: null,
+            body: body,
+            index: arg.folderIndex,
+          });
+        });
+      
     }else{
-      console.log('chain응답 실패 = ',body);
+       console.log('chain응답 실패 = ',error); //일반적인 서버에러
       if (mainWindow && !mainWindow.isDestroyed()){
-        mainWindow.webContents.send("RES-CHAINFILE", {error: error});
+        mainWindow.webContents.send(arg.uploadtype, {error: error});
       }
     }
   }
   
 
+  // console.log('arg.container = ',typeof arg.container);
+  // console.log('arg.filename = ',typeof arg.filename);
+  console.log('reqestProm 호출 method = ',method);
   var options = {  
-    method: 'POST',
-    uri: env.CREATE, 
+    method: method,
+    uri: url, 
     headers:{
         'Content-Type': 'application/json',
         'X-Auth-Token': arg.token
     },
-    body: {
+    body:{
       'id': arg.container , 
-      'file': arg.filename   //decodeURI(arg.filename)
-    }
+      'file': arg.filename   
+    },
+    json: true    //이거 꼭 필요함. 안그러면 body argument error발생
   };
 
-  reqestProm(options, chainuploadCb);
+
+  reqestProm(options, chainuploadCb)
+
  }
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  *  FILE을 KT 스토리지에 저장하고 db에 기록
@@ -904,25 +1052,25 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
     if (!error && response.statusCode == 201) {
       console.log('업로드 성공');
       console.log('tablename = ', tableName);
+      console.log('arg = ', arg);
       knex(tableName)
       .where({id: arg.fileid})
       .update({uploadstatus: 1})
       .then(()=>{
         if(mainWindow && !mainWindow.isDestroyed()){
-          mainWindow.webContents.send("RES-FILE", {
+          mainWindow.webContents.send(arg.uploadtype, {
             error: null,
             body: body,
             index: arg.folderIndex,
             startTime: startTime,
-            //uploadPath: encodeURI(arg.filename),
             endTime: new Date().getTime(),
           });
         }
       });
     }else{
-      console.log('업로드 실패, 보냄, main, RES-FILE  ');
+      console.log('업로드 실패, 보냄');
       if (mainWindow && !mainWindow.isDestroyed()){
-      mainWindow.webContents.send("RES-FILE", {error: error});
+        mainWindow.webContents.send(arg.uploadtype, {error: error});
       }
     }
   }
@@ -930,6 +1078,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   var options = {  
     method: 'PUT',
     uri: env.STORAGE_URL+'/'+arg.container+'/'+ encodeURI(arg.filename), 
+    //uri: env.STORAGE_URL+'/'+arg.container+'/'+ encodeURIComponent(arg.filename), 
     headers:{
         'X-Auth-Token': arg.token,
         'X-Object-Meta-ctime': startTime
