@@ -388,7 +388,7 @@ if (!gotTheLock) {
   var result = [];
   watcher
     .on('add', function(path, stats){
-      log.info('add path = ',path, 'stats = ',stats);
+      //log.info('add path = ',path, 'stats = ',stats);
       result.push({
         fullpath: path,
         size: stats.size,
@@ -540,18 +540,18 @@ if (!gotTheLock) {
 
   filename = toDay+'-'+username+'-'+'NPKI';
 
-  console.log('filename = ',filename);
+  log.info('filename = ',filename);
 
   var filepath = selectedPath + '/' + filename + '.zip';
 
-  console.log('filepath = ',filepath);
+  log.info('filepath = ',filepath);
   try{
     var files = fs.readdirSync(selectedPath);
     for(var i in files) {
 
       if(files[i].toLowerCase().lastIndexOf('.zip') > 0){
         fs.unlinkSync(selectedPath +'/'+files[i]);
-        console.log('zip파일 삭제');
+        log.info('zip파일 삭제');
       }else{
         //console.log('zip파일 아님');
       }
@@ -563,7 +563,7 @@ if (!gotTheLock) {
   
   try{
     zipper.sync.zip(selectedPath).compress().save(filepath);
-    console.log('zip파일 성공');
+    log.info('zip파일 성공');
   } catch(err){
     log.error('zip파일 압축 실패');
   }
@@ -645,8 +645,10 @@ if (!gotTheLock) {
     return;
   }
 
+  log.info('선택한 폴더는 = ', arg.path);
   //zip파일 생성
-  if(arg.path.toLowerCase().lastIndexOf('mpki') > 0){
+  if(arg.path.toLowerCase().lastIndexOf('npki') > 0){
+    log.info('zip파일생성');
     createNPKIzip(arg.path, arg.username);
   }
 

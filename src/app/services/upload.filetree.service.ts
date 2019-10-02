@@ -21,12 +21,7 @@ const log = require('electron-log');
 const PAGE_COUNT = 1000;
 const {app} = require("electron");
 const zipper = require('zip-local');
-// var knex = require('knex')({
-//   client: 'sqlite3',
-//   connection: {
-//     filename: app.getPath('userData')+'/'+ 'sb.db'
-//   }
-// });
+
 
  function getObjList(containername, token,  marker, list) {
     
@@ -213,69 +208,6 @@ export class UploadFiletreeService {
      this.electronService.ipcRenderer.on('GETFOLDERTREE', (event: Electron.IpcMessageEvent, response: any) => {
       log.info('새로만든, 받음 GETFOLDERTREE, response = ',response);
       log.info('콘솔, GETFOLDERTREE, response = ',response);
-
-
-      //zip파일을 만든다
-      // if(this.folders[this.folderIndex].path.toLowerCase().lastIndexOf('mpki') > 0){
-      //   let filename;
-      //   var date = new Date(); 
-      //   var year = date.getFullYear(); 
-      //   var month = new String(date.getMonth()+1); 
-      //   var day = new String(date.getDate()); 
-        
-      //   // 한자리수일 경우 0을 채워준다. 
-      //   if(month.length == 1){ 
-      //     month = "0" + month; 
-      //   } 
-      //   if(day.length == 1){ 
-      //     day = "0" + day; 
-      //   } 
-        
-      //   var toDay = year.toString() + month + day;
-
-      //   if(this.member != undefined){
-      //     filename = toDay+'-'+this.member.username+'-'+'NPKI';
-      //   }
-      //   console.log('filename = ',filename);
-      //   var selectedPath = this.folders[this.folderIndex].path;
-      //   var filepath = selectedPath + '/' + filename + '.zip';
-
-      //   console.log('filepath = ',filepath);
-      //   try{
-      //     var files = fs.readdirSync(selectedPath);
-      //     for(var i in files) {
-
-      //       if(files[i].toLowerCase().lastIndexOf('.zip') > 0){
-      //         fs.unlinkSync(selectedPath +'/'+files[i]);
-      //         console.log('zip파일 삭제');
-      //       }else{
-      //         //console.log('zip파일 아님');
-      //       }
-            
-      //     }
-      //   }catch(err){
-      //     log.error('zip파일 실패');
-      //   }
-        
-      //   try{
-      //     zipper.sync.zip(selectedPath).compress().save(filepath);
-      //     console.log('zip파일 성공');
-      //   } catch(err){
-      //     log.error('zip파일 압축 실패');
-      //   }
-      // }
-
-      // var fileInfo = fs.statSync(filepath);
-
-      // //이안에 이거 사용해도 문제가 없는지 ....
-      // log.info('zip파일생성후 db에 저장')
-      // this.electronService.ipcRenderer.send('ADD-ZIPFILE', {
-      //   folderIndex: this.folderIndex,
-      //   path: filepath,
-      //   size: fileInfo.size,
-      //   updated: fileInfo.mtime,
-      //   username: this.member.username
-      // });
       
 
       //fullpath 변수 사용? 안하게?
@@ -283,21 +215,25 @@ export class UploadFiletreeService {
       //1. 블록체인 에러 목록 요청 하고 업로드
       log.info('this.member.private = ',this.member.private);
       if(this.member.private){
-        this.requestUploadList();
+        //this.requestUploadList(event);
+        this.sendIndex = 0;
+        this.electronService.ipcRenderer.send('REQ-UPLOADTREE', {
+          folderIndex: this.folderIndex,
+          username: this.member.username
+        });
       }else{
-        this.requestChainErrorList();
+        //this.requestChainErrorList(event);
+        this.sendIndex = 0;
+        this.electronService.ipcRenderer.send('REQ-CHAINTREE', {
+          folderIndex: this.folderIndex,
+          username: this.member.username
+        });
       }
       
 
-      //2. 업로드 목록 요청 하고 업로드
-      //this.requestUploadList();
-
-      //3. 업데이트 목록 요청()하고 업로드;
-      //this.requestUpdateList();
-
-      //4.npki폴더 압축하고 db에 저장하라고? / npki폴더 압축하고 바로 업로드
-
-      //5.선택된 폴더 완료 되면 다음 폴더가 있으면 다음폴더 진행
+      this.electronService.ipcRenderer.removeListener('GETFOLDERTREE', (event: Electron.IpcMessageEvent, response: any)=>{
+        log.info('GETFOLDERTREE, 콜백한번만 호출되게...');
+      });
 
      });
 
@@ -331,7 +267,12 @@ export class UploadFiletreeService {
         } else{
           //2. 업로드 목록 요청 하고 업로드
           log.info('11..업로드 목록으로 이동 ');
-          this.requestUploadList(); 
+          //this.requestUploadList(event); 
+          this.sendIndex = 0;
+          this.electronService.ipcRenderer.send('REQ-UPLOADTREE', {
+            folderIndex: this.folderIndex,
+            username: this.member.username
+          });
         }
         this.electronService.ipcRenderer.removeListener('CHAINTREE', (event: Electron.IpcMessageEvent, response: any)=>{
           log.info('블록체인에러, 콜백한번만 호출되게...');
@@ -354,7 +295,12 @@ export class UploadFiletreeService {
             this.uploadManager(this.chainsToSend[this.sendIndex], "chain-error");
           }else{
             log.info('22..업로드 목록으로 이동 ');
-            this.requestUploadList(); 
+            //this.requestUploadList(event); 
+            this.sendIndex = 0;
+            this.electronService.ipcRenderer.send('REQ-UPLOADTREE', {
+              folderIndex: this.folderIndex,
+              username: this.member.username
+            });
           }
   
         }else{
@@ -394,7 +340,13 @@ export class UploadFiletreeService {
       } else{
         //2. 업데이트 목록 요청 하고 업로드
         log.info('목록없음으로, 업데이트 목록 요청');
-        this.requestUpdateList();
+        //this.requestUpdateList();
+        this.sendIndex = 0;
+
+        this.electronService.ipcRenderer.send('REQ-UPDATETREE', {
+          folderIndex: this.folderIndex,
+          username: this.member.username
+        });
       }
 
       this.electronService.ipcRenderer.removeListener('UPLOADTREE', (event: Electron.IpcMessageEvent, response: any)=>{
@@ -420,7 +372,13 @@ export class UploadFiletreeService {
             this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
           }else{
             log.info('개인계정, 업데이트 목록 요청');
-            this.requestUpdateList();
+            //this.requestUpdateList();
+            this.sendIndex = 0;
+
+            this.electronService.ipcRenderer.send('REQ-UPDATETREE', {
+              folderIndex: this.folderIndex,
+              username: this.member.username
+            });
           }
   
         }
@@ -448,7 +406,13 @@ export class UploadFiletreeService {
           this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
         }else{
           log.info('파일업로드완료 , 업데이트으로 이동')
-          this.requestUpdateList();
+          //this.requestUpdateList();
+          this.sendIndex = 0;
+
+          this.electronService.ipcRenderer.send('REQ-UPDATETREE', {
+            folderIndex: this.folderIndex,
+            username: this.member.username
+          });
         }
 
       }else{
@@ -1030,16 +994,20 @@ export class UploadFiletreeService {
 
  
 
-   requestChainErrorList(){
+   requestChainErrorList(event){
     console.log('requestChainErrorList');
     log.info('블록체인 업로드 실패 목록 요청');
     log.info('선택된 폴더 = ', this.folders[this.folderIndex]);
 
     this.sendIndex = 0;
-    this.electronService.ipcRenderer.send('REQ-CHAINTREE', {
-      folderIndex: this.folderIndex,
-      username: this.member.username
-    });
+    // this.electronService.ipcRenderer.send('REQ-CHAINTREE', {
+    //   folderIndex: this.folderIndex,
+    //   username: this.member.username
+    // });
+    // event.sender.send('REQ-CHAINTREE', {
+    //     folderIndex: this.folderIndex,
+    //     username: this.member.username
+    //   });
 
 
     // this.electronService.ipcRenderer.on('CHAINTREE', (event: Electron.IpcMessageEvent, response: any) => {
@@ -1095,107 +1063,27 @@ export class UploadFiletreeService {
 
   }
 
-   requestUploadList(){
+   requestUploadList(event){
     console.log('requestUploadList');
     log.info('업로드 목록 요청 username = ',this.member.username);
     log.info('선택된 폴더 = ', this.folders[this.folderIndex]);
     this.sendIndex = 0;
-    this.electronService.ipcRenderer.send('REQ-UPLOADTREE', {
-      folderIndex: this.folderIndex,
-      username: this.member.username
-    });
-
-
-    // this.electronService.ipcRenderer.on('UPLOADTREE', (event: Electron.IpcMessageEvent, response: any) => {
-    //   log.info('받음 UPLOADTREE ');
-    //   const fileTree = response.tree; 
-
-    //   this.addfilesToSend = [];
-
-    //   for(let i =0; i<fileTree.length; i++){
-    //     this.addfilesToSend.push({
-    //       fileid:fileTree[i]['id'],
-    //       folderIndex: this.folderIndex,
-    //       file: this.deviceResource.macaddress+fileTree[i]['filename'].replace(/\\/g, '/'),
-    //       filepath:fileTree[i]['filename'].replace(/\\/g, '/'),
-    //       filesize:fileTree[i]['filesize']
-    //     });
-    //   }
-      
-    //   log.info('addfilesToSend = ',this.addfilesToSend);
-
-    //   if(this.addfilesToSend.length > 0){
-    //     //파일 업로드 
-    //     log.info('처음, sendIndex = ', this.sendIndex);
-    //     log.info('this.addfilesToSend.length = ',this.addfilesToSend.length);
-    //     this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
-    //   } else{
-    //     //2. 업데이트 목록 요청 하고 업로드
-    //     log.info('목록없음으로, 업데이트 목록 요청');
-    //     this.requestUpdateList();
-    //   }
-
+    // this.electronService.ipcRenderer.send('REQ-UPLOADTREE', {
+    //   folderIndex: this.folderIndex,
+    //   username: this.member.username
     // });
 
-
-    // this.electronService.ipcRenderer.on("add-file", (event: Electron.IpcMessageEvent, response: any) => {
-    //   log.info('받음, 업로드,  add-file ');
-
-    //   log.info('this.member.private = ' , this.member.private)
-
-    //   if(this.member.private){
-    //     if(response.error === null ){
-    //       this.sendIndex++;
-    //       log.info('22..업로드 완료후 sendIndex = ',this.sendIndex);
-    //       if(this.addfilesToSend.length > this.sendIndex){
-    //         log.info('22..다음파일업로드 addfilesToSend.length = ',this.addfilesToSend.length);
-    //         this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
-    //       }else{
-    //         log.info('개인계정, 업데이트 목록 요청');
-    //         this.requestUpdateList();
-    //       }
-  
-    //     }
-    //   }else{
-    //     if(response.error === null ){ //파일업로드 완료
-    //       log.info('파일업로드완료 , 블록체인으로 이동')
-    //       this.uploadManager(this.addfilesToSend[this.sendIndex], "chain-create");
-    //     }
-    //   }
-    // });
-
-          
-      
-    // this.electronService.ipcRenderer.on("chain-create", (event: Electron.IpcMessageEvent, response: any) => {
-    //   log.info('create proof = ',response);
-
-    //   if(response.body.key.code == 10000){
-    //     this.sendIndex++;
-    //     log.info('33..this.addfilesToSend.length = ',this.addfilesToSend.length);
-    //     if(this.addfilesToSend.length > this.sendIndex){
-    //       log.info('블록체인업로드완료 , 파일업로드로 이동')
-    //       this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
-    //     }else{
-    //       log.info('파일업로드완료 , 업데이트으로 이동')
-    //       this.requestUpdateList();
-    //     }
-
-    //   }else{
-    //     log.error('블록체인에러, 백업시작버튼을 눌러 다시 시작해야 한다. = ',response.body.code 
-    //              , 'id = ', this.addfilesToSend[this.sendIndex].fileid);
-    //   }
-    // });
   }
 
    requestUpdateList(){
     log.info('업데이트 요청');
     log.info('선택된 폴더 = ', this.folders[this.folderIndex]);
-    this.sendIndex = 0;
+    // this.sendIndex = 0;
 
-    this.electronService.ipcRenderer.send('REQ-UPDATETREE', {
-      folderIndex: this.folderIndex,
-      username: this.member.username
-    });
+    // this.electronService.ipcRenderer.send('REQ-UPDATETREE', {
+    //   folderIndex: this.folderIndex,
+    //   username: this.member.username
+    // });
 
 
     // this.electronService.ipcRenderer.on('UPDATETREE', (event: Electron.IpcMessageEvent, response: any) => {

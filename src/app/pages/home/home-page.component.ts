@@ -22,7 +22,11 @@ const log = require('electron-log');
 
 
 export class HomePageComponent implements OnInit, OnDestroy {
-  private MAXFOLDERLENGTH = 3;
+  
+  private PRIVATE_FLENGTH = 1;
+  private PUBLIC_FLENGTH =2;
+  private MAXFOLDERLENGTH = this.PRIVATE_FLENGTH + this.PUBLIC_FLENGTH;
+
   public version: string;
   private board;
   public member;
@@ -136,7 +140,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
       folderIndex: folderIndex,
       username: this.member.username
     });
-    this.storageService.set('login',false);
+    //this.storageService.set('login',false);
 
   }
 
@@ -263,8 +267,14 @@ export class HomePageComponent implements OnInit, OnDestroy {
   }
 
   fillFolders() {
-    console.log('home-page, fillFolders MAXFOLDERLENGTH = ', this.MAXFOLDERLENGTH);
-    for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
+    let folderlength;
+    if(this.memberPrivate){
+      folderlength = this.PRIVATE_FLENGTH;
+    }else{
+      folderlength = this.PUBLIC_FLENGTH;
+    }
+
+    for (let i = 0; i < folderlength; i++) {
       const folderKey = this.getFolderKey(i);
       this.storedFolders[i] = this.storageService.get(folderKey); //얻은키를 활용하여 선택된 폴더를 반환한다.
       if (this.selectedFolderIndex === i) {
@@ -289,21 +299,17 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.member = this.memberAPI.isLoggedin();
     this.memberPrivate = this.member.private;
 
-    this.memberPrivate ? this.MAXFOLDERLENGTH =1 : this.MAXFOLDERLENGTH =2;
-    console.log('home-page, ngOnInit this.MAXFOLDERLENGTH' ,this.MAXFOLDERLENGTH);
+    this.memberPrivate ? this.PRIVATE_FLENGTH  : this.PUBLIC_FLENGTH ;
+    //console.log('home-page, ngOnInit this.MAXFOLDERLENGTH' ,this.MAXFOLDERLENGTH);
 
-    console.log('11..맴버 = ', this.member.private);
+    //console.log('11..맴버 = ', this.member.private);
     function getRandomInt(min, max) {
      // console.log('home-page, getRandomInt');
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    
-
-
-    var div1 = window.document.getElementById('tab2');
-    //div1.
-   // console.log('div1 =',div1);
+    //var div1 = window.document.getElementById('tab2');
+ 
 
     /*---------------------------------------------------------------
            Subscribe to notification
@@ -338,27 +344,26 @@ export class HomePageComponent implements OnInit, OnDestroy {
          ----------------------------------------------------------------*/
         console.log('homepage -> 폴더전송완료');
         this.logger.debug(new Date(), message);
-        log.info('homepage => 전송완료된 폴더 folderIndex : ', message.folderIndex, 
-                     'MAXFOLDERLENGTH = ',this.MAXFOLDERLENGTH);
-       // this.memberPrivate ? this.MAXFOLDERLENGTH =1 : this.MAXFOLDERLENGTH =2;
-        if (this.MAXFOLDERLENGTH - 1 > message.folderIndex && this.memberPrivate == false) {
-          console.log('11..다음 폴더 +1해서 = ',message.folderIndex +1);
+        log.info('homepage => 전송완료된 폴더 folderIndex : ', message.folderIndex, );
+        
+        var maxfolder;
+        if(this.memberPrivate )
+        {
+          maxfolder = this.PRIVATE_FLENGTH;
+        }else{
+          maxfolder = this.PUBLIC_FLENGTH;
+        }
+
+        if(message.folderIndex < maxfolder){
+          log.info('다음폴더 업로드 !!');
           this.onStartUploadFolder(message.folderIndex + 1, 5);
-        } 
-        // else if(message.cmd === 'LIST.COMPLETE'){  //이거 지금 안 불림..
-        //   //kimcy token 갱신
-        //   if (this.electronService.isElectronApp){
-        //     this.member = this.memberAPI.isLoggedin();
-        //     if(this.member === undefined){
-        //       //로그인
-        //       this.router.navigateByUrl('/login');
-        //       return;
-        //     }else{
-        //       console.log('새로운 토큰 가져오기');
-        //       this.memberAPI.getLoginToken(this.member,this.storageService);
-        //     }
-        //   }
+        }
+       // this.memberPrivate ? this.MAXFOLDERLENGTH =1 : this.MAXFOLDERLENGTH =2;
+        // if (this.MAXFOLDERLENGTH - 1 > message.folderIndex && this.memberPrivate == false) {
+        //   console.log('11..다음 폴더 +1해서 = ',message.folderIndex +1);
+        //   this.onStartUploadFolder(message.folderIndex + 1, 5);
         // } 
+
         else {
           console.log('homepage -> 모두완료 다음시간설정');
           this.uploading = false;
@@ -383,61 +388,18 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
 
     /*---------------------------------------------------------------
-              Storage로부터 값을 받아와서  this.storedFolders를 초기화
+     * Storage로부터 값을 받아와서  this.storedFolders를 초기화
+
     ----------------------------------------------------------------*/
+    //this.fillFolders();
     //this.memberPrivate ? this.MAXFOLDERLENGTH =1 : this.MAXFOLDERLENGTH =2;
-    for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
-      //console.log('Storage로부터 값을 받아와서  this.storedFolders를 초기화');
-      const folderKey = this.getFolderKey(i);
-      this.storedFolders[i] = this.storageService.get(folderKey);
-    }
+    //필요없지 않나?
+    // for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
+    //   //console.log('Storage로부터 값을 받아와서  this.storedFolders를 초기화');
+    //   const folderKey = this.getFolderKey(i);
+    //   this.storedFolders[i] = this.storageService.get(folderKey);
+    // }
 
-    /*---------------------------------------------------------------
-           등록된 폴더에 대해 업로드를 실행  (현재는 모두 다시 올림)
-           로그아웃 후 로그인 하는 경우
-           맨처음 로그인하고 불림(1번만)
-     ----------------------------------------------------------------*/
-      //kimcy: 로그인한 직후에는 업로드목록을 갱신해야..
-      // if(this.storageService.get('login') == true){
-      //   this.uploadFiletreeService.getContainerList(this.storageService, function(result){
-      //     if(result == true){
-      //        console.log('로그인 후 업로드 시작 = ');
-      //       //this.MAXFOLDERLENGTH = 3
-      //       for (let i = 0; i < 3; i++) {
-      //         this.uploading = false;
-      //        // console.log('storedFolders = ',this.storedFolders[i]);
-      //         if (this.storedFolders[i] != undefined) {
-      //           console.log('등록된 폴더에 대해 업로드를 실행', this.storedFolders[i].length); //폴더의 이름 길이
-      //           this.uploadFiletreeService.upload(i, this.storedFolders[i]);
-      //           break;
-      //         }
-      //       }
-      //     }else{
-      //       console.log('목록을 가져오지 못했음'); //이 경우 다시 처음부터 올려야 하나? 그럴경우 블록체인에서 에러 나옴..
-      //       this.konsoleService.sendMessage('KT서버 응답을 받지 못했습니다. 다시 로그인하세요');
-      //     }
-      //   });
-      // }
-      
-
-
-
-    // setTimeout(() => {
-      
-    //  // console.log('10초후 등록된 폴더에 대해 업로드를 실행 ??');
-    //   if(this.storageService.get('login') == true){
-    //     for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
-    //       this.uploading = false;
-    //      // console.log('storedFolders = ',this.storedFolders[i]);
-    //       if (this.storedFolders[i] != undefined) {
-    //         log.info('등록된 폴더에 대해 업로드를 실행', this.storedFolders[i].length); //폴더의 이름 길이
-    //         this.uploadFiletreeService.upload(i, this.storedFolders[i]);
-    //         break;
-    //       }
-    //     }
-    //   }
-      
-    // }, 10000);  //폴더선택후 3초후에 업로드시작이기때문에 처음로그인해서는 5초보다는 길어야.. 10초후
 
     /*----------------------------------------------------
        *  IPC Response : Get FileTree
@@ -450,8 +412,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
     /*---------------------------------------------------------------
            LISTENER : SELECTFOLDER의 리스너
-           2번 선택되는 경우가 있음...이럴경우 db도 2번 불린다.
-           같은폴더 다른계정으로 ...할 경우 2번
      ----------------------------------------------------------------*/
 
     this.electronService.ipcRenderer.on('SELECTFOLDER', (event: Electron.IpcMessageEvent, response: any) => {
@@ -471,7 +431,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
         console.log('home-page, uploading?? ', this.uploading)
         if (this.uploading === false) {
           log.info('home-page, SELECTFOLDER ?? folderIndex = ', response.folderIndex)
-          this.storageService.set('login',false);
+          //this.storageService.set('login',false);
           this.onStartUploadFolder(response.folderIndex, 3);  //3초후에 업로드
         }
       }

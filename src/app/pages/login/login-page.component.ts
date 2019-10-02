@@ -88,24 +88,18 @@ export class LoginPageComponent implements OnInit {
 
       initializePromise.then(function(result) {
            var userToken = result[0];
-           console.log("userToken :",userToken);
+           //console.log("userToken :",userToken);
            member.token = userToken;
 
-           var userPrivate = result[1];
-           member.private = userPrivate;
-          console.log('22..계정 = ',member.private);
+          var userPrivate = result[1];
+          member.private = userPrivate;
+          //console.log('22..계정 = ',member.private);
           storage.set('member',member);
-          storage.set('login',true);
-          
-
-          console.log("로그인  ,,member :",storage.get('member'));
+          //storage.set('login',true);
           
           router.navigateByUrl('/home');
 
-          // this.notification.next({
-          //   cmd: 'LOGIN-SUCCESS',
-          //   message: '[' + (this.folderIndex + 1) + '] ' + this.filesToSend[item.index].file.filename + ' 업로딩...' + size 
-          // });
+
       }, function(err) {
           console.log(err);
           storage.remove(member);
@@ -120,12 +114,6 @@ export class LoginPageComponent implements OnInit {
   onLogin(username, password  , popup) {
     console.log('onLogin 22');
 
-    //현재는 무조건 로그인과정이 다시 필요 kimcy
-    // if (this.storageService.get('member') != null) {
-    //   console.log('login-oage, 그냥 홈으로..');
-    //   this.router.navigateByUrl('/home');
-    //   return;
-    // }
 
     //로그인하고 토큰 재활용은 추후에..kimcy
     const member = new Member();
@@ -168,7 +156,6 @@ export class LoginPageComponent implements OnInit {
       this.member = this.memberAPI.isLoggedin();
       let username, password;
 
-      console.log('aa 맴버 : ',this.member);
       if(this.member === undefined){
         console.log('처음실행 앱 안죽게');
         return;
@@ -190,15 +177,10 @@ export class LoginPageComponent implements OnInit {
         this.migrating = false;
         this.migrateFromV1 = true;
         this.username = username;
-        this.oldPaths[0] = localStorage.getItem('uploadPath[0]:' + username);
-        this.oldPaths[1] = localStorage.getItem('uploadPath[1]:' + username);
-
-       // this.storageService.remove('username');
-       //kimcy: 유저토큰을 가져온다
-       //this.onLoginB(username, password, false, this.storageService);
+        // this.oldPaths[0] = localStorage.getItem('uploadPath[0]:' + username);
+        // this.oldPaths[1] = localStorage.getItem('uploadPath[1]:' + username);
 
         this.onLogin(username, password, false);
-       // console.log("지우고..username :",username);
 
       } else {
         const member = this.storageService.get('member');
