@@ -110,6 +110,7 @@ export class UploadFiletreeService {
 
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    *  Constructor
+   올바른 폴더를 올리기 위해서...
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   fillFollders() {
     //console.log('fillFollders ');
@@ -439,7 +440,7 @@ export class UploadFiletreeService {
     this.electronService.ipcRenderer.on("chain-create", (event: Electron.IpcMessageEvent, response: any) => {
       log.info('create proof = ',response);
 
-      if(response.body.key.code == 10000){
+      if(response.error == null){
         this.sendIndex++;
         log.info('33..this.addfilesToSend.length = ',this.addfilesToSend.length);
         if(this.addfilesToSend.length > this.sendIndex){
@@ -529,7 +530,7 @@ export class UploadFiletreeService {
     this.electronService.ipcRenderer.on("chain-update", (event: Electron.IpcMessageEvent, response: any) => {
       log.info('받음 업데이트 chain-update ');
 
-      if(response.body.key.code == 10000){
+      if(response.error == null){
         this.sendIndex++;
         //console.log('11..업로드 완료후 sendIndex = ',this.sendIndex);
         if(this.changefilesToSend.length > this.sendIndex){
