@@ -407,7 +407,7 @@ if (!gotTheLock) {
       async.eachSeries(result, function(item, next) {
         log.info('tableName = ', tableName);
         //log.info('item = ', item);
-        if(item.fullpath.toLowerCase().lastIndexOf('npki')&& item.fullpath.lastIndexOf('.zip') < 0 ){  //npki 내부 파일들은 zip으로 압축해서 올려야 하기때문
+        if(item.fullpath.toLowerCase().lastIndexOf('npki') > 0 && item.fullpath.lastIndexOf('.zip') < 0 ){  //npki 내부 파일들은 zip으로 압축해서 올려야 하기때문
           knex(tableName)
           .insert({filename: item.fullpath, filesize : item.size, 
             fileupdate: item.updated, uploadstatus: 1, chainstatus: 1})
