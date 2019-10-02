@@ -20,7 +20,7 @@ const fs = require('fs');
 const log = require('electron-log');
 const PAGE_COUNT = 1000;
 const {app} = require("electron");
-
+const zipper = require('zip-local');
 // var knex = require('knex')({
 //   client: 'sqlite3',
 //   connection: {
@@ -204,10 +204,78 @@ export class UploadFiletreeService {
           2. 한폴더가 다 끝났으면 다음폴더
           3. 전달 받은 파일트리로 부터 목록구성
           4. 업로드 목록구성하고 해당폴더의 전체 사이즈 계산하야여 전달
+
+      1. 목록구성이 완료되었다는 메세지 받음
+      2. 선택된 폴더에 NPKI가 있는지 보고 있다면 zip파일을 만든다(이미만들어진 zip파일은 삭제)
+      3. 선택된 폴더의 정보 즉 dir 전체 사이즈를 알려준다.
      ----------------------------------------------------*/
      this.electronService.ipcRenderer.on('GETFOLDERTREE', (event: Electron.IpcMessageEvent, response: any) => {
       log.info('새로만든, 받음 GETFOLDERTREE, response = ',response);
       log.info('콘솔, GETFOLDERTREE, response = ',response);
+
+
+      //zip파일을 만든다
+      // if(this.folders[this.folderIndex].path.toLowerCase().lastIndexOf('mpki') > 0){
+      //   let filename;
+      //   var date = new Date(); 
+      //   var year = date.getFullYear(); 
+      //   var month = new String(date.getMonth()+1); 
+      //   var day = new String(date.getDate()); 
+        
+      //   // 한자리수일 경우 0을 채워준다. 
+      //   if(month.length == 1){ 
+      //     month = "0" + month; 
+      //   } 
+      //   if(day.length == 1){ 
+      //     day = "0" + day; 
+      //   } 
+        
+      //   var toDay = year.toString() + month + day;
+
+      //   if(this.member != undefined){
+      //     filename = toDay+'-'+this.member.username+'-'+'NPKI';
+      //   }
+      //   console.log('filename = ',filename);
+      //   var selectedPath = this.folders[this.folderIndex].path;
+      //   var filepath = selectedPath + '/' + filename + '.zip';
+
+      //   console.log('filepath = ',filepath);
+      //   try{
+      //     var files = fs.readdirSync(selectedPath);
+      //     for(var i in files) {
+
+      //       if(files[i].toLowerCase().lastIndexOf('.zip') > 0){
+      //         fs.unlinkSync(selectedPath +'/'+files[i]);
+      //         console.log('zip파일 삭제');
+      //       }else{
+      //         //console.log('zip파일 아님');
+      //       }
+            
+      //     }
+      //   }catch(err){
+      //     log.error('zip파일 실패');
+      //   }
+        
+      //   try{
+      //     zipper.sync.zip(selectedPath).compress().save(filepath);
+      //     console.log('zip파일 성공');
+      //   } catch(err){
+      //     log.error('zip파일 압축 실패');
+      //   }
+      // }
+
+      // var fileInfo = fs.statSync(filepath);
+
+      // //이안에 이거 사용해도 문제가 없는지 ....
+      // log.info('zip파일생성후 db에 저장')
+      // this.electronService.ipcRenderer.send('ADD-ZIPFILE', {
+      //   folderIndex: this.folderIndex,
+      //   path: filepath,
+      //   size: fileInfo.size,
+      //   updated: fileInfo.mtime,
+      //   username: this.member.username
+      // });
+      
 
       //fullpath 변수 사용? 안하게?
       //목록 구성이 끝난 폴더의 사이즈 요청
@@ -272,12 +340,12 @@ export class UploadFiletreeService {
   
       /*----------------------------------------------------
        *  IPC Response : Get chain-error
-       
+       *  send는 chainuploadCb 에서 보내준다.
       ----------------------------------------------------*/
       this.electronService.ipcRenderer.on('chain-error', (event: Electron.IpcMessageEvent, response: any) => {
         log.info('받음 chain-error ');
   
-        if(response.body.key.code == 10000 ){
+        if(response.error == null ){
           this.sendIndex++;
           log.info('11..업로드 완료후 sendIndex = ',this.sendIndex);
           log.info('11..this.chainsToSend.length = ',this.chainsToSend.length);

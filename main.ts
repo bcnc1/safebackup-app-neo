@@ -43,7 +43,7 @@ var knex = require('knex')({
 var member;
 const env = environment;
 const  async = require("async");
-//StorageService.get()
+const zipper = require('zip-local');
 //console.log('knex = ',knex);
 
 
@@ -512,6 +512,69 @@ if (!gotTheLock) {
 
  }
 
+ function createNPKIzip(selectedPath, username){
+  let filename;
+  var date = new Date(); 
+  var year = date.getFullYear(); 
+  var month = new String(date.getMonth()+1); 
+  var day = new String(date.getDate()); 
+  
+  // 한자리수일 경우 0을 채워준다. 
+  if(month.length == 1){ 
+    month = "0" + month; 
+  } 
+  if(day.length == 1){ 
+    day = "0" + day; 
+  } 
+  
+  var toDay = year.toString() + month + day;
+
+  if(month.length == 1){ 
+    month = "0" + month; 
+  } 
+  if(day.length == 1){ 
+    day = "0" + day; 
+  } 
+  
+  var toDay = year.toString() + month + day;
+
+  filename = toDay+'-'+username+'-'+'NPKI';
+
+  console.log('filename = ',filename);
+
+  var filepath = selectedPath + '/' + filename + '.zip';
+
+  console.log('filepath = ',filepath);
+  try{
+    var files = fs.readdirSync(selectedPath);
+    for(var i in files) {
+
+      if(files[i].toLowerCase().lastIndexOf('.zip') > 0){
+        fs.unlinkSync(selectedPath +'/'+files[i]);
+        console.log('zip파일 삭제');
+      }else{
+        //console.log('zip파일 아님');
+      }
+      
+    }
+  }catch(err){
+    log.error('zip파일 실패');
+  }
+  
+  try{
+    zipper.sync.zip(selectedPath).compress().save(filepath);
+    console.log('zip파일 성공');
+  } catch(err){
+    log.error('zip파일 압축 실패');
+  }
+ }
+ 
+ /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+ *  IPC : ADD-ZIPFILE
+ -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
+//  ipcMain.on("ADD-ZIPFILE", (event, arg) => {
+
+//  });
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  *  IPC : REQ-UPDATETREE
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
@@ -568,6 +631,8 @@ if (!gotTheLock) {
       }
     })
  });
+
+
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  *  IPC : GET FILES
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
@@ -578,6 +643,11 @@ if (!gotTheLock) {
   if (arg.path == null) {  //이게 없으면 watcher동작 안함
     console.log('arg.path == null');
     return;
+  }
+
+  //zip파일 생성
+  if(arg.path.toLowerCase().lastIndexOf('mpki') > 0){
+    createNPKIzip(arg.path, arg.username);
   }
 
   addFileFromDir(arg, mainWindow, (result)=>{
