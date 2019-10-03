@@ -963,7 +963,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
         .then(()=>{
           console.log('arg.uploadtype = ',arg.uploadtype);
           if (mainWindow && !mainWindow.isDestroyed()){
-            mainWindow.webContents.send(arg.uploadtype, {error: error});
+            mainWindow.webContents.send(arg.uploadtype, {error: "chain-error"});
           }
         });
 

@@ -95,7 +95,7 @@ export class LoginPageComponent implements OnInit {
           member.private = userPrivate;
           //console.log('22..계정 = ',member.private);
           storage.set('member',member);
-          //storage.set('login',true);
+          storage.set('login',true);
           
           router.navigateByUrl('/home');
 
@@ -136,9 +136,9 @@ export class LoginPageComponent implements OnInit {
     
   }
 
-  onSignup() {
-    this.router.navigateByUrl('/signup');
-  }
+  // onSignup() {
+  //   this.router.navigateByUrl('/signup');
+  // }
 
   ngOnInit(): void {
     

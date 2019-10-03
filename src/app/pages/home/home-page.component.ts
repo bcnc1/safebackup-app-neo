@@ -50,6 +50,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
   public uploading = false;
   private alertModal: BsModalRef;
   public memberPrivate = false;
+  private maxFolder;
 
   constructor(
     private memberAPI: M5MemberService,
@@ -70,7 +71,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.member = this.memberAPI.isLoggedin();
 
     const key = 'folder:' + this.member.username + ':' + folderIndex;
-    this.logger.debug('FOLDERKEY', key, 'username = ' + this.member.username);
+    //this.logger.debug('FOLDERKEY', key, 'username = ' + this.member.username);
     console.log('FOLDERKEY', key, 'username = ' + this.member.username)
     return key;
   }
@@ -89,6 +90,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
   // gotoRoot(){
   //   this.router.navigateByUrl('/');
   // }
+
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    *  탭 버튼을 누를경우 저장된 폴더의 패스를 구해와서 보여주기 위한 것임
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
@@ -100,32 +102,32 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
     console.log('folderKey = ', folderKey, 'folder = ', folder);
 
-    this.logger.debug('FOLDERNAME', folder, folderKey);
+    //this.logger.debug('FOLDERNAME', folder, folderKey);
  
 
     if (folder != undefined) {
       this.rootFolderName = folder;
       this.showingFolderName = folder;
-      this.onRequestFolderPosts(this.selectedFolderIndex, folder, null);
-      console.log('deviceResource = ',this.deviceResource);
-      if (this.deviceResource == null) {
-        setTimeout(() => {
-          console.log('2초후 , onRequestFolderData');
-          this.onRequestFolderData(this.selectedFolderIndex);
-        }, 2000);
-      } else {
-        console.log('onRequestFolderData');
-        this.onRequestFolderData(this.selectedFolderIndex);
-      }
+      this.onRequestFolderData(this.selectedFolderIndex);
+      // this.onRequestFolderPosts(this.selectedFolderIndex, folder, null);
+      // console.log('deviceResource = ',this.deviceResource);
+      // if (this.deviceResource == null) {
+      //   setTimeout(() => {
+      //     console.log('2초후 , onRequestFolderData');
+      //     this.onRequestFolderData(this.selectedFolderIndex);
+      //   }, 2000);
+      // } else {
+      //   console.log('onRequestFolderData');
+      //   this.onRequestFolderData(this.selectedFolderIndex);
+      // }
     } else {
       //설정한 폴더가 없다면??
-      console.log('살정한 폴더가 없음');
+      console.log('설정된 폴더가 없음');
       this.rootFolderName = '';
       this.showingFolderName = '';
       this.showingFolderList = [];
       this.showingFileList = [];
-      //this.uploadFiletreeService.fillFollders(); 
-      //this.fillFolders();
+
     }
   }
 
@@ -140,7 +142,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
       folderIndex: folderIndex,
       username: this.member.username
     });
-    //this.storageService.set('login',false);
+    this.storageService.set('login',false);
 
   }
 
@@ -152,7 +154,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     }
     const folderKey = this.getFolderKey(folderIndex);
     const folder = this.storageService.get(folderKey);
-    console.log('home-page, 22.. onRequestFolderData, folder = ',folder);
+  //  console.log('home-page, 22.. onRequestFolderData, folder = ',folder);
   }
 
 
@@ -171,7 +173,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     const paths = path.dirname(gotoPath).split(path.sep);
     this.parentFolder = paths.slice(0, paths.length).join('/');
 
-    this.logger.debug('SUBFOLDER', gotoPath, this.parentFolder);
+    //this.logger.debug('SUBFOLDER', gotoPath, this.parentFolder);
     //kimcy: 이걸보여주면? 무엇이?
     //this.showingFolderList.push(this.parentFolder); //test code html line95에서 폴더 타이틀 찾는 부분에서 죽는다.
 
@@ -180,65 +182,19 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
   //kimcy: folderIndex 가 0이면 처음부터 시작
   onStartUploadFolder(folderIndex, after) {
-    log.info('home-page, onStartUploadFolder, folderIndex = ',folderIndex, 'after = ',after);
 
     if (after == null) {
       after = 5;
     }
      const folderKey = this.getFolderKey(folderIndex);
      const folder = this.storageService.get(folderKey);  //폴더키로 조회하면 선택한 폴더를 스토리지로 부터 얻을 수 있다.
-     log.info('home-page folder = ', folder, 'folderKey = ', folderKey);
-
-    // //업로드는 됬으나 블록체인에 기록안된 경우 맨처음 올려야..
-    // if(this.storageService.get('createProof') != undefined){
-    //   this.konsoleService.sendMessage('블록체인에 업데이트 중입니다.');
-    //   this.uploadFiletreeService.setUploadingStatus(true);
-    //  const path = this.storageService.get('createProof');  //문제된 넘 부터 올리게..
-    //  this.postAPI.createProof(M5MemberService.create,this.member, path, 0, 0).subscribe(
-    //   response => {
-
-    //     console.log('성공');
-    //     let chainArray = new Array();
-    //     var str = {name : path, status: true};
-    //     var jsonStr = JSON.stringify(str);
-    //     console.log('jsonStr = ',jsonStr);
-
-    //     if(this.storageService.get('chain') == undefined){
-    //       console.log('맨처음');
-    //       chainArray.push(JSON.parse(jsonStr));
-    //       this.storageService.set('chain', chainArray); 
-    //     }else{
-    //       console.log('덫붙이기 chainArray = ',chainArray);
-    //       chainArray = this.storageService.get('chain');
-    //       chainArray.push(JSON.parse(jsonStr));
-    //       this.storageService.set('chain', chainArray); 
-    //     }
-       
-    //     this.storageService.remove('createProof'); //에러가 없음으로 해당 파일을 지운다.
-    //     this.konsoleService.sendMessage('블록체인에 업데이트 됬습니다.');
-    //     this.uploadFiletreeService.setUploadingStatus(false);
-    //   },
-    //   error => {
-    //     var str = {name : path, status: false};
-    //     this.uploadFiletreeService.setUploadingStatus(false);
-    //     console.log('실패');
-    //     this.konsoleService.sendMessage('블록체인에 업데이트 실패 ')
-    //     // var message = ' : 블록체인에 에러가 발생했습니다.  (' + (index + 1) + '/' + decodeURI(path) + ')';
-    //     // console.log(message);
-    //     // //메세지를 뿌릴려고..
-    //     // noti.next({
-    //     //   cmd: 'LOG',
-    //     //   message: '[' + (index + 1) + '] ' + message
-    //     // });
-    //   }
-    // );;
-    
-    // }
+     log.info('home-page onStartUploadFolder = ', folder, 'folderKey = ', folderKey);
 
     setTimeout(()=> {
-       log.info('setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after);
+       log.info('11..setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after);
        this.uploading = true;
-       this.uploadFiletreeService.upload(folderIndex, folder);
+       //this.uploadFiletreeService.upload(folderIndex, folder);
+       this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
     }, after * 1000);  //보통은 로그인후 3초후에 시작, 여기서 시간값을 바꾸면 시작값이 안 맞는다.(다음폴더는 5초후에), 백업시작버튼누르면 3초후에, 다음번은 1~4시간안에
   }
 
@@ -267,14 +223,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
   }
 
   fillFolders() {
-    let folderlength;
-    if(this.memberPrivate){
-      folderlength = this.PRIVATE_FLENGTH;
-    }else{
-      folderlength = this.PUBLIC_FLENGTH;
-    }
 
-    for (let i = 0; i < folderlength; i++) {
+    for (let i = 0; i < this.maxFolder; i++) {
       const folderKey = this.getFolderKey(i);
       this.storedFolders[i] = this.storageService.get(folderKey); //얻은키를 활용하여 선택된 폴더를 반환한다.
       if (this.selectedFolderIndex === i) {
@@ -294,22 +244,23 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.version = environment.VERSION;
     this.electronService.ipcRenderer.send('PCRESOURCE', null);
     console.log('보냄 home-page, PCRESOURCE');
-    this.logger.debug('- HOMEPAGE ngOnInit: ', this.version);
+   // this.logger.debug('- HOMEPAGE ngOnInit: ', this.version);
 
     this.member = this.memberAPI.isLoggedin();
     this.memberPrivate = this.member.private;
 
-    this.memberPrivate ? this.PRIVATE_FLENGTH  : this.PUBLIC_FLENGTH ;
-    //console.log('home-page, ngOnInit this.MAXFOLDERLENGTH' ,this.MAXFOLDERLENGTH);
+    if(this.memberPrivate){
+      this.maxFolder = this.PRIVATE_FLENGTH;
+    }else{
+      this.maxFolder = this.PUBLIC_FLENGTH;
+    }
+    
+    //this.memberPrivate ? this.PRIVATE_FLENGTH  : this.PUBLIC_FLENGTH ;
 
-    //console.log('11..맴버 = ', this.member.private);
     function getRandomInt(min, max) {
      // console.log('home-page, getRandomInt');
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
-
-    //var div1 = window.document.getElementById('tab2');
- 
 
     /*---------------------------------------------------------------
            Subscribe to notification
@@ -343,28 +294,14 @@ export class HomePageComponent implements OnInit, OnDestroy {
               폴더 전송 완료
          ----------------------------------------------------------------*/
         console.log('homepage -> 폴더전송완료');
-        this.logger.debug(new Date(), message);
-        log.info('homepage => 전송완료된 폴더 folderIndex : ', message.folderIndex, );
-        
-        var maxfolder;
-        if(this.memberPrivate )
-        {
-          maxfolder = this.PRIVATE_FLENGTH;
-        }else{
-          maxfolder = this.PUBLIC_FLENGTH;
-        }
+        //this.logger.debug(new Date(), message);
+        log.info('homepage => 전송완료된 폴더 folderIndex : ', (message.folderIndex -1), );
 
-        if(message.folderIndex < maxfolder){
+
+        if(message.folderIndex < this.maxFolder){
           log.info('다음폴더 업로드 !!');
-          this.onStartUploadFolder(message.folderIndex + 1, 5);
-        }
-       // this.memberPrivate ? this.MAXFOLDERLENGTH =1 : this.MAXFOLDERLENGTH =2;
-        // if (this.MAXFOLDERLENGTH - 1 > message.folderIndex && this.memberPrivate == false) {
-        //   console.log('11..다음 폴더 +1해서 = ',message.folderIndex +1);
-        //   this.onStartUploadFolder(message.folderIndex + 1, 5);
-        // } 
-
-        else {
+          this.onStartUploadFolder(message.folderIndex /* + 1*/, 5);
+        } else {
           console.log('homepage -> 모두완료 다음시간설정');
           this.uploading = false;
           //kimcy: test code
@@ -381,8 +318,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
          // this.onStartUploadFolderNext(0, interval / 1000); //여기서 토큰 갱신
 
         }
-
-
       }
     });
 
@@ -391,15 +326,32 @@ export class HomePageComponent implements OnInit, OnDestroy {
      * Storage로부터 값을 받아와서  this.storedFolders를 초기화
 
     ----------------------------------------------------------------*/
-    //this.fillFolders();
-    //this.memberPrivate ? this.MAXFOLDERLENGTH =1 : this.MAXFOLDERLENGTH =2;
-    //필요없지 않나?
-    // for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
-    //   //console.log('Storage로부터 값을 받아와서  this.storedFolders를 초기화');
-    //   const folderKey = this.getFolderKey(i);
-    //   this.storedFolders[i] = this.storageService.get(folderKey);
-    // }
+    this.fillFolders(); //??
 
+
+    /*---------------------------------------------------------------
+           등록된 폴더에 대해 업로드를 실행  
+           맨처음 로그인하고 불림(1번만)
+     ----------------------------------------------------------------*/
+     setTimeout(() => {
+      
+      // console.log('10초후 등록된 폴더에 대해 업로드를 실행 ??');
+       if(this.storageService.get('login') == true){
+         //for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
+          for (let i = 0; i < this.maxFolder; i++) {
+           this.uploading = false;
+           console.log('storedFolders = ',this.storedFolders[i]);
+           if (this.storedFolders[i] != undefined) {
+             console.log('등록된 폴더에 대해 업로드를 실행', this.storedFolders[i].length); //폴더의 이름 길이
+             console.log('home-page, member = ', this.member);
+             //this.uploadFiletreeService.upload(i, this.storedFolders[i]);
+            this.uploadFiletreeService.getFolderTree(i, this.storedFolders[i],this.member);
+             break;
+           }
+         }
+       }
+       
+     }, 3000);  //폴더선택
 
     /*----------------------------------------------------
        *  IPC Response : Get FileTree
@@ -415,23 +367,20 @@ export class HomePageComponent implements OnInit, OnDestroy {
      ----------------------------------------------------------------*/
 
     this.electronService.ipcRenderer.on('SELECTFOLDER', (event: Electron.IpcMessageEvent, response: any) => {
-      //log.info('SELECTFOLDER', response, this.uploading);
+      log.info('SELECTFOLDER', response, this.uploading);
       log.info('받음,home-page, SELECTFOLDER = ',response.directory);
       if (response.directory != null) {
-        //console.log('home-page, directory', response.directory);
-        log.info('home-page, directory 선택 완료', response.directory);
+
         const folderKey = this.getFolderKey(response.folderIndex);
-
-        console.log('home-page, SELECTFOLDER => folderKey', folderKey);
-
         this.storageService.set(folderKey, response.directory[0]); //key: 예:folder:pharmbase:0
         this.fillFolders();
 
-        this.uploadFiletreeService.fillFollders();
+        //this.uploadFiletreeService.fillFollders(); 현재는 폴더인덱스만 있으면 됨
         console.log('home-page, uploading?? ', this.uploading)
         if (this.uploading === false) {
           log.info('home-page, SELECTFOLDER ?? folderIndex = ', response.folderIndex)
           //this.storageService.set('login',false);
+          this.storageService.set('login',true);
           this.onStartUploadFolder(response.folderIndex, 3);  //3초후에 업로드
         }
       }

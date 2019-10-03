@@ -82,7 +82,7 @@ const zipper = require('zip-local');
 @Injectable()
 export class UploadFiletreeService {
 
-  private folders;
+  //private folders; 사용안함.
   private subscription;
   private subject;
   private filesToSend;
@@ -101,25 +101,9 @@ export class UploadFiletreeService {
 
   private uploading = false;
   private notification;
-  //private test; //kimcy
-
-  /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-   *  Constructor
-   올바른 폴더를 올리기 위해서...
-   -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-  fillFollders() {
-    //console.log('fillFollders ');
-    this.folders = new Array(4);
 
 
-    for (let i = 0; i < 4; i++) {
-      this.folders[i] = {
-        path: this.storageService.get(this.getFolderKey(i))
-      };
-    }
 
-    //console.log('this.folders = ',this.folders);
-  }
 
 
   constructor(
@@ -133,10 +117,10 @@ export class UploadFiletreeService {
     this.member;
     console.log('dd..맴버 = ',this.member);
 
-    this.fillFollders();
+    //this.fillFollders();
    
-    this.board = this.storageService.get('board');
-    this.accessToken = this.storageService.get('accessToken');
+    //this.board = this.storageService.get('board');
+    //this.accessToken = this.storageService.get('accessToken');
 
     this.notification = new Subject();
     this.subject = new Subject();
@@ -166,7 +150,7 @@ export class UploadFiletreeService {
 
 
     /*----------------------------------------------------
-     *  IPC Response : Get FileTree 예는 아래와 같다.
+     *  IPC Response : 예전 Get FileTree 예는 아래와 같다.
      * (3) [{…}, {…}, {…}]
           0:
           filename: ".DS_Store"
@@ -204,12 +188,14 @@ export class UploadFiletreeService {
       1. 목록구성이 완료되었다는 메세지 받음
       2. 선택된 폴더에 NPKI가 있는지 보고 있다면 zip파일을 만든다(이미만들어진 zip파일은 삭제)
       3. 선택된 폴더의 정보 즉 dir 전체 사이즈를 알려준다.
-     ----------------------------------------------------*/
+
+      현재 폴더트리 구성이 완료되면 업로드 시작
+      this.subject.next(this.filesToSend[0]); //processFile 호출?? 을 사용해 볼까?
+     ------------------------------------------------------------------------*/
      this.electronService.ipcRenderer.on('GETFOLDERTREE', (event: Electron.IpcMessageEvent, response: any) => {
       log.info('새로만든, 받음 GETFOLDERTREE, response = ',response);
-      log.info('콘솔, GETFOLDERTREE, response = ',response);
-      
 
+    
       //fullpath 변수 사용? 안하게?
       //목록 구성이 끝난 폴더의 사이즈 요청
       //1. 블록체인 에러 목록 요청 하고 업로드
@@ -285,7 +271,7 @@ export class UploadFiletreeService {
        *  send는 chainuploadCb 에서 보내준다.
       ----------------------------------------------------*/
       this.electronService.ipcRenderer.on('chain-error', (event: Electron.IpcMessageEvent, response: any) => {
-        log.info('받음 chain-error ');
+        log.info('받음 chain-error = ',response.error);
   
         if(response.error == null ){
           this.sendIndex++;
@@ -304,8 +290,8 @@ export class UploadFiletreeService {
           }
   
         }else{
-          log.error('에러 목록 업데이트중, 블록체인에러, 백업시작버튼을 눌러 다시 시작해야 한다. = ',response.body.code 
-                   , 'id = ', this.addfilesToSend[this.sendIndex].fileid);
+          log.error('에러 목록 업데이트중, 블록체인에러, 백업시작버튼을 눌러 다시 시작해야 한다. = ',response 
+                   , 'id = ', this.chainsToSend[this.sendIndex].fileid);
         }
       });
       
@@ -416,7 +402,7 @@ export class UploadFiletreeService {
         }
 
       }else{
-        log.error('블록체인에러, 백업시작버튼을 눌러 다시 시작해야 한다. = ',response.body.code 
+        log.error('블록체인에러, 백업시작버튼을 눌러 다시 시작해야 한다. = ',response
                  , 'id = ', this.addfilesToSend[this.sendIndex].fileid);
       }
     });
@@ -451,7 +437,8 @@ export class UploadFiletreeService {
         this.uploadManager(this.changefilesToSend[this.sendIndex], "change-file");
       } else{
         //2. 업데이트 목록 요청 하고 업로드
-        log.info('1. 한폴더에 대한 모든 업로드/업데이트 완료');
+        log.info('업로드/업데이트 항목없음, 한폴더에 대한 모든 업로드/업데이트 완료');
+        this.gotoNext();
       }
 
       this.electronService.ipcRenderer.removeListener('UPDATETREE', (event: Electron.IpcMessageEvent, response: any)=>{
@@ -475,7 +462,8 @@ export class UploadFiletreeService {
           if(this.changefilesToSend.length > this.sendIndex){
             this.uploadManager(this.changefilesToSend[this.sendIndex], "change-file");
           }else{
-            log.info('2. 한폴더에 대한 모든 업로드 완료');
+            log.info('개인계정,  한폴더에 대한 모든 업로드/업데이트 완료');
+            this.gotoNext();
           }
   
         }
@@ -502,11 +490,12 @@ export class UploadFiletreeService {
           log.info('this.changefilesToSend.length = ', this.changefilesToSend.length);
           this.uploadManager(this.changefilesToSend[this.sendIndex], "change-file");
         }else{
-          log.info('2. 한폴더에 대한 모든 업로드 완료');
+          log.info('블록체인포함, 한폴더에 대한 모든 업로드/업데이트 완료');
+          this.gotoNext();
         }
 
       }else{
-        log.error('블록체인에러, 백업시작버튼을 눌러 다시 시작해야 한다. = ',response.body.code 
+        log.error('블록체인에러, 백업시작버튼을 눌러 다시 시작해야 한다. = ',response
                  , 'id = ', this.changefilesToSend[this.sendIndex].fileid);
       }
     }); 
@@ -992,12 +981,34 @@ export class UploadFiletreeService {
     });
   }
 
- 
+   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+   *  Constructor
+   올바른 폴더를 올리기 위해서...
+   일단 사용안함.
+   -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
+   fillFollders() {
+    //console.log('fillFollders ');
+   // this.folders = new Array(4);
+
+
+    // for (let i = 0; i < 4; i++) {
+    //   this.folders[i] = {
+    //     path: this.storageService.get(this.getFolderKey(i))
+    //   };
+    // }
+
+    //console.log('this.folders = ',this.folders);
+  }
+
+  getFolderPath(folderIndex) {
+    return this.storageService.get(this.getFolderKey(folderIndex));
+  }
+
 
    requestChainErrorList(event){
     console.log('requestChainErrorList');
     log.info('블록체인 업로드 실패 목록 요청');
-    log.info('선택된 폴더 = ', this.folders[this.folderIndex]);
+    //log.info('선택된 폴더 = ', this.folders[this.folderIndex]);
 
     this.sendIndex = 0;
     // this.electronService.ipcRenderer.send('REQ-CHAINTREE', {
@@ -1010,63 +1021,12 @@ export class UploadFiletreeService {
     //   });
 
 
-    // this.electronService.ipcRenderer.on('CHAINTREE', (event: Electron.IpcMessageEvent, response: any) => {
-    //   log.info('받음 CHAINTREE ');
-    //   console.log('requestChainErrorList =>CHAINTREE');
-    //   const fileTree = response.tree; 
-
-    //   this.chainsToSend = [];
-
-    //   for(let i =0; i<fileTree.length; i++){
-    //     this.chainsToSend.push({
-    //       fileid:fileTree[i]['id'],
-    //       folderIndex: this.folderIndex,
-    //       file: this.deviceResource.macaddress+fileTree[i]['filename'].replace(/\\/g, '/'),
-    //       filepath: fileTree[i]['filename'].replace(/\\/g, '/'),
-    //       filesize: fileTree[i]['filesize']
-    //     });
-    //   }
-
-    //   log.info('chainsToSend = ',this.chainsToSend);
-
-    //   if(this.chainsToSend.length > 0){
-    //     //파일 업로드 
-    //     log.info('블록체인 업로드 실패목록 전송, sendIndex = ', this.sendIndex);
-    //     this.uploadManager(this.chainsToSend[this.sendIndex], "chain-error");
-    //   } else{
-    //     //2. 업로드 목록 요청 하고 업로드
-    //     log.info('11..업로드 목록으로 이동 ');
-    //     this.requestUploadList(); 
-    //   }
-
-    // });
-
-    // this.electronService.ipcRenderer.on('chain-error', (event: Electron.IpcMessageEvent, response: any) => {
-    //   log.info('받음 chain-error ');
-
-    //   if(response.body.key.code == 10000 ){
-    //     this.sendIndex++;
-    //     log.info('11..업로드 완료후 sendIndex = ',this.sendIndex);
-    //     log.info('11..this.chainsToSend.length = ',this.chainsToSend.length);
-    //     if(this.chainsToSend.length > this.sendIndex){
-    //       this.uploadManager(this.chainsToSend[this.sendIndex], "chain-error");
-    //     }else{
-    //       log.info('22..업로드 목록으로 이동 ');
-    //       this.requestUploadList(); 
-    //     }
-
-    //   }else{
-    //     log.error('에러 목록 업데이트중, 블록체인에러, 백업시작버튼을 눌러 다시 시작해야 한다. = ',response.body.code 
-    //              , 'id = ', this.addfilesToSend[this.sendIndex].fileid);
-    //   }
-    // });
-
   }
 
    requestUploadList(event){
     console.log('requestUploadList');
     log.info('업로드 목록 요청 username = ',this.member.username);
-    log.info('선택된 폴더 = ', this.folders[this.folderIndex]);
+    //log.info('선택된 폴더 = ', this.folders[this.folderIndex]);
     this.sendIndex = 0;
     // this.electronService.ipcRenderer.send('REQ-UPLOADTREE', {
     //   folderIndex: this.folderIndex,
@@ -1077,87 +1037,14 @@ export class UploadFiletreeService {
 
    requestUpdateList(){
     log.info('업데이트 요청');
-    log.info('선택된 폴더 = ', this.folders[this.folderIndex]);
+    //log.info('선택된 폴더 = ', this.folders[this.folderIndex]);
     // this.sendIndex = 0;
 
     // this.electronService.ipcRenderer.send('REQ-UPDATETREE', {
     //   folderIndex: this.folderIndex,
     //   username: this.member.username
     // });
-
-
-    // this.electronService.ipcRenderer.on('UPDATETREE', (event: Electron.IpcMessageEvent, response: any) => {
-    //   log.info('받음 UPDATETREE ');
-    //   const fileTree = response.tree; 
-
-    //   this.changefilesToSend = [];
-
-    //   for(let i =0; i<fileTree.length; i++){
-    //     this.changefilesToSend.push({
-    //       fileid:fileTree[i]['id'],
-    //       folderIndex: this.folderIndex,
-    //       file: this.deviceResource.macaddress+fileTree[i]['filename'].replace(/\\/g, '/'),
-    //       filepath:fileTree[i]['filename'].replace(/\\/g, '/'),
-    //       filesize:fileTree[i]['filesize']
-    //     });
-    //   }
-      
-    //   log.info('changefilesToSend = ',this.changefilesToSend);
-
-    //   if(this.changefilesToSend.length > 0){
-    //     //파일 업로드 
-    //     log.info('처음, sendIndex = ', this.sendIndex);
-    //     this.uploadManager(this.changefilesToSend[this.sendIndex], "change-file");
-    //   } else{
-    //     //2. 업데이트 목록 요청 하고 업로드
-    //     log.info('1. 한폴더에 대한 모든 업로드 완료');
-    //   }
-
-    // });
-
-    // this.electronService.ipcRenderer.on("change-file", (event: Electron.IpcMessageEvent, response: any) => {
-    //   console.log('받음 업데이트, change-file ');
-
-    //   if(this.member.private){
-    //     if(response.error === null ){
-    //       this.sendIndex++;
-    //       log.info('44..업데이트 완료후 sendIndex = ',this.sendIndex);
-    //       log.info('44..this.changefilesToSend.length = ',this.changefilesToSend.length);
-    //       if(this.changefilesToSend.length > this.sendIndex){
-    //         this.uploadManager(this.changefilesToSend[this.sendIndex], "change-file");
-    //       }else{
-    //         log.info('2. 한폴더에 대한 모든 업로드 완료');
-    //       }
-  
-    //     }
-    //   }else{
-    //     if(response.error === null ){ //파일업로드 완료
-    //       log.info('11..파일업데이트완료 , 블록체인으로 이동')
-    //       this.uploadManager(this.changefilesToSend[this.sendIndex], "chain-update");
-    //     }
-    //   }
-    // });
-
-          
-    // this.electronService.ipcRenderer.on("chain-update", (event: Electron.IpcMessageEvent, response: any) => {
-    //   log.info('받음 업데이트 chain-update ');
-
-    //   if(response.body.key.code == 10000){
-    //     this.sendIndex++;
-    //     //console.log('11..업로드 완료후 sendIndex = ',this.sendIndex);
-    //     if(this.changefilesToSend.length > this.sendIndex){
-    //       log.info('블록체인업데이트 완료 , 파일업데이트 이동')
-    //       log.info('this.changefilesToSend.length = ', this.changefilesToSend.length);
-    //       this.uploadManager(this.changefilesToSend[this.sendIndex], "change-file");
-    //     }else{
-    //       log.info('2. 한폴더에 대한 모든 업로드 완료');
-    //     }
-
-    //   }else{
-    //     log.error('블록체인에러, 백업시작버튼을 눌러 다시 시작해야 한다. = ',response.body.code 
-    //              , 'id = ', this.changefilesToSend[this.sendIndex].fileid);
-    //   }
-    // }); 
+ 
   }
 
   //스토리지에 저장된 폴더의 키를 반환한다.
@@ -1310,6 +1197,15 @@ export class UploadFiletreeService {
       size += fileItem.size;
     }
     return size;
+  }
+
+  private gotoNext() {
+    log.info('gotoNext , folderIndex = ', this.folderIndex);
+    this.notification.next({
+      cmd: 'FOLDER.SENT',
+      folderIndex: this.folderIndex +1
+    });
+    this.uploading = false;
   }
 
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -1703,34 +1599,71 @@ export class UploadFiletreeService {
 
   // }
 
+  getFolderTree(folderIndex, fullpath, member){
+    this.uploading = true;
+    this.folderIndex = folderIndex;
+    //this.folders[folderIndex].path = fullpath;
+    console.log('받은 member = ',member);
+    this.member = member;
+    console.log('this.member = ',this.member);
+
+    console.log('getFolderTree, fullpath = ',fullpath);
+
+    if(fullpath == undefined){
+      this.uploading = false;
+
+      if (this.electronService.isElectronApp){
+        this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
+        this.notification.next({
+          cmd: 'FOLDER.SENT',
+          folderIndex:  folderIndex +1
+        });
+      }
+    } else{
+
+      // this.folderIndex = folderIndex;
+      // this.folders[folderIndex].path = fullpath;
+      if (this.electronService.isElectronApp) { //앱이 실행중이라면..
+        console.log('11..upload ->앱이실행중이라 업로드');
+        this.notification.next({cmd: 'LOG', message: fullpath + ' 업로드를 시작합니다.'});
+        log.info('보냄, GETFOLDERTREE, upload-filetree');
+        this.electronService.ipcRenderer.send('GETFOLDERTREE', {
+          folderIndex: folderIndex,
+          username: member.username,
+          path: fullpath
+        });
+      }
+    }
+
+    
+    
+    // this.folderIndex = folderIndex;
+    // this.folders[folderIndex].path = fullpath;
+    
+  }
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    *  main entry
+   * this.folders 배열에 풀패스설정
+   * 읽어온 폴더패스가 비어 있으면 메세지: ...는 지정 되지 않았습니다.
+   * 토큰을 얻고, 토큰을 얻으면 서버에서 목록조회
+   * 업로딩에 필요한 변수 초기화
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   upload(folderIndex, fullpath) {
 
     console.log('upload.filetree folderIndex =  ',folderIndex, 'fullpath = ',fullpath);
-    //일단 임시..kimcy
-    // if (this.uploading === true) {
-    //   console.log('업로딩중이라 리턴');
-    //   return;
-    // }
-    // if(fullpath == undefined){
-    //   this.fillFollders();
 
-    //   console.log('33..폴더가 ', this.folders);
-    // }
 
     this.fillFollders();
     
-    console.log('folders[folderIndex] =  ', this.folders[folderIndex]);
-    if (this.folders[folderIndex] == null) {
-      //console.log('폴더가 null');
-      this.folders[folderIndex] = [];
-     // console.log('11..폴더가 ', this.folders[folderIndex]);
-    }
+   // console.log('folders[folderIndex] =  ', this.folders[folderIndex]);
+    // if (this.folders[folderIndex] == null) {
+    //   //console.log('폴더가 null');
+    //   this.folders[folderIndex] = [];
+    //  // console.log('11..폴더가 ', this.folders[folderIndex]);
+    // }
 
     //console.log('22..폴더가 ', this.folders);
-    console.log('this.folders[folderIndex].path = ',this.folders[folderIndex].path);
+    //console.log('this.folders[folderIndex].path = ',this.folders[folderIndex].path);
     // if (this.folders[folderIndex].path === undefined) {
     //   this.uploading = false;
     //   if (this.electronService.isElectronApp) {
@@ -1805,21 +1738,22 @@ export class UploadFiletreeService {
     // }
 
     
-      this.uploading = true;
-      this.folderIndex = folderIndex;
-      this.folders[folderIndex].path = fullpath;
-      if (this.electronService.isElectronApp) { //앱이 실행중이라면..
-        console.log('11..upload ->앱이실행중이라 업로드');
-        this.notification.next({cmd: 'LOG', message: this.folders[folderIndex].path + ' 업로드를 시작합니다.'});
-        log.info('보냄, GETFOLDERTREE, upload-filetree');
-        //path: this.folders[folderIndex].path 설정안됨
-        console.log('선택된 폴더 = ', this.folders[folderIndex]);
-        this.electronService.ipcRenderer.send('GETFOLDERTREE', {
-          folderIndex: folderIndex,
-          path: this.folders[folderIndex].path,
-          username: this.member.username
-        });
-      }
+      // this.uploading = true;
+      // this.folderIndex = folderIndex;
+      // this.folders[folderIndex].path = fullpath;
+      // var folderpath = this.getFolderPath(folderIndex);
+      // if (this.electronService.isElectronApp) { //앱이 실행중이라면..
+      //   console.log('11..upload ->앱이실행중이라 업로드');
+      //   this.notification.next({cmd: 'LOG', message: this.folders[folderIndex].path + ' 업로드를 시작합니다.'});
+      //   log.info('보냄, GETFOLDERTREE, upload-filetree');
+      //   //path: this.folders[folderIndex].path 설정안됨
+      //   console.log('선택된 폴더 = ', this.folders[folderIndex]);
+      //   this.electronService.ipcRenderer.send('GETFOLDERTREE', {
+      //     folderIndex: folderIndex,
+      //     path: this.folders[folderIndex].path,
+      //     username: this.member.username
+      //   });
+      // }
 
   }
 
@@ -1840,9 +1774,7 @@ export class UploadFiletreeService {
   //   }
   // }
 
-  getFolderPath(folderIndex) {
-    return this.folders[folderIndex].path;
-  }
+  
 
   
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
