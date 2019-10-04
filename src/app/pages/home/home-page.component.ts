@@ -25,22 +25,22 @@ export class HomePageComponent implements OnInit, OnDestroy {
   
   private PRIVATE_FLENGTH = 1;
   private PUBLIC_FLENGTH =2;
-  private MAXFOLDERLENGTH = this.PRIVATE_FLENGTH + this.PUBLIC_FLENGTH;
+  //private MAXFOLDERLENGTH = this.PRIVATE_FLENGTH + this.PUBLIC_FLENGTH;
 
   public version: string;
-  private board;
+ // private board;
   public member;
   private deviceResource;
   private uploadSubscribe;
 
 
-  private accessToken;
+ // private accessToken;
 
   public rootFolderName;
   public rootFolderData;
   public parentFolder;
 
-  private foldersSize = new Array(this.MAXFOLDERLENGTH);
+  private foldersSize; // = new Array(this.MAXFOLDERLENGTH);
   private storedFolders = {};
   public selectedFolderIndex = 0;
   public showingFolderName;
@@ -245,14 +245,16 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.electronService.ipcRenderer.send('PCRESOURCE', null);
     console.log('보냄 home-page, PCRESOURCE');
    // this.logger.debug('- HOMEPAGE ngOnInit: ', this.version);
-
+    
     this.member = this.memberAPI.isLoggedin();
     this.memberPrivate = this.member.private;
 
     if(this.memberPrivate){
       this.maxFolder = this.PRIVATE_FLENGTH;
+      this.foldersSize = new Array(this.PRIVATE_FLENGTH);
     }else{
       this.maxFolder = this.PUBLIC_FLENGTH;
+      this.foldersSize = new Array(this.PUBLIC_FLENGTH);
     }
     
     //this.memberPrivate ? this.PRIVATE_FLENGTH  : this.PUBLIC_FLENGTH ;

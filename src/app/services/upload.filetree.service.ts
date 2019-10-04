@@ -158,21 +158,7 @@ export class UploadFiletreeService {
           size: 6148
           type: "file"
           __proto__: Object
-          1:
-          filename: "main.js"
-          fullpath: "/Users/kimcy/Downloads/bk2/main.js"
-          size: 11685
-          type: "file"
-          __proto__: Object
-          2:
-          filename: "손예진!.jpg"
-          fullpath: "/Users/kimcy/Downloads/bk2/손예진!.jpg"
-          size: 5023
-          type: "file"
-          __proto__: Object
-          length: 3
-          __proto__: Array(0)
-          folderIndex: 0,
+          
           index: 3,
           children: {children: Array(0), name: "kim", type: "folder"}
           filename: "kim"
@@ -216,6 +202,11 @@ export class UploadFiletreeService {
         });
       }
       
+      //폴더 사이즈 query 
+      this.electronService.ipcRenderer.send('REQ-DIRSIZE', {
+        folderIndex: this.folderIndex,
+        username: this.member.username
+      });
 
       this.electronService.ipcRenderer.removeListener('GETFOLDERTREE', (event: Electron.IpcMessageEvent, response: any)=>{
         log.info('GETFOLDERTREE, 콜백한번만 호출되게...');
@@ -428,10 +419,10 @@ export class UploadFiletreeService {
     });
 
 
-      /*----------------------------------------------------
-       *  IPC Response : Get UPDATETREE
-       
-      ----------------------------------------------------*/
+  /*----------------------------------------------------
+    *  IPC Response : Get UPDATETREE
+    
+  ----------------------------------------------------*/
     this.electronService.ipcRenderer.on('UPDATETREE', (event: Electron.IpcMessageEvent, response: any) => {
     //this.electronService.ipcRenderer.once('UPDATETREE', (event: Electron.IpcMessageEvent, response: any) => {
       log.info('받음 UPDATETREE ');
@@ -532,6 +523,26 @@ export class UploadFiletreeService {
       }
     }); 
 
+
+  /*----------------------------------------------------
+    *  IPC Response : Get chain-update
+    
+  ----------------------------------------------------*/
+  this.electronService.ipcRenderer.on('DIRSIZE', (event: Electron.IpcMessageEvent, response: any) => {
+    log.info('받음 폴더사이즈 = ', response);
+    
+    this.notification.next({
+       cmd: 'FOLDER.INFO',
+       folderData: {
+          index: response.folderIndex,
+          size:response.dirsize
+        }
+    });
+    
+    this.electronService.ipcRenderer.removeListener('DIRSIZE', (event: Electron.IpcMessageEvent, response: any)=>{
+      log.info('폴더사이즈 콜백한번만 호출되게...');
+    });
+  });
 
     // this.electronService.ipcRenderer.on('GETFOLDERTREE', (event: Electron.IpcMessageEvent, response: any) => {
     //     const fileTree = response.tree;   //파일의 tree구성
@@ -1012,6 +1023,18 @@ export class UploadFiletreeService {
       }
     });
   }
+
+   /*----------------------------------------------------
+    *  IPC Response : Get DIR size
+       폴더 사이즈 얻기
+       
+   ----------------------------------------------------*/
+  //  getFolderSize(){
+  //    log.info('폴더사이즈 얻기')
+  //    var electronService = new ElectronService();
+  //    electronService.ipcRenderer.on('UPDATETREE', (event: Electron.IpcMessageEvent, response: any) => {
+  //    });
+  //  }
 
    /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    *  Constructor

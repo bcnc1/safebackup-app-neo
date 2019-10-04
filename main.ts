@@ -840,7 +840,24 @@ ipcMain.on('PCRESOURCE', (event, arg) => {
 
 });
 
-
+/*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+ *  IPC : get A FOLDER size
+ *  
+ -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
+ ipcMain.on('REQ-DIRSIZE', (event, arg) => {
+  var tableName = arg.username +':'+arg.folderIndex;
+  knex(tableName).sum('filesize')
+  .then((result)=>{
+    log.info('폴더사이즈 , folderIndex =  ',arg.folderIndex, 'size = ', result);
+    //console.log('사이즈 = ', result.sum(`filesize`));
+    //console.log('사이즈 = ', result[0]['sum(`filesize`)']);
+    mainWindow.webContents.send("DIRSIZE", {
+      error: null,
+      folderIndex: arg.folderIndex,
+      dirsize: result[0]['sum(`filesize`)']
+    });
+  });
+ });
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  *  IPC : SELECT A FOLDER
  *  폴더 선택 이벤트 처리
@@ -925,9 +942,6 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
           }
         });
 
-      // if (mainWindow && !mainWindow.isDestroyed()){
-      //   mainWindow.webContents.send(arg.uploadtype, {error: error});
-      // }
     }
   }
   
