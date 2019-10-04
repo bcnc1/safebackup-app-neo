@@ -274,9 +274,17 @@ export class UploadFiletreeService {
         log.info('받음 chain-error = ',response.error);
   
         if(response.error == null ){
+
+          this.notification.next({
+            cmd: 'LOG',
+            message: '[' + (this.folderIndex + 1) + '] ' + ' : 전송오류 파일 업로드 완료 (' + (this.chainsToSend[this.sendIndex]) + '/' + this.chainsToSend.length + ')'
+          });
+
           this.sendIndex++;
+
           log.info('11..업로드 완료후 sendIndex = ',this.sendIndex);
           log.info('11..this.chainsToSend.length = ',this.chainsToSend.length);
+
           if(this.chainsToSend.length > this.sendIndex){
             this.uploadManager(this.chainsToSend[this.sendIndex], "chain-error");
           }else{
@@ -351,6 +359,12 @@ export class UploadFiletreeService {
 
       if(this.member.private){
         if(response.error === null ){
+
+          this.notification.next({
+            cmd: 'LOG',
+            message: '[' + (this.folderIndex + 1) + '] ' + ' : 파일 업로드 완료 (' + (this.addfilesToSend[this.sendIndex]) + '/' + this.addfilesToSend.length + ')'
+          });
+
           this.sendIndex++;
           log.info('22..업로드 완료후 sendIndex = ',this.sendIndex);
           if(this.addfilesToSend.length > this.sendIndex){
@@ -385,6 +399,12 @@ export class UploadFiletreeService {
       log.info('create proof = ',response);
 
       if(response.error == null){
+
+        this.notification.next({
+          cmd: 'LOG',
+          message: '[' + (this.folderIndex + 1) + '] ' + ' : 파일 업로드 완료 (' + (this.addfilesToSend[this.sendIndex]) + '/' + this.addfilesToSend.length + ')'
+        });
+
         this.sendIndex++;
         log.info('33..this.addfilesToSend.length = ',this.addfilesToSend.length);
         if(this.addfilesToSend.length > this.sendIndex){
@@ -456,6 +476,12 @@ export class UploadFiletreeService {
 
       if(this.member.private){
         if(response.error === null ){
+
+          this.notification.next({
+            cmd: 'LOG',
+            message: '[' + (this.folderIndex + 1) + '] ' + ' : 변경 파일 업로드 완료 (' + (this.changefilesToSend[this.sendIndex]) + '/' + this.changefilesToSend.length + ')'
+          });
+
           this.sendIndex++;
           log.info('44..업데이트 완료후 sendIndex = ',this.sendIndex);
           log.info('44..this.changefilesToSend.length = ',this.changefilesToSend.length);
@@ -483,6 +509,12 @@ export class UploadFiletreeService {
       log.info('받음 업데이트 chain-update ');
 
       if(response.error == null){
+
+        this.notification.next({
+          cmd: 'LOG',
+          message: '[' + (this.folderIndex + 1) + '] ' + ' : 변경 파일 업로드 완료 (' + (this.changefilesToSend[this.sendIndex]) + '/' + this.changefilesToSend.length + ')'
+        });
+
         this.sendIndex++;
         //console.log('11..업로드 완료후 sendIndex = ',this.sendIndex);
         if(this.changefilesToSend.length > this.sendIndex){
@@ -1266,8 +1298,9 @@ export class UploadFiletreeService {
 
   -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   private uploadManager(item, type){
-    let post;
+    let post, chainuploading;
     this.member = this.memberAPI.isLoggedin();
+    var size = item.filesize /1024;
     //console.log('folderIndex = ',folderIndex);
     post = {
       token: this.member.token,
@@ -1281,9 +1314,31 @@ export class UploadFiletreeService {
 
     if(type == 'chain-error' || type == 'chain-create' || type == 'chain-update'){
       this.electronService.ipcRenderer.send('SEND-CHAINFILE', post);
+      chainuploading = true;
     }else{
       this.electronService.ipcRenderer.send('SEND-FILE', post); //비동기
+      chainuploading = false;
     }
+    if(!chainuploading){
+      this.notification.next({
+        cmd: 'SENDING.STARTED',
+        message: '[' + (item.folderIndex + 1) + '] ' + item.filepath + ' 업로딩...' + size +'KB'
+      });
+    }
+  //  if(this.member.private){
+  //   this.notification.next({
+  //     cmd: 'SENDING.STARTED',
+  //     message: '[' + (item.folderIndex + 1) + '] ' + item.filepath + ' 업로딩...' + item.filesize 
+  //   });
+  //  } else{
+  //    if(chainuploading){
+  //     this.notification.next({
+  //       cmd: 'SENDING.STARTED',
+  //       message: '[' + (item.folderIndex + 1) + '] ' + item.filepath + ' 업로딩...' + item.filesize 
+  //     });
+  //    }
+  //  }
+
     
   }
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -1621,6 +1676,7 @@ export class UploadFiletreeService {
       }
     } else{
 
+      //this.uploading = true;
       // this.folderIndex = folderIndex;
       // this.folders[folderIndex].path = fullpath;
       if (this.electronService.isElectronApp) { //앱이 실행중이라면..

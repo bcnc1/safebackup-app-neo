@@ -191,7 +191,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
      log.info('home-page onStartUploadFolder = ', folder, 'folderKey = ', folderKey);
 
     setTimeout(()=> {
-       log.info('11..setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after);
+       log.info('11..setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after); //after가 2이면 처음
        this.uploading = true;
        //this.uploadFiletreeService.upload(folderIndex, folder);
        this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
@@ -345,7 +345,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
              console.log('등록된 폴더에 대해 업로드를 실행', this.storedFolders[i].length); //폴더의 이름 길이
              console.log('home-page, member = ', this.member);
              //this.uploadFiletreeService.upload(i, this.storedFolders[i]);
-            this.uploadFiletreeService.getFolderTree(i, this.storedFolders[i],this.member);
+            //this.uploadFiletreeService.getFolderTree(i, this.storedFolders[i],this.member);
+            this.onStartUploadFolder(i, 2);
              break;
            }
          }
@@ -379,8 +380,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
         console.log('home-page, uploading?? ', this.uploading)
         if (this.uploading === false) {
           log.info('home-page, SELECTFOLDER ?? folderIndex = ', response.folderIndex)
-          //this.storageService.set('login',false);
-          this.storageService.set('login',true);
+          this.storageService.set('login',false); 
           this.onStartUploadFolder(response.folderIndex, 3);  //3초후에 업로드
         }
       }

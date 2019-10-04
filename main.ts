@@ -460,48 +460,6 @@ if (!gotTheLock) {
           });
         }
 
-    //     knex(tableName)
-    //     .where('filename', item.fullpath)
-    //     .then((results)=>{
-    //       if(results.length == 0 ){
-    //         log.info('22..일치하는 값 없음 = results = ', results);
-    //         knex(tableName)
-    //         .insert({filename: item.fullpath, filesize : item.size, 
-    //           fileupdate: item.updated, uploadstatus: 0, chainstatus: 0})
-    //         .then(()=>{
-    //          //log.info('일차하는 값 없어서 insert');
-    //          next();
-    //         });
-    //       }else{
-            
-    //         console.log('업데이트, item = ', item);
-
-    //         knex(tableName)
-    //         .where({filename: item.fullpath}).select('id')
-    //         .then((result)=>{
-    //            var id = results[0]['id'];
-    //            var fsize = results[0]['filesize'];
-    //            var fupdate = results[0]['fileupdate']; //utc값으로 기록안되어 추후구현
-    //           //  console.log('fsize 타입 = ',typeof fsize);
-    //           //  console.log('item.size 타입 = ',typeof item.size);
-    //            //log.info('id = ',id,  'fsize = ',fsize, 'fupdate = ',fupdate);
-    //            //log.info('item.size = ',item.size,  'item.update = ',item.updated);
-    //            if(fsize != item.size /*|| fupdate != item.updated*/){
-    //               knex(tableName)
-    //               .where({id: id})
-    //               .update({filesize: item.size, fileupdate: item.update
-    //                 , uploadstatus: 2, /*chain: "update",*/ chainstatus: 0})
-    //               .then((result)=> {
-    //                 log.info('업데이트, result = ',result);
-    //                 next();
-    //               });
-    //            }else{
-    //             log.info('변경없음 = ',result);
-    //             next();
-    //            }
-    //         });
-    //       }
-    // });
     }, function(err) {
       log.info("끝 = ", err);
       watcher.close();
