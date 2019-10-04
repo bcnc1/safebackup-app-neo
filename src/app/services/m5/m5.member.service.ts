@@ -10,6 +10,7 @@ import {ObjectUtils} from '../../utils/ObjectUtils';
 import * as moment from 'moment';
 import {environment} from '../../../environments/environment';
 const request = require('request');
+const log = require('electron-log');
 
 @Injectable({
   providedIn: 'root'
@@ -104,9 +105,9 @@ export class M5MemberService extends M5Service {
           storage.set('member',member);
           console.log("로그인 토큰,,member :",storage.get('member'));
       }, function(err) {
-          console.log(err);
+          log.error('토큰을 못 가지고 옴, => ',err);
           //kimcy: 다 지우는게 맞나?
-          storage.remove(member);
+          //storage.remove(member);
       })
   }
 
@@ -213,53 +214,6 @@ export class M5MemberService extends M5Service {
   //   return this.http.post(this.url.login(), body)
   //     .pipe(
   //       map(res => this.handleLoginResponse(res)),
-  //       catchError(this.handleError)
-  //     );
-  // }
-
-
-
-  /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-   *  사용자 등록
-   *
-   *  username
-   *  password
-   -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-
-  // private handleSignupResponse(response: any) {
-  //   console.log('사용자등록');
-  //   this.handleData(response);
-  //   this.storage.set('member', response.member);
-  //   this.storage.set('accessToken', decodeURIComponent(response.accessToken));
-  //   this.storage.set('board', {
-  //     id: 'SVCBoard_481477478793500'
-  //   });
-  //   return response.member || {};
-  // }
-
-
-  // public signup(member: Member): Observable<M5Result> {
-
-  //   console.log('m5.member.service-> signup');
-  //   const formData = new FormData();
-  //   formData.append('username', member.username);
-  //   formData.append('password', member.password);
-  //   formData.append('fullname', member.fullname);
-  //   formData.append('fetchOrgBoards', 'true');
-
-
-  //   const params = this.getFormUrlEncoded({
-  //     username: member.username,
-  //     password: member.password,
-  //     fullname: member.fullname,
-  //     level: 'USER',
-  //     fetchOrgBoards: true
-  //   });
-
-  //   return this.http.post(this.url.signup() + '?' + params,
-  //     {})
-  //     .pipe(
-  //       map(res => this.handleSignupResponse(res)),
   //       catchError(this.handleError)
   //     );
   // }

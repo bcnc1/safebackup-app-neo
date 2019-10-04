@@ -193,7 +193,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
     setTimeout(()=> {
        log.info('11..setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after); //after가 2이면 처음
        this.uploading = true;
-       //this.uploadFiletreeService.upload(folderIndex, folder);
        this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
     }, after * 1000);  //보통은 로그인후 3초후에 시작, 여기서 시간값을 바꾸면 시작값이 안 맞는다.(다음폴더는 5초후에), 백업시작버튼누르면 3초후에, 다음번은 1~4시간안에
   }
@@ -302,7 +301,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
         if(message.folderIndex < this.maxFolder){
           log.info('다음폴더 업로드 !!');
-          this.onStartUploadFolder(message.folderIndex /* + 1*/, 5);
+          this.onStartUploadFolder(message.folderIndex , 5);
         } else {
           console.log('homepage -> 모두완료 다음시간설정');
           this.uploading = false;
@@ -316,9 +315,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
             message: str + '에 백업이 재실행됩니다.'
           });
           this.logger.debug(new Date(), '다음 백업 대기 업로딩? ', this.uploading);
+          this.memberAPI.getLoginToken(this.member,this.storageService); //업로드 완료 후 토큰 갱신
           this.onStartUploadFolder(0, interval / 1000);
-         // this.onStartUploadFolderNext(0, interval / 1000); //여기서 토큰 갱신
-
         }
       }
     });

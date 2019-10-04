@@ -1700,9 +1700,6 @@ export class UploadFiletreeService {
       }
     } else{
 
-      //this.uploading = true;
-      // this.folderIndex = folderIndex;
-      // this.folders[folderIndex].path = fullpath;
       if (this.electronService.isElectronApp) { //앱이 실행중이라면..
         console.log('11..upload ->앱이실행중이라 업로드');
         this.notification.next({cmd: 'LOG', message: '['+ (folderIndex + 1)+']'+fullpath + ' 업로드를 시작합니다.'});
@@ -1715,11 +1712,6 @@ export class UploadFiletreeService {
       }
     }
 
-    
-    
-    // this.folderIndex = folderIndex;
-    // this.folders[folderIndex].path = fullpath;
-    
   }
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    *  main entry
@@ -1837,26 +1829,6 @@ export class UploadFiletreeService {
 
   }
 
-  // initUpLoad(folderIndex,fullpath){
-  //   this.uploading = true;
-  //   this.folderIndex = folderIndex;
-  //   this.folders[folderIndex].path = fullpath;
-  //   if (this.electronService.isElectronApp) { //앱이 실행중이라면..
-  //     console.log('11..upload ->앱이실행중이라 업로드');
-  //     this.notification.next({cmd: 'LOG', message: this.folders[folderIndex].path + ' 업로드를 시작합니다.'});
-  //     log.info('보냄, GETFOLDERTREE, upload-filetree');
-  //     //path: this.folders[folderIndex].path 설정안됨
-  //     console.log('선택된 폴더 = ', this.folders[folderIndex]);
-  //     this.electronService.ipcRenderer.send('GETFOLDERTREE', {
-  //       folderIndex: folderIndex,
-  //       path: this.folders[folderIndex].path
-  //     });
-  //   }
-  // }
-
-  
-
-  
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    *  Process a file
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
