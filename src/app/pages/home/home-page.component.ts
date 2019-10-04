@@ -288,7 +288,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
       } else if (message.cmd === 'FOLDER.INFO') {
 
         this.foldersSize[message.folderData.index] = message.folderData.size;
-        this.logger.debug('FOLDER.INFO', message, this.foldersSize);
+        //this.logger.debug('FOLDER.INFO', message, this.foldersSize);
       } else if (message.cmd === 'FOLDER.SENT') {
         /*---------------------------------------------------------------
               폴더 전송 완료
@@ -384,6 +384,10 @@ export class HomePageComponent implements OnInit, OnDestroy {
           this.onStartUploadFolder(response.folderIndex, 3);  //3초후에 업로드
         }
       }
+
+      this.electronService.ipcRenderer.removeListener('SELECTFOLDER', (event: Electron.IpcMessageEvent, response: any)=>{
+        log.info('SELECTFOLDER, 콜백한번만 호출되게...');
+      });
     });
 
 

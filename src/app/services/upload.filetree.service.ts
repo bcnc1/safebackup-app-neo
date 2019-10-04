@@ -277,7 +277,7 @@ export class UploadFiletreeService {
 
           this.notification.next({
             cmd: 'LOG',
-            message: '[' + (this.folderIndex + 1) + '] ' + ' : 전송오류 파일 업로드 완료 (' + (this.chainsToSend[this.sendIndex]) + '/' + this.chainsToSend.length + ')'
+            message: '[' + (this.folderIndex + 1) + '] ' + ' : 전송오류 파일 업로드 완료 (' + this.sendIndex+1 + '/' + this.chainsToSend.length + ')'
           });
 
           this.sendIndex++;
@@ -360,10 +360,10 @@ export class UploadFiletreeService {
       if(this.member.private){
         if(response.error === null ){
 
-          this.notification.next({
-            cmd: 'LOG',
-            message: '[' + (this.folderIndex + 1) + '] ' + ' : 파일 업로드 완료 (' + (this.addfilesToSend[this.sendIndex]) + '/' + this.addfilesToSend.length + ')'
-          });
+          // this.notification.next({
+          //   cmd: 'LOG',
+          //   message: '[' + (this.folderIndex + 1) + '] ' + ' : 파일 업로드 완료 (' + (this.addfilesToSend[this.sendIndex]) + '/' + this.addfilesToSend.length + ')'
+          // });
 
           this.sendIndex++;
           log.info('22..업로드 완료후 sendIndex = ',this.sendIndex);
@@ -402,7 +402,7 @@ export class UploadFiletreeService {
 
         this.notification.next({
           cmd: 'LOG',
-          message: '[' + (this.folderIndex + 1) + '] ' + ' : 파일 업로드 완료 (' + (this.addfilesToSend[this.sendIndex]) + '/' + this.addfilesToSend.length + ')'
+          message: '[' + (this.folderIndex + 1) + '] ' + ' : 파일 업로드 완료 (' + this.sendIndex+1 + '/' + this.addfilesToSend.length + ')'
         });
 
         this.sendIndex++;
@@ -479,7 +479,7 @@ export class UploadFiletreeService {
 
           this.notification.next({
             cmd: 'LOG',
-            message: '[' + (this.folderIndex + 1) + '] ' + ' : 변경 파일 업로드 완료 (' + (this.changefilesToSend[this.sendIndex]) + '/' + this.changefilesToSend.length + ')'
+            message: '[' + (this.folderIndex + 1) + '] ' + ' : 변경 파일 업로드 완료 (' + this.sendIndex+1 + '/' + this.changefilesToSend.length + ')'
           });
 
           this.sendIndex++;
@@ -512,7 +512,7 @@ export class UploadFiletreeService {
 
         this.notification.next({
           cmd: 'LOG',
-          message: '[' + (this.folderIndex + 1) + '] ' + ' : 변경 파일 업로드 완료 (' + (this.changefilesToSend[this.sendIndex]) + '/' + this.changefilesToSend.length + ')'
+          message: '[' + (this.folderIndex + 1) + '] ' + ' : 변경 파일 업로드 완료 (' + this.sendIndex+1 + '/' + this.changefilesToSend.length + ')'
         });
 
         this.sendIndex++;
@@ -1300,7 +1300,7 @@ export class UploadFiletreeService {
   private uploadManager(item, type){
     let post, chainuploading;
     this.member = this.memberAPI.isLoggedin();
-    var size = item.filesize /1024;
+    //var size =  Math.round(item.filesize / 1024 ) ;
     //console.log('folderIndex = ',folderIndex);
     post = {
       token: this.member.token,
@@ -1322,7 +1322,8 @@ export class UploadFiletreeService {
     if(!chainuploading){
       this.notification.next({
         cmd: 'SENDING.STARTED',
-        message: '[' + (item.folderIndex + 1) + '] ' + item.filepath + ' 업로딩...' + size +'KB'
+        //message: '[' + (item.folderIndex + 1) + '] ' + item.filepath + ' 업로딩...' + size +'KB'
+        message: '[' + (item.folderIndex + 1) + '] ' + item.filepath + ' 업로딩...' 
       });
     }
   //  if(this.member.private){
@@ -1681,7 +1682,7 @@ export class UploadFiletreeService {
       // this.folders[folderIndex].path = fullpath;
       if (this.electronService.isElectronApp) { //앱이 실행중이라면..
         console.log('11..upload ->앱이실행중이라 업로드');
-        this.notification.next({cmd: 'LOG', message: fullpath + ' 업로드를 시작합니다.'});
+        this.notification.next({cmd: 'LOG', message: '['+ (folderIndex + 1)+']'+fullpath + ' 업로드를 시작합니다.'});
         log.info('보냄, GETFOLDERTREE, upload-filetree');
         this.electronService.ipcRenderer.send('GETFOLDERTREE', {
           folderIndex: folderIndex,
