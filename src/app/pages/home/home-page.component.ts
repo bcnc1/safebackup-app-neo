@@ -190,32 +190,29 @@ export class HomePageComponent implements OnInit, OnDestroy {
      const folder = this.storageService.get(folderKey);  //폴더키로 조회하면 선택한 폴더를 스토리지로 부터 얻을 수 있다.
      log.info('home-page onStartUploadFolder = ', folder, 'folderKey = ', folderKey);
 
-    setTimeout(()=> {
-       log.info('11..setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after); //after가 2이면 처음
-       this.uploading = true;
-       this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
-    }, after * 1000);  //보통은 로그인후 3초후에 시작, 여기서 시간값을 바꾸면 시작값이 안 맞는다.(다음폴더는 5초후에), 백업시작버튼누르면 3초후에, 다음번은 1~4시간안에
+     
+
+     setTimeout(()=> {
+        log.info('11..setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after); //after가 2이면 처음
+        this.uploading = true;
+        this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
+     }, after * 1000);  //보통은 로그인후 3초후에 시작, 여기서 시간값을 바꾸면 시작값이 안 맞는다.(다음폴더는 5초후에), 백업시작버튼누르면 3초후에, 다음번은 1~4시간안에
+     
   }
 
-  //업로드 종료후 토큰 갱신
-  // onStartUploadFolderNext(folderIndex, after) {
-  //  // console.log('home-page, onStartUploadFolder, folderIndex = ',folderIndex, 'after = ',after);
-  //   if (after == null) {
-  //     after = 5;
-  //   }
-  //   const folderKey = this.getFolderKey(folderIndex);
-  //  // console.log('home-page folderKey = ', folderKey);
+  checkEmergency(){
 
-  //   const folder = this.storageService.get(folderKey);
+    for (let i = 0; i < this.maxFolder; i++) {
+      const folderKey = this.getFolderKey(i);
+      this.storedFolders[i] = this.storageService.get(folderKey); //얻은키를 활용하여 선택된 폴더를 반환한다.
+      if(this.storedFolders[i].toLowerCase().indexOf('data_backup') >= 0){
+        return false;
+      }else{
+        return true;
+      }
+    }
 
-  //   this.memberAPI.getLoginToken(this.member,this.storageService);
-
-  //   setTimeout(() => {
-  //     console.log('setTimeout, folderIndex = ', folderIndex);
-  //     this.uploading = true;
-  //     this.uploadFiletreeService.upload(folderIndex, folder);
-  //   }, after * 1000);  //보통은 로그인후 3초후에 시작, 여기서 시간값을 바꾸면 시작값이 안 맞는다.(다음폴더는 5초후에), 백업시작버튼누르면 3초후에, 다음번은 1~4시간안에
-  // }
+  }
 
   onStartBrowser(){
     require('electron').shell.openExternal("http://211.252.85.59/login");
@@ -316,6 +313,13 @@ export class HomePageComponent implements OnInit, OnDestroy {
           });
           this.logger.debug(new Date(), '다음 백업 대기 업로딩? ', this.uploading);
           this.memberAPI.getLoginToken(this.member,this.storageService); //업로드 완료 후 토큰 갱신
+
+          //긴급점검 체크
+          if(!this.memberPrivate && this.checkEmergency()){
+            var msg = '긴급점검! 백업된 파일이 없습니다. 프로그램에서 백업버튼을 눌러주세요.';
+            this.electronService.ipcRenderer.send('ALERT', {message: msg});
+          }
+
           this.onStartUploadFolder(0, interval / 1000);
         }
       }
