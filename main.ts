@@ -1,6 +1,7 @@
 import { isFormattedError, ConditionalExpr } from "@angular/compiler";
 import {environment} from './src/environments/environment';
 import { Router } from '@angular/router';
+import { Inject, Injectable } from '@angular/core';
 import {LOCAL_STORAGE, StorageService} from 'ngx-webstorage-service';
 import { createInjectable } from "@angular/compiler/src/core";
 import { userInfo } from "os";
@@ -45,7 +46,7 @@ const env = environment;
 const  async = require("async");
 const zipper = require('zip-local');
 //console.log('knex = ',knex);
-
+//const storageService = LOCAL_STORAGE;
 
 
 if (handleSquirrelEvent(app)) {
@@ -620,144 +621,18 @@ if (!gotTheLock) {
  
 });
 
-
-/*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
- *  디렉토리 구조를 JSON으로 변환
- * 파일들 모두를 알아낼 수 있고 최종적으로 끝나면 선택된 폴더의 파일과
- * 첫번째 서브폴더와 그안의 파일들을 넘겨준다.
- * https://stackoverflow.com/questions/56225403/how-to-insert-10-million-rows-into-mysql-database-with-knex-js
- * https://medium.com/@trustyoo86/async-await%EB%A5%BC-%EC%9D%B4%EC%9A%A9%ED%95%9C-%EB%B9%84%EB%8F%99%EA%B8%B0-loop-%EB%B3%91%EB%A0%AC%EB%A1%9C-%EC%88%9C%EC%B0%A8-%EC%B2%98%EB%A6%AC%ED%95%98%EA%B8%B0-315f31b72ccc
- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-
-
-// var diretoryTreeToObj = function (dir, foderindex, member, done) {   
-//   console.log('main,  diretoryTreeToObj dir = ',dir, done);
-//   var results = [];
-
-//   fs.readdir(dir, function (err, list) {  //비동기 함수, dir: 주어진 디렉토리
-//     if (err)
-//       return done(err);
-
-//     var pending = list.length;
-//      console.log('diretoryTreeToObj => list = ',list);
-//      console.log('pending = ',pending);
-
-//     //kimcy
-//     if(dir.lastIndexOf('NPKI')!= -1){
-//       console.log('NPKI폴더')
-//       return done(null, {name: dir, type: 'folder', children: results});
-//     }
-
-//     if (!pending){
-//       console.log('33, pending = ', pending, 'dir = ',dir);
-//       return done(null, {name: path.basename(dir), type: 'folder', children: results});
-//     }
-      
-    
-   
-//     async.each(list, function(file, next){
-//       file = path.resolve(dir, file);
-//       console.log('file = ',file);
-//       fs.stat(file,  function (err, stat){
-//         if (stat) {
-//           if (stat.isDirectory()) {
-//             diretoryTreeToObj(file, foderindex, member, function (err, res) { //res는 callback으로 넘겨받은 file array(result)
-//               if (!--pending) {
-//                 console.log('11 done = ', results,'pending = ',pending);
-//                 done(null, results);
-//               }
-//             });
-//           }else{
-//             var tableName = member.username+':'+foderindex;
-//             knex(tableName).where('filename', file).then((results)=>{
-//               if(results.length == 0 ){
-//                 knex(tableName).insert({filename: file, 
-//                   filesize : stat.size,
-//                   fileupdate : stat.mtime,
-//                   uploadstatus: 0,
-//                  // chain: "create",
-//                   chainstatus: 0
-//                 }).then(()=>{
-//                   console.log('일차하는 값 없어서 insert');
-//                   //console.log('time = ', (new Date().getTime() - start));
-//                   next();
-//                 });
-//               }
-//             });
-//           }
-//         }
-//       });
-//     }, function(err){
-//       if( err ) {
-//         // One of the iterations produced an error.
-//         // All processing will now stop.
-//         console.log('A file failed to process');
-//       } else {
-//         console.log('All files have been processed successfully');
-//       }
-//     });
-
-//   });
-// };
-
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  *  IPC : SEND-FILE
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
  ipcMain.on("SEND-FILE", (event, arg) => {
   console.log('받음, main, SEND-FILE ');
+  
   try {
     fileupload(arg);
   } catch (e) {
     log.error('SEND-FILE',e);
   }
 
-    // let startTime = new Date().getTime();
-    // let tableName = arg.container+':'+arg.folderIndex;
-  
-    // function fileuploadCb(error, response, body) {
-    //   if (!error && response.statusCode == 201) {
-    //     console.log('업로드 성공');
-    //     console.log('tablename = ', tableName);
-    //     console.log('arg = ', arg);
-    //     knex(tableName)
-    //     .where({id: arg.fileid})
-    //     .update({uploadstatus: 1})
-    //     .then(()=>{
-    //       if(mainWindow && !mainWindow.isDestroyed()){
-    //         mainWindow.webContents.send(arg.uploadtype, {
-    //           error: null,
-    //           body: body,
-    //           index: arg.folderIndex,
-    //           startTime: startTime,
-    //           endTime: new Date().getTime(),
-    //         });
-    //       }
-    //     });
-    //   }else{
-    //     console.log('업로드 실패, 보냄');
-    //     if (mainWindow && !mainWindow.isDestroyed()){
-    //       mainWindow.webContents.send(arg.uploadtype, {error: error});
-    //     }
-    //   }
-    // }
-  
-    // var options = {  
-    //   method: 'PUT',
-    //   uri: env.STORAGE_URL+'/'+arg.container+'/'+ encodeURI(arg.filename), 
-    //   //uri: env.STORAGE_URL+'/'+arg.container+'/'+ encodeURIComponent(arg.filename), 
-    //   headers:{
-    //       'X-Auth-Token': arg.token,
-    //       'X-Object-Meta-ctime': startTime
-    //   }
-    // };
-  
-    // var upload = fs.createReadStream(arg.filepath,{highWaterMark : 256*1024});
-    //   var r = reqestProm(options, fileuploadCb);
-      
-    //   console.log('11..업로드 시작');
-    //   upload.pipe(r).catch(function(err){
-    //     log.error('업로드 에러 : ',err);
-    //   });
 });
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -776,14 +651,14 @@ if (!gotTheLock) {
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  *  IPC : SEND FILE
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-ipcMain.on("SENDFILE", (event, arg) => {
-  console.log('받음, main, SENDFILE => token:', arg.accessToken);
-  try {
-    sendFile(arg.index, arg.formData, arg.file, arg.accessToken, arg.username);
-  } catch (e) {
-    console.log(e);
-  }
-});
+// ipcMain.on("SENDFILE", (event, arg) => {
+//   console.log('받음, main, SENDFILE => token:', arg.accessToken);
+//   try {
+//     sendFile(arg.index, arg.formData, arg.file, arg.accessToken, arg.username);
+//   } catch (e) {
+//     console.log(e);
+//   }
+// });
 
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -982,12 +857,14 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
     if (!error && response.statusCode == 201) {
       console.log('업로드 성공');
       console.log('tablename = ', tableName);
-      console.log('arg = ', arg);
+      //console.log('data_backup = ', typeof arg.data_backup);
+      var bkzip = arg.data_backup;
       if(arg.data_bakup != 'none'){
-        localStorage.setItem('data_backup',arg.data_bakup).then(()=>{
+        localStorage.setItem('data_backup',bkzip).then(()=>{
           console.log('zip저장');
         })
       }
+
 
       knex(tableName)
       .where({id: arg.fileid})
@@ -1000,6 +877,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
             index: arg.folderIndex,
             startTime: startTime,
             endTime: new Date().getTime(),
+           // data_backup: arg.data_backup
           });
         }
       });
@@ -1037,71 +915,71 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
  *  container명은 로그인시 id로...
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
-  var sendFile = function (index, formData, file, accessToken, containerName) {
+//   var sendFile = function (index, formData, file, accessToken, containerName) {
 
-  const STORAGE_URL = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3';
-  console.log("fullpath:", file.fullpath);
-  let paths = path.dirname(file.fullpath).split(path.sep);
-  console.log("paths:", paths);
-  console.log("파일명:", file.filename);
+//   const STORAGE_URL = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3';
+//   console.log("fullpath:", file.fullpath);
+//   let paths = path.dirname(file.fullpath).split(path.sep);
+//   console.log("paths:", paths);
+//   console.log("파일명:", file.filename);
 
-  let startTime = new Date().getTime();
-  formData.count = file.size;
-  formData.userData = JSON.stringify(formData.userData);
+//   let startTime = new Date().getTime();
+//   formData.count = file.size;
+//   formData.userData = JSON.stringify(formData.userData);
 
 
-  function cbUpload(error, response, body) {
-   // console.log(response);
-    if (!error && response.statusCode == 201) {
-      console.log('업로드 성공, 보냄, main, SENDFILE ');
-      if(mainWindow && !mainWindow.isDestroyed()){
-        mainWindow.webContents.send("SENDFILE", {
-          error: null,
-          body: body,
-          index: index,
-          startTime: startTime,
-          uploadPath: encodeURI(formData.code.replace(/\\/g, '/')),
-          endTime: new Date().getTime(),
-          chain: formData.chain
-        });
-      }
+//   function cbUpload(error, response, body) {
+//    // console.log(response);
+//     if (!error && response.statusCode == 201) {
+//       console.log('업로드 성공, 보냄, main, SENDFILE ');
+//       if(mainWindow && !mainWindow.isDestroyed()){
+//         mainWindow.webContents.send("SENDFILE", {
+//           error: null,
+//           body: body,
+//           index: index,
+//           startTime: startTime,
+//           uploadPath: encodeURI(formData.code.replace(/\\/g, '/')),
+//           endTime: new Date().getTime(),
+//           chain: formData.chain
+//         });
+//       }
 
-    }else{
-         console.log('업로드 실패, 보냄, main, SENDFILE  ');
-         if (mainWindow && !mainWindow.isDestroyed()){
-          mainWindow.webContents.send("SENDFILE", {error: error});
-         }
-    }
-  }
+//     }else{
+//          console.log('업로드 실패, 보냄, main, SENDFILE  ');
+//          if (mainWindow && !mainWindow.isDestroyed()){
+//           mainWindow.webContents.send("SENDFILE", {error: error});
+//          }
+//     }
+//   }
   
-  if(formData.subtype === 'file'){
-    var options = {  
-      method: 'PUT',
-      uri: STORAGE_URL+'/'+containerName+'/'+ encodeURI(formData.code.replace(/\\/g, '/')), 
-      headers:{
-          'X-Auth-Token': accessToken,
-          'X-Object-Meta-ctime': startTime
-      }
-    };
-    var upload = fs.createReadStream(file.fullpath,{highWaterMark : 256*1024});
-    var r = reqestProm(options, cbUpload);
+//   if(formData.subtype === 'file'){
+//     var options = {  
+//       method: 'PUT',
+//       uri: STORAGE_URL+'/'+containerName+'/'+ encodeURI(formData.code.replace(/\\/g, '/')), 
+//       headers:{
+//           'X-Auth-Token': accessToken,
+//           'X-Object-Meta-ctime': startTime
+//       }
+//     };
+//     var upload = fs.createReadStream(file.fullpath,{highWaterMark : 256*1024});
+//     var r = reqestProm(options, cbUpload);
     
-    console.log('업로드 시작');
-    upload.pipe(r).catch(function(err){
-      console.log('terminate22');
-    });
-  }else{
-    if(mainWindow && !mainWindow.isDestroyed()){
-      mainWindow.webContents.send("SENDFILE", {
-        error: null,
-        body: 'folder',
-        index: index,
-        startTime: startTime,
-        endTime: new Date().getTime()
-      });
-    }
-  }
-};
+//     console.log('업로드 시작');
+//     upload.pipe(r).catch(function(err){
+//       console.log('terminate22');
+//     });
+//   }else{
+//     if(mainWindow && !mainWindow.isDestroyed()){
+//       mainWindow.webContents.send("SENDFILE", {
+//         error: null,
+//         body: 'folder',
+//         index: index,
+//         startTime: startTime,
+//         endTime: new Date().getTime()
+//       });
+//     }
+//   }
+// };
 
 
 

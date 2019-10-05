@@ -1,7 +1,7 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { M5MemberService } from '../../services/m5/m5.member.service';
-import { LOCAL_STORAGE, StorageService } from 'ngx-webstorage-service';
+import { LOCAL_STORAGE, StorageService, StorageTranscoders } from 'ngx-webstorage-service';
 import { ElectronService } from 'ngx-electron';
 import { M5PostService } from '../../services/m5/m5.post.service';
 import { UploadFiletreeService } from '../../services/upload.filetree.service';
@@ -212,14 +212,17 @@ export class HomePageComponent implements OnInit, OnDestroy {
         //   return true
         // }else{
         //   return false
-        // }
-        if(this.storageService.get('data_backup') == undefined){
+        // }data_backup data_backup
+        // console.log('data_backup string= ', this.storageService.get('data_backup',StorageTranscoders.STRING));
+        // console.log('data_backup json  = ', this.storageService.get('data_backup',StorageTranscoders.JSON));
+        //lib..호환때문에..
+        if(this.storageService.get('data_backup',StorageTranscoders.STRING) == undefined){
           return true;
         }else{
           return false;
         }
       }else{
-        return true;
+        return false;
       }
     }
 
@@ -232,7 +235,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     
     // console.log('maxDate = ',maxDate);
     // console.log('minDiff = ',minDiff);
-    let filename = this.storageService.get('data_backup');
+    let filename = this.storageService.get('data_backup',StorageTranscoders.STRING);
     console.log('filename = ',filename);
     if(filename != undefined){
       console.log('maxDate = ',filename);
@@ -429,6 +432,11 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.electronService.ipcRenderer.on('SELECTFOLDER', (event: Electron.IpcMessageEvent, response: any) => {
       log.info('받음,home-page, SELECTFOLDER', response, this.uploading);
       //log.info('받음,home-page, SELECTFOLDER = ',response.directory);
+
+      this.electronService.ipcRenderer.removeListener('SELECTFOLDER', (event: Electron.IpcMessageEvent, response: any)=>{
+        log.info('SELECTFOLDER, 콜백한번만 호출되게...');
+      });
+
       if (response.directory != null) {
 
         const folderKey = this.getFolderKey(response.folderIndex);
@@ -444,13 +452,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
         }
       }
 
-      // this.electronService.ipcRenderer.removeListener('SELECTFOLDER', (event: Electron.IpcMessageEvent, response: any)=>{
-      //   log.info('SELECTFOLDER, 콜백한번만 호출되게...');
-      // });
-      this.electronService.ipcRenderer.removeAllListeners('SELECTFOLDER');
-      //  this.electronService.ipcRenderer.removeAllListeners('SELECTFOLDER', (event: Electron.IpcMessageEvent, response: any)=>{
-      //   log.info('SELECTFOLDER, 콜백한번만 호출되게...');
-      // });
     });
 
 

@@ -3,7 +3,7 @@ import {M5MemberService} from './m5/m5.member.service';
 import {M5PostService} from './m5/m5.post.service';
 
 import {ElectronService} from 'ngx-electron';
-import {LOCAL_STORAGE, StorageService} from 'ngx-webstorage-service';
+import {LOCAL_STORAGE, StorageService, StorageTranscoders} from 'ngx-webstorage-service';
 
 import * as path from 'path';
 import * as moment from 'moment';
@@ -351,11 +351,6 @@ export class UploadFiletreeService {
       if(this.member.private){
         if(response.error === null ){
 
-          // this.notification.next({
-          //   cmd: 'LOG',
-          //   message: '[' + (this.folderIndex + 1) + '] ' + ' : 파일 업로드 완료 (' + (this.addfilesToSend[this.sendIndex]) + '/' + this.addfilesToSend.length + ')'
-          // });
-
           this.sendIndex++;
           log.info('22..업로드 완료후 sendIndex = ',this.sendIndex);
           if(this.addfilesToSend.length > this.sendIndex){
@@ -376,6 +371,7 @@ export class UploadFiletreeService {
       }else{
         if(response.error === null ){ //파일업로드 완료
           log.info('파일업로드완료 , 블록체인으로 이동')
+          //main
           this.uploadManager(this.addfilesToSend[this.sendIndex], "chain-create");
         }
       }
@@ -1322,8 +1318,11 @@ export class UploadFiletreeService {
     //var size =  Math.round(item.filesize / 1024 ) ;
     
     if(item.filepath.toLowerCase().indexOf('data_backup') >= 0){
-      console.log('data_backup zip = ',item.filepath.basename());
-      backupZip = item.filepath.basename();
+      console.log('data_backup zip = ',path.basename(item.filepath));
+      // let tmp = path.basename(item.filepath);
+      // backupZip = tmp.substring(0,tmp.lastIndexOf('.'));
+      
+      backupZip = path.basename(item.filepath);
     }else{
       backupZip = 'none';
     }
