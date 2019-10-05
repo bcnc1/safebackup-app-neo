@@ -53,6 +53,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
   private alertModal: BsModalRef;
   public memberPrivate = false;
   private maxFolder;
+  private timergetTree;
+  private timerStart;
 
   constructor(
     private memberAPI: M5MemberService,
@@ -87,6 +89,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.uploading = false;
     this.memberAPI.logout();
     this.router.navigateByUrl('/');
+    this.timerClear();
   }
 
   // gotoRoot(){
@@ -194,7 +197,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
      
 
-     setTimeout(()=> {
+    this.timergetTree =  setTimeout(()=> {
         log.info('11..setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after); //after가 2이면 처음
         this.uploading = true;
         this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
@@ -287,6 +290,9 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.uploadSubscribe.unsubscribe();
   }
 
+  timerClear(){
+    clearTimeout(this.timergetTree);
+  }
 
   ngOnInit() {
     console.log('home-page, ngOnInit');
@@ -395,26 +401,26 @@ export class HomePageComponent implements OnInit, OnDestroy {
            등록된 폴더에 대해 업로드를 실행  
            맨처음 로그인하고 불림(1번만)
      ----------------------------------------------------------------*/
-     setTimeout(() => {
-      
-      // console.log('10초후 등록된 폴더에 대해 업로드를 실행 ??');
-       if(this.storageService.get('login') == true){
-         //for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
-          for (let i = 0; i < this.maxFolder; i++) {
-           this.uploading = false;
-           console.log('storedFolders = ',this.storedFolders[i]);
-           if (this.storedFolders[i] != undefined) {
-             console.log('등록된 폴더에 대해 업로드를 실행', this.storedFolders[i].length); //폴더의 이름 길이
-             console.log('home-page, member = ', this.member);
-             //this.uploadFiletreeService.upload(i, this.storedFolders[i]);
-            //this.uploadFiletreeService.getFolderTree(i, this.storedFolders[i],this.member);
-            this.onStartUploadFolder(i, 2);
-             break;
-           }
-         }
-       }
-       
-     }, 3000);  //폴더선택
+    this.timerStart = setTimeout(() => {
+        
+        // console.log('10초후 등록된 폴더에 대해 업로드를 실행 ??');
+        if(this.storageService.get('login') == true){
+          //for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
+            for (let i = 0; i < this.maxFolder; i++) {
+            this.uploading = false;
+            console.log('storedFolders = ',this.storedFolders[i]);
+            if (this.storedFolders[i] != undefined) {
+              console.log('등록된 폴더에 대해 업로드를 실행', this.storedFolders[i].length); //폴더의 이름 길이
+              console.log('home-page, member = ', this.member);
+              //this.uploadFiletreeService.upload(i, this.storedFolders[i]);
+              //this.uploadFiletreeService.getFolderTree(i, this.storedFolders[i],this.member);
+              this.onStartUploadFolder(i, 2);
+              break;
+            }
+          }
+        }
+        
+      }, 3000);  //폴더선택
 
     /*----------------------------------------------------
        *  IPC Response : Get FileTree
