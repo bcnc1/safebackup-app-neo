@@ -1315,7 +1315,8 @@ export class UploadFiletreeService {
   private uploadManager(item, type){
     let post, chainuploading, backupZip;
     this.member = this.memberAPI.isLoggedin();
-    //var size =  Math.round(item.filesize / 1024 ) ;
+    var size =  (item.filesize / 1024 ) ;
+    
     
     if(item.filepath.toLowerCase().indexOf('data_backup') >= 0){
       console.log('data_backup zip = ',path.basename(item.filepath));
@@ -1348,8 +1349,8 @@ export class UploadFiletreeService {
     if(!chainuploading){
       this.notification.next({
         cmd: 'SENDING.STARTED',
-        //message: '[' + (item.folderIndex + 1) + '] ' + item.filepath + ' 업로딩...' + size +'KB'
-        message: '[' + (item.folderIndex + 1) + '] ' + path.basename(item.filepath) + ' 업로딩...' 
+        message: '[' + (item.folderIndex + 1) + '] ' + item.filepath + ' 업로딩...' + size.toFixed(2) +'KB'
+        //message: '[' + (item.folderIndex + 1) + '] ' + path.basename(item.filepath) + ' 업로딩...' 
       });
     }
 
