@@ -983,6 +983,12 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
       console.log('업로드 성공');
       console.log('tablename = ', tableName);
       console.log('arg = ', arg);
+      if(arg.data_bakup != 'none'){
+        localStorage.setItem('data_backup',arg.data_bakup).then(()=>{
+          console.log('zip저장');
+        })
+      }
+
       knex(tableName)
       .where({id: arg.fileid})
       .update({uploadstatus: 1})

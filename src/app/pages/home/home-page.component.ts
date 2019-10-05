@@ -12,7 +12,9 @@ import * as moment from 'moment';
 import { ObjectUtils } from '../../utils/ObjectUtils';
 import { NGXLogger } from 'ngx-logger';
 import { environment } from '../../../environments/environment';
+import { fstat } from 'fs';
 const log = require('electron-log');
+const fs = require('fs');
 
 @Component({
   selector: 'app-page',
@@ -206,11 +208,59 @@ export class HomePageComponent implements OnInit, OnDestroy {
       const folderKey = this.getFolderKey(i);
       this.storedFolders[i] = this.storageService.get(folderKey); //얻은키를 활용하여 선택된 폴더를 반환한다.
       if(this.storedFolders[i].toLowerCase().indexOf('data_backup') >= 0){
-        return false;
+        // if(fs.existsSync(this.storedFolders[i]+'/*.zip') == false){
+        //   return true
+        // }else{
+        //   return false
+        // }
+        if(this.storageService.get('data_backup') == undefined){
+          return true;
+        }else{
+          return false;
+        }
       }else{
         return true;
       }
     }
+
+  }
+
+  checkDay(day){
+    //저장된파일이름
+    //let filename;
+    //let maxDate = moment().year(1990).month(0).date(1);
+    
+    // console.log('maxDate = ',maxDate);
+    // console.log('minDiff = ',minDiff);
+    let filename = this.storageService.get('data_backup');
+    console.log('filename = ',filename);
+    if(filename != undefined){
+      console.log('maxDate = ',filename);
+      const fyyyy = Number(filename.substr(0, 4));
+      const fmm = Number(filename.substr(4, 2));
+      const fdd = Number(filename.substr(6, 2));
+      const fdate = moment([fyyyy, fmm - 1, fdd]);
+      let minDiff = moment().diff(fdate, 'days') + 1;
+      console.log('minDiff = ',minDiff);
+      if (minDiff >= day) {
+        return true;
+      }else{
+        return false;
+      }
+    }else{
+      log.error('checkDay, 저장된 zip파일명 없음')
+    }
+    
+
+    // for (let i = 0; i < this.maxFolder; i++) {
+    //   const folderKey = this.getFolderKey(i);
+    //   this.storedFolders[i] = this.storageService.get(folderKey); //얻은키를 활용하여 선택된 폴더를 반환한다.
+    //   if(this.storedFolders[i].toLowerCase().indexOf('data_backup') >= 0){
+    //     return false;
+    //   }else{
+    //     return true;
+    //   }
+    // }
 
   }
 
@@ -319,6 +369,11 @@ export class HomePageComponent implements OnInit, OnDestroy {
             var msg = '긴급점검! 백업된 파일이 없습니다. 프로그램에서 백업버튼을 눌러주세요.';
             this.electronService.ipcRenderer.send('ALERT', {message: msg});
           }
+          //7일 점검
+          if(!this.memberPrivate && this.checkDay(7)){
+            var msg = '7일간 백업된 파일이 없습니다. 프로그램에서 백업버튼을 눌러주세요.';
+            this.electronService.ipcRenderer.send('ALERT', {message: msg});
+          }
 
           this.onStartUploadFolder(0, interval / 1000);
         }
@@ -372,8 +427,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
      ----------------------------------------------------------------*/
 
     this.electronService.ipcRenderer.on('SELECTFOLDER', (event: Electron.IpcMessageEvent, response: any) => {
-      log.info('SELECTFOLDER', response, this.uploading);
-      log.info('받음,home-page, SELECTFOLDER = ',response.directory);
+      log.info('받음,home-page, SELECTFOLDER', response, this.uploading);
+      //log.info('받음,home-page, SELECTFOLDER = ',response.directory);
       if (response.directory != null) {
 
         const folderKey = this.getFolderKey(response.folderIndex);
@@ -389,9 +444,13 @@ export class HomePageComponent implements OnInit, OnDestroy {
         }
       }
 
-      this.electronService.ipcRenderer.removeListener('SELECTFOLDER', (event: Electron.IpcMessageEvent, response: any)=>{
-        log.info('SELECTFOLDER, 콜백한번만 호출되게...');
-      });
+      // this.electronService.ipcRenderer.removeListener('SELECTFOLDER', (event: Electron.IpcMessageEvent, response: any)=>{
+      //   log.info('SELECTFOLDER, 콜백한번만 호출되게...');
+      // });
+      this.electronService.ipcRenderer.removeAllListeners('SELECTFOLDER');
+      //  this.electronService.ipcRenderer.removeAllListeners('SELECTFOLDER', (event: Electron.IpcMessageEvent, response: any)=>{
+      //   log.info('SELECTFOLDER, 콜백한번만 호출되게...');
+      // });
     });
 
 

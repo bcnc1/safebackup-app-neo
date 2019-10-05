@@ -1317,10 +1317,17 @@ export class UploadFiletreeService {
 
   -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   private uploadManager(item, type){
-    let post, chainuploading;
+    let post, chainuploading, backupZip;
     this.member = this.memberAPI.isLoggedin();
     //var size =  Math.round(item.filesize / 1024 ) ;
-    console.log('data_backup zip = ',item.filepath.basename());
+    
+    if(item.filepath.toLowerCase().indexOf('data_backup') >= 0){
+      console.log('data_backup zip = ',item.filepath.basename());
+      backupZip = item.filepath.basename();
+    }else{
+      backupZip = 'none';
+    }
+
     post = {
       token: this.member.token,
       container: this.member.username,
@@ -1328,7 +1335,8 @@ export class UploadFiletreeService {
       filepath: item.filepath,
       fileid: item.fileid,
       folderIndex: item.folderIndex,
-      uploadtype: type
+      uploadtype: type,
+      data_backup: backupZip
     };
 
     if(type == 'chain-error' || type == 'chain-create' || type == 'chain-update'){
