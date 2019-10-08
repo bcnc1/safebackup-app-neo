@@ -140,6 +140,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
     });
     this.storageService.set('login',false);
 
+    // this.electronService.ipcRenderer.send('SELECTFOLDER', {
+    // });
   }
 
 
@@ -283,6 +285,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
   timerClear(){
     clearTimeout(this.timergetTree);
+    clearTimeout(this.timerStart);
   }
 
   // unregCallback(){
