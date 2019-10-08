@@ -90,6 +90,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.memberAPI.logout();
     this.router.navigateByUrl('/');
     this.timerClear();
+    this.electronService.ipcRenderer.removeAllListeners('SELECTFOLDER');
   }
 
   // gotoRoot(){
@@ -114,17 +115,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
       this.rootFolderName = folder;
       this.showingFolderName = folder;
       this.onRequestFolderData(this.selectedFolderIndex);
-      // this.onRequestFolderPosts(this.selectedFolderIndex, folder, null);
-      // console.log('deviceResource = ',this.deviceResource);
-      // if (this.deviceResource == null) {
-      //   setTimeout(() => {
-      //     console.log('2초후 , onRequestFolderData');
-      //     this.onRequestFolderData(this.selectedFolderIndex);
-      //   }, 2000);
-      // } else {
-      //   console.log('onRequestFolderData');
-      //   this.onRequestFolderData(this.selectedFolderIndex);
-      // }
+ 
     } else {
       //설정한 폴더가 없다면??
       console.log('설정된 폴더가 없음');
@@ -294,6 +285,9 @@ export class HomePageComponent implements OnInit, OnDestroy {
     clearTimeout(this.timergetTree);
   }
 
+  // unregCallback(){
+  //   this.electronService.ipcRenderer.removeAllListeners('SELECTFOLDER');
+  // }
   ngOnInit() {
     console.log('home-page, ngOnInit');
     this.version = environment.VERSION;
