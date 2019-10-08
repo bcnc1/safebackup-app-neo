@@ -421,17 +421,17 @@ if (!gotTheLock) {
           .where('filename', item.fullpath)
           .then((results)=>{
             if(results.length == 0 ){
-              log.info('22..일치하는 값 없음 = results = ', results);
+              //log.info('22..일치하는 값 없음 = results = ', results);
               knex(tableName)
               .insert({filename: item.fullpath, filesize : item.size, 
                 fileupdate: item.updated, uploadstatus: 0, chainstatus: 0})
               .then(()=>{
-               log.info('일차하는 값 없어서 insert');
+              // log.info('일차하는 값 없어서 insert');
                next();
               });
             }else{
               
-              console.log('업데이트, item = ', item);
+             // console.log('업데이트, item = ', item);
   
               knex(tableName)
               .where({filename: item.fullpath}).select('id')
@@ -453,7 +453,7 @@ if (!gotTheLock) {
                       next();
                     });
                  }else{
-                  log.info('변경없음 = ',result);
+                 // log.info('변경없음 = ',result);
                   next();
                  }
               });

@@ -262,7 +262,7 @@ export class UploadFiletreeService {
        *  send는 chainuploadCb 에서 보내준다.
       ----------------------------------------------------*/
       this.electronService.ipcRenderer.on('chain-error', (event: Electron.IpcMessageEvent, response: any) => {
-        log.info('받음 chain-error = ',response.error);
+        //log.info('받음 chain-error = ',response.error);
   
         if(response.error == null ){
 
@@ -273,13 +273,13 @@ export class UploadFiletreeService {
 
           this.sendIndex++;
 
-          log.info('11..업로드 완료후 sendIndex = ',this.sendIndex);
-          log.info('11..this.chainsToSend.length = ',this.chainsToSend.length);
+          // log.info('11..업로드 완료후 sendIndex = ',this.sendIndex);
+          // log.info('11..this.chainsToSend.length = ',this.chainsToSend.length);
 
           if(this.chainsToSend.length > this.sendIndex){
             this.uploadManager(this.chainsToSend[this.sendIndex], "chain-error");
           }else{
-            log.info('22..업로드 목록으로 이동 ');
+            //log.info('22..업로드 목록으로 이동 ');
             //this.requestUploadList(event); 
             this.sendIndex = 0;
             this.electronService.ipcRenderer.send('REQ-UPLOADTREE', {
@@ -344,20 +344,20 @@ export class UploadFiletreeService {
        
       ----------------------------------------------------*/
     this.electronService.ipcRenderer.on("add-file", (event: Electron.IpcMessageEvent, response: any) => {
-      log.info('받음, 업로드,  add-file ');
+      //log.info('받음, 업로드,  add-file ');
 
-      log.info('this.member.private = ' , this.member.private)
+      //log.info('this.member.private = ' , this.member.private)
 
       if(this.member.private){
         if(response.error === null ){
 
           this.sendIndex++;
-          log.info('22..업로드 완료후 sendIndex = ',this.sendIndex);
+          //log.info('22..업로드 완료후 sendIndex = ',this.sendIndex);
           if(this.addfilesToSend.length > this.sendIndex){
-            log.info('22..다음파일업로드 addfilesToSend.length = ',this.addfilesToSend.length);
+           // log.info('22..다음파일업로드 addfilesToSend.length = ',this.addfilesToSend.length);
             this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
           }else{
-            log.info('개인계정, 업데이트 목록 요청');
+          //  log.info('개인계정, 업데이트 목록 요청');
             //this.requestUpdateList();
             this.sendIndex = 0;
 
@@ -383,7 +383,7 @@ export class UploadFiletreeService {
        
       ----------------------------------------------------*/
     this.electronService.ipcRenderer.on("chain-create", (event: Electron.IpcMessageEvent, response: any) => {
-      log.info('create proof = ',response);
+      //log.info('create proof = ',response);
 
       if(response.error == null){
 
@@ -393,9 +393,9 @@ export class UploadFiletreeService {
         });
 
         this.sendIndex++;
-        log.info('33..this.addfilesToSend.length = ',this.addfilesToSend.length);
+        //log.info('33..this.addfilesToSend.length = ',this.addfilesToSend.length);
         if(this.addfilesToSend.length > this.sendIndex){
-          log.info('블록체인업로드완료 , 파일업로드로 이동')
+         // log.info('블록체인업로드완료 , 파일업로드로 이동')
           this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
         }else{
           log.info('파일업로드완료 , 업데이트으로 이동')
@@ -459,7 +459,7 @@ export class UploadFiletreeService {
        
       ----------------------------------------------------*/
     this.electronService.ipcRenderer.on("change-file", (event: Electron.IpcMessageEvent, response: any) => {
-      console.log('받음 업데이트, change-file ');
+     // console.log('받음 업데이트, change-file ');
 
       if(this.member.private){
         if(response.error === null ){
@@ -470,8 +470,8 @@ export class UploadFiletreeService {
           });
 
           this.sendIndex++;
-          log.info('44..업데이트 완료후 sendIndex = ',this.sendIndex);
-          log.info('44..this.changefilesToSend.length = ',this.changefilesToSend.length);
+         // log.info('44..업데이트 완료후 sendIndex = ',this.sendIndex);
+        //  log.info('44..this.changefilesToSend.length = ',this.changefilesToSend.length);
           if(this.changefilesToSend.length > this.sendIndex){
             this.uploadManager(this.changefilesToSend[this.sendIndex], "change-file");
           }else{
@@ -505,8 +505,8 @@ export class UploadFiletreeService {
         this.sendIndex++;
         //console.log('11..업로드 완료후 sendIndex = ',this.sendIndex);
         if(this.changefilesToSend.length > this.sendIndex){
-          log.info('블록체인업데이트 완료 , 파일업데이트 이동')
-          log.info('this.changefilesToSend.length = ', this.changefilesToSend.length);
+         // log.info('블록체인업데이트 완료 , 파일업데이트 이동')
+        //  log.info('this.changefilesToSend.length = ', this.changefilesToSend.length);
           this.uploadManager(this.changefilesToSend[this.sendIndex], "change-file");
         }else{
           log.info('블록체인포함, 한폴더에 대한 모든 업로드/업데이트 완료');
