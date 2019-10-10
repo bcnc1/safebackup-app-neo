@@ -42,12 +42,12 @@ var knex = require('knex')({
   }
 });
 var member;
-const env = environment;
+//const env = environment;
 const  async = require("async");
 const zipper = require('zip-local');
 //console.log('knex = ',knex);
 //const storageService = LOCAL_STORAGE;
-
+const STORAGE_URL = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3'
 
 if (handleSquirrelEvent(app)) {
   // squirrel event handled and app will exit in 1000ms, so don't do anything else
@@ -131,7 +131,7 @@ function createWindow() {
  
    //kimcy: release 할때는 해당 부부을 false, 개발할때는 true
    function isDev() {
-     return true;
+     return false;
    };
  
    // The following is optional and will open the DevTools:
@@ -779,11 +779,11 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   if(arg.uploadtype == 'chain-create'){
     console.log('chain-create');
       method = 'POST';
-      url = env.CREATE;
+      url = 'http://211.252.85.59:3000/api/v1/proof/create'; //env.CREATE;
       //url = env.CREATE_DEV; //개발용
   }else{
     method = 'PUT';
-    url = env.UPDATE;
+    url = 'http://211.252.85.59:3000/api/v1/proof/update'; //env.UPDATE;
     //url = env.UPDATE_DEV;
   }
   let tableName = arg.container+':'+arg.folderIndex;
@@ -889,9 +889,10 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
     }
   }
 
+
   var options = {  
     method: 'PUT',
-    uri: env.STORAGE_URL+'/'+arg.container+'/'+ encodeURI(arg.filename), 
+    uri: STORAGE_URL+'/'+arg.container+'/'+ encodeURI(arg.filename), 
     //uri: env.STORAGE_URL+'/'+arg.container+'/'+ encodeURIComponent(arg.filename), 
     headers:{
         'X-Auth-Token': arg.token,
