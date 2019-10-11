@@ -229,7 +229,7 @@ export class UploadFiletreeService {
           this.chainsToSend.push({
             fileid:fileTree[i]['id'],
             folderIndex: this.folderIndex,
-            file: this.deviceResource.macaddress+fileTree[i]['filename'].replace(/\\/g, '/'),
+            file: this.deviceResource.macaddress+'/'+fileTree[i]['filename'].replace(/\\/g, '/'),
             filepath: fileTree[i]['filename'].replace(/\\/g, '/'),
             filesize: fileTree[i]['filesize']
           });
@@ -309,7 +309,7 @@ export class UploadFiletreeService {
         this.addfilesToSend.push({
           fileid:fileTree[i]['id'],
           folderIndex: this.folderIndex,
-          file: this.deviceResource.macaddress+fileTree[i]['filename'].replace(/\\/g, '/'),
+          file: this.deviceResource.macaddress+'/'+fileTree[i]['filename'].replace(/\\/g, '/'),
           filepath:fileTree[i]['filename'].replace(/\\/g, '/'),
           filesize:fileTree[i]['filesize']
         });
@@ -430,7 +430,7 @@ export class UploadFiletreeService {
         this.changefilesToSend.push({
           fileid:fileTree[i]['id'],
           folderIndex: this.folderIndex,
-          file: this.deviceResource.macaddress+fileTree[i]['filename'].replace(/\\/g, '/'),
+          file: this.deviceResource.macaddress+'/'+fileTree[i]['filename'].replace(/\\/g, '/'),
           filepath:fileTree[i]['filename'].replace(/\\/g, '/'),
           filesize:fileTree[i]['filesize']
         });
