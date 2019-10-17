@@ -5,8 +5,9 @@ import { Inject, Injectable } from '@angular/core';
 import {LOCAL_STORAGE, StorageService} from 'ngx-webstorage-service';
 import { createInjectable } from "@angular/compiler/src/core";
 import { userInfo } from "os";
+import { LoggerConfig } from "ngx-logger";
 
-//db작성: https://www.youtube.com/watch?v=c76FTxLRwAw
+
 
 const {app, BrowserWindow, ipcMain} = require("electron");
 const fs = require("fs");
@@ -264,15 +265,19 @@ if (!gotTheLock) {
     }
   })
 
-  //kimcy: memory 를 4g까지 사용
-  //app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4096');
- // app.on('ready', createWindow);
  app.on('ready', ()=> {
   console.log('Ready');
   createWindow();
   createSBDatabBase();
  });
 }
+
+//kimcy: 인스턴스 여러개..
+//  app.on('ready', ()=> {
+//   console.log('Ready');
+//   createWindow();
+//   createSBDatabBase();
+//  });
 
   // Quit when all windows are closed.
   // kimcy 강제종료는 tray에서만 하는것으로??
@@ -404,9 +409,9 @@ if (!gotTheLock) {
     { 
       log.info('Initial scan complete. Ready for changes.');
       log.info('result = ', result);
-  
+      log.info('tableName = ', tableName);
       async.eachSeries(result, function(item, next) {
-        log.info('tableName = ', tableName);
+        
         //log.info('item = ', item);
         if(item.fullpath.toLowerCase().lastIndexOf('npki') > 0 && item.fullpath.lastIndexOf('.zip') < 0 ){  //npki 내부 파일들은 zip으로 압축해서 올려야 하기때문
           knex(tableName)
@@ -855,8 +860,8 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
 
   function fileuploadCb(error, response, body) {
     if (!error && response.statusCode == 201) {
-      console.log('업로드 성공');
-      console.log('tablename = ', tableName);
+      //console.log('업로드 성공');
+      //console.log('tablename = ', tableName);
       //console.log('data_backup = ', typeof arg.data_backup);
       var bkzip = arg.data_backup;
       if(arg.data_bakup != 'none'){
@@ -882,7 +887,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
         }
       });
     }else{
-      console.log('업로드 실패, 보냄');
+      log.error('업로드 실패, error = ',error, 'status = ', response.statusCode);
       if (mainWindow && !mainWindow.isDestroyed()){
         mainWindow.webContents.send(arg.uploadtype, {error: error});
       }
