@@ -180,7 +180,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
   //kimcy: folderIndex 가 0이면 처음부터 시작
   onStartUploadFolder(folderIndex, after) {
-
+    //after 3이면 백업버튼?
     if (after == null) {
       after = 5;
     }
