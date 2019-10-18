@@ -6,8 +6,11 @@ import {LOCAL_STORAGE, StorageService} from 'ngx-webstorage-service';
 import {M5PostService} from '../../services/m5/m5.post.service';
 import {ObjectUtils} from '../../utils/ObjectUtils';
 import {NGXLogger} from 'ngx-logger';
+
 const request = require('request');
 const reqestProm = require('request-promise-native');
+const {dialog} = require('electron').remote;
+
 
 @Component({
   selector: 'app-login-page',
@@ -105,6 +108,10 @@ export class LoginPageComponent implements OnInit {
           storage.remove(member);
           //kimcy:windows 릴리즈 모드에서 팝업뜬다음 에디트텍스트가 입력안되는 현상이 발생
           //alert('ID/패스워드를 확인하세요.');
+          let options = {
+            message: 'ID/패스워드를 확인하세요'
+          }
+          dialog.showMessageBox(options);
       })
     }
 

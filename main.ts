@@ -746,6 +746,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   console.log('받음,main, SELECTFOLDER');
   var directory = dialog.showOpenDialog(mainWindow, {
     properties: ['openDirectory']
+
   });
 
 

@@ -108,8 +108,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
     console.log('folderKey = ', folderKey, 'folder = ', folder);
 
-    //this.logger.debug('FOLDERNAME', folder, folderKey);
- 
 
     if (folder != undefined) {
       this.rootFolderName = folder;
@@ -140,8 +138,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
     });
     this.storageService.set('login',false);
 
-    // this.electronService.ipcRenderer.send('SELECTFOLDER', {
-    // });
   }
 
 
@@ -152,7 +148,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     }
     const folderKey = this.getFolderKey(folderIndex);
     const folder = this.storageService.get(folderKey);
-  //  console.log('home-page, 22.. onRequestFolderData, folder = ',folder);
+
   }
 
 
@@ -204,13 +200,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
       const folderKey = this.getFolderKey(i);
       this.storedFolders[i] = this.storageService.get(folderKey); //얻은키를 활용하여 선택된 폴더를 반환한다.
       if(this.storedFolders[i].toLowerCase().indexOf('data_backup') >= 0){
-        // if(fs.existsSync(this.storedFolders[i]+'/*.zip') == false){
-        //   return true
-        // }else{
-        //   return false
-        // }data_backup data_backup
-        // console.log('data_backup string= ', this.storageService.get('data_backup',StorageTranscoders.STRING));
-        // console.log('data_backup json  = ', this.storageService.get('data_backup',StorageTranscoders.JSON));
         //lib..호환때문에..
         if(this.storageService.get('data_backup',StorageTranscoders.STRING) == undefined){
           return true;
