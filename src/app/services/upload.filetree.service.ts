@@ -855,16 +855,18 @@ export class UploadFiletreeService {
          var filename = this.storageService.get('data_backup',StorageTranscoders.STRING)
          console.log('filename = ',filename);
          if(filename != undefined){
+          console.log('업로드된 zip 있음 ');
           var fileLength = filename.length;
           var lastDot = filename.lastIndexOf('.')
           var fileExtension = filename.substring(lastDot+1, fileLength).toLowerCase(); 
- 
-          if(fileExtension == ".zip"){
-           backupZip = 'undefined';
-          }else{
+          console.log('fileExtension = ',fileExtension);
+          if(fileExtension == "zip"){
+           backupZip = 'not-store';
+          } /*else{
            backupZip = 'none';
-          }
+          }*/
          }else{
+          console.log('업로드된 zip 없음 ');
           backupZip = 'none';
          }
          
@@ -879,7 +881,8 @@ export class UploadFiletreeService {
       //  log.info("backupZip = ",backupZip);
       //backupZip = path.basename(item.filepath);
     }else{  //data_backup 폴더가 아닌경우..
-      backupZip = 'undefined';
+      console.log('DATA_BACKUP폴더아님 ');
+      backupZip = 'not-store';
     }
 
     post = {

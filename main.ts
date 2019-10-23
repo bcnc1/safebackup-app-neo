@@ -882,7 +882,8 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
       //console.log('tablename = ', tableName);
       //console.log('data_backup = ', typeof arg.data_backup);
       var bkzip = arg.data_backup;
-      if(arg.data_backup != 'undefined'){
+      console.log('bkzip = ', bkzip);
+      if(bkzip != 'not-store'){
         localStorage.setItem('data_backup',bkzip).then(()=>{
           console.log('zip저장');
         })
