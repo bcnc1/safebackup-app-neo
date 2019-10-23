@@ -143,6 +143,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
   onRequestFolderData(folderIndex) {
     console.log('home-page, onRequestFolderData');
+    console.log('this.deviceResource ',this.deviceResource);
     if (this.deviceResource == null) {
       this.deviceResource = { macaddress: 'MAC' };
     }
@@ -199,14 +200,20 @@ export class HomePageComponent implements OnInit, OnDestroy {
     for (let i = 0; i < this.maxFolder; i++) {
       const folderKey = this.getFolderKey(i);
       this.storedFolders[i] = this.storageService.get(folderKey); //얻은키를 활용하여 선택된 폴더를 반환한다.
+      console.log(" this.storedFolders[i] = ", this.storedFolders[i]);
       if(this.storedFolders[i].toLowerCase().indexOf('data_backup') >= 0){
         //lib..호환때문에..
-        if(this.storageService.get('data_backup',StorageTranscoders.STRING) == undefined){
+        console.log(" 저장값은?? ", this.storageService.get('data_backup',StorageTranscoders.STRING));
+        //var isZip =  this.storageService.get('data_backup',StorageTranscoders.STRING);
+        if( this.storageService.get('data_backup',StorageTranscoders.STRING)  === "none"){
+          console.log(" 긴급점검!! ");
           return true;
         }else{
+          console.log(" 긴급점검 아님 ");
           return false;
         }
       }else{
+        console.log(" databackup폴더아님 ");
         return false;
       }
     }
@@ -217,19 +224,16 @@ export class HomePageComponent implements OnInit, OnDestroy {
     //저장된파일이름
     //let filename;
     //let maxDate = moment().year(1990).month(0).date(1);
-    
-    // console.log('maxDate = ',maxDate);
-    // console.log('minDiff = ',minDiff);
+
     let filename = this.storageService.get('data_backup',StorageTranscoders.STRING);
-    console.log('filename = ',filename);
-    if(filename != undefined){
-      console.log('maxDate = ',filename);
+    log.info('checkDay => filename = ',filename);
+    if(filename != "none"){
       const fyyyy = Number(filename.substr(0, 4));
       const fmm = Number(filename.substr(4, 2));
       const fdd = Number(filename.substr(6, 2));
       const fdate = moment([fyyyy, fmm - 1, fdd]);
       let minDiff = moment().diff(fdate, 'days') + 1;
-      console.log('minDiff = ',minDiff);
+      log.info('minDiff = ',minDiff);
       if (minDiff >= day) {
         return true;
       }else{

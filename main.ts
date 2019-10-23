@@ -132,7 +132,7 @@ function createWindow() {
  
    //kimcy: release 할때는 해당 부부을 false, 개발할때는 true
    function isDev() {
-     return false;
+     return true;
    };
  
    // The following is optional and will open the DevTools:
@@ -684,6 +684,8 @@ ipcMain.on('PCRESOURCE', (event, arg) => {
   console.log('받음 main, PCRESOURCE');
   var interfaces = os.networkInterfaces();
 
+  log.info('interfaces = ',interfaces);
+
   var maps = Object.keys(interfaces)
     .map(x => interfaces[x].filter(x => x.family === 'IPv4' && !x.internal)[0])
     .filter(x => x);
@@ -692,30 +694,44 @@ ipcMain.on('PCRESOURCE', (event, arg) => {
   let macaddress = null;
 
 
+  log.info('maps =>',maps);
   if(maps != null) {
     ipaddress = maps[0].address;
     macaddress = maps[0].mac;
   }
 
-  const cpus = os.cpus();
+  log.info('ipaddress = ',ipaddress);
+  log.info('macaddress = ',macaddress);
 
 
-  const path = os.platform() === 'win32' ? 'C:/' : '/';
+  if(mainWindow && !mainWindow.isDestroyed()){
+    log.info('보냄 main, PCRESOURCE');
+    mainWindow.webContents.send("PCRESOURCE", {
+      ipaddresses: maps,
+      ipaddress: ipaddress,
+      macaddress: macaddress
+    });
+  }
 
-  checkDiskSpace(path).then((diskSpace) => {
+  //const cpus = os.cpus();
+
+
+  //const path = os.platform() === 'win32' ? 'C:/' : '/';
+
+  // checkDiskSpace(path).then((diskSpace) => {
     
-    if(mainWindow && !mainWindow.isDestroyed()){
-      console.log('보냄 main, PCRESOURCE');
-      mainWindow.webContents.send("PCRESOURCE", {
-        cpus: cpus,
-        disk: diskSpace,
-        ipaddresses: maps,
-        ipaddress: ipaddress,
-        macaddress: macaddress
-      });
-    }
+  //   if(mainWindow && !mainWindow.isDestroyed()){
+  //     log.info('보냄 main, PCRESOURCE');
+  //     mainWindow.webContents.send("PCRESOURCE", {
+  //       cpus: cpus,
+  //       disk: diskSpace,
+  //       ipaddresses: maps,
+  //       ipaddress: ipaddress,
+  //       macaddress: macaddress
+  //     });
+  //   }
 
-  });
+  // });
 
 
 });
@@ -866,7 +882,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
       //console.log('tablename = ', tableName);
       //console.log('data_backup = ', typeof arg.data_backup);
       var bkzip = arg.data_backup;
-      if(arg.data_bakup != 'none'){
+      if(arg.data_backup != 'undefined'){
         localStorage.setItem('data_backup',bkzip).then(()=>{
           console.log('zip저장');
         })

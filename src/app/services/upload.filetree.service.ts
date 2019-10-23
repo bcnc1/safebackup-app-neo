@@ -845,13 +845,41 @@ export class UploadFiletreeService {
     
     
     if(item.filepath.toLowerCase().indexOf('data_backup') >= 0){
-      console.log('data_backup zip = ',path.basename(item.filepath));
-      // let tmp = path.basename(item.filepath);
-      // backupZip = tmp.substring(0,tmp.lastIndexOf('.'));
-      
-      backupZip = path.basename(item.filepath);
-    }else{
-      backupZip = 'none';
+       //하위폴더, zip, 다른 파일이 존재함.
+        console.log('data_backup basename = ',path.basename(item.filepath));
+        console.log('data_backup zip = ',path.extname(item.filepath));
+
+       if(path.extname(item.filepath).toLowerCase() == ".zip"){
+        backupZip = path.basename(item.filepath);
+       }else{
+         var filename = this.storageService.get('data_backup',StorageTranscoders.STRING)
+         console.log('filename = ',filename);
+         if(filename != undefined){
+          var fileLength = filename.length;
+          var lastDot = filename.lastIndexOf('.')
+          var fileExtension = filename.substring(lastDot+1, fileLength).toLowerCase(); 
+ 
+          if(fileExtension == ".zip"){
+           backupZip = 'undefined';
+          }else{
+           backupZip = 'none';
+          }
+         }else{
+          backupZip = 'none';
+         }
+         
+       }
+      //  else if(this.storageService.get('data_backup',StorageTranscoders.STRING) ){
+      //   backupZip = 'undefined';
+      //  }else{
+      //   backupZip = 'none';
+      //  }
+      //  let tmp = path.basename(item.filepath);
+      //  backupZip = tmp.substring(0,tmp.lastIndexOf('.'));
+      //  log.info("backupZip = ",backupZip);
+      //backupZip = path.basename(item.filepath);
+    }else{  //data_backup 폴더가 아닌경우..
+      backupZip = 'undefined';
     }
 
     post = {
