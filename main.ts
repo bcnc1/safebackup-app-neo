@@ -132,7 +132,7 @@ function createWindow() {
  
    //kimcy: release 할때는 해당 부부을 false, 개발할때는 true
    function isDev() {
-     return true;
+     return false;
    };
  
    // The following is optional and will open the DevTools:
@@ -932,80 +932,6 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
       log.error('업로드 에러 : ',err);
     });
  }
-
-
-/*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
- *  FILE을 M5에 전송
- *  KT Storage 서버에 사용자 키를 가져오고 저장한다. promise로 구현
- *  container명은 로그인시 id로...
- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-
-//   var sendFile = function (index, formData, file, accessToken, containerName) {
-
-//   const STORAGE_URL = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3';
-//   console.log("fullpath:", file.fullpath);
-//   let paths = path.dirname(file.fullpath).split(path.sep);
-//   console.log("paths:", paths);
-//   console.log("파일명:", file.filename);
-
-//   let startTime = new Date().getTime();
-//   formData.count = file.size;
-//   formData.userData = JSON.stringify(formData.userData);
-
-
-//   function cbUpload(error, response, body) {
-//    // console.log(response);
-//     if (!error && response.statusCode == 201) {
-//       console.log('업로드 성공, 보냄, main, SENDFILE ');
-//       if(mainWindow && !mainWindow.isDestroyed()){
-//         mainWindow.webContents.send("SENDFILE", {
-//           error: null,
-//           body: body,
-//           index: index,
-//           startTime: startTime,
-//           uploadPath: encodeURI(formData.code.replace(/\\/g, '/')),
-//           endTime: new Date().getTime(),
-//           chain: formData.chain
-//         });
-//       }
-
-//     }else{
-//          console.log('업로드 실패, 보냄, main, SENDFILE  ');
-//          if (mainWindow && !mainWindow.isDestroyed()){
-//           mainWindow.webContents.send("SENDFILE", {error: error});
-//          }
-//     }
-//   }
-  
-//   if(formData.subtype === 'file'){
-//     var options = {  
-//       method: 'PUT',
-//       uri: STORAGE_URL+'/'+containerName+'/'+ encodeURI(formData.code.replace(/\\/g, '/')), 
-//       headers:{
-//           'X-Auth-Token': accessToken,
-//           'X-Object-Meta-ctime': startTime
-//       }
-//     };
-//     var upload = fs.createReadStream(file.fullpath,{highWaterMark : 256*1024});
-//     var r = reqestProm(options, cbUpload);
-    
-//     console.log('업로드 시작');
-//     upload.pipe(r).catch(function(err){
-//       console.log('terminate22');
-//     });
-//   }else{
-//     if(mainWindow && !mainWindow.isDestroyed()){
-//       mainWindow.webContents.send("SENDFILE", {
-//         error: null,
-//         body: 'folder',
-//         index: index,
-//         startTime: startTime,
-//         endTime: new Date().getTime()
-//       });
-//     }
-//   }
-// };
-
 
 
 function handleSquirrelEvent(application) {

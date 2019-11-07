@@ -25,7 +25,7 @@ const fs = require('fs');
 
 export class HomePageComponent implements OnInit, OnDestroy {
   
-  private PRIVATE_FLENGTH = 1;
+  private PRIVATE_FLENGTH = 3;
   private PUBLIC_FLENGTH =2;
   //private MAXFOLDERLENGTH = this.PRIVATE_FLENGTH + this.PUBLIC_FLENGTH;
 
@@ -242,17 +242,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     }else{
       log.error('checkDay, 저장된 zip파일명 없음')
     }
-    
 
-    // for (let i = 0; i < this.maxFolder; i++) {
-    //   const folderKey = this.getFolderKey(i);
-    //   this.storedFolders[i] = this.storageService.get(folderKey); //얻은키를 활용하여 선택된 폴더를 반환한다.
-    //   if(this.storedFolders[i].toLowerCase().indexOf('data_backup') >= 0){
-    //     return false;
-    //   }else{
-    //     return true;
-    //   }
-    // }
 
   }
 
