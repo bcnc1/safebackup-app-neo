@@ -10,12 +10,13 @@
     </div>
 
     <div class="col-sm pull-right  text-right">
-      <button type="submit" class="btn btn-info btn-sm" style="margin-right:5px;" (click)="onStartBrowser()" *ngIf="memberPrivate">
+      <button type="submit" class="btn btn-info btn-sm" style="margin-right:5px;" (click)="onStartBrowser()"
+        *ngIf="memberPrivate">
         백업관리
       </button>
       <button type="submit" class="btn btn-danger btn-sm" style="margin-right:5px;" (click)="onStartUploadFolder(0,3)">
-          백업시작
-        </button>
+        백업시작
+      </button>
       <button type="submit" class="btn btn-primary btn-sm" (click)="onLogout()">
         로그아웃
       </button>
@@ -28,41 +29,41 @@
 
   <div>
     <tabset>
-      <tab (selectTab)="onTab(0)" *ngIf="!memberPrivate"> 
-        <ng-template tabHeading >
+      <tab (selectTab)="onTab(0)" *ngIf="!memberPrivate">
+        <ng-template tabHeading>
           폴더1
-          <span  class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[0] != undefined">
+          <span class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[0] != undefined">
             {{foldersSize[0] | bytes}}
           </span>
         </ng-template>
       </tab>
 
       <tab (selectTab)="onTab(1)" *ngIf="!memberPrivate">
-        <ng-template tabHeading >
+        <ng-template tabHeading>
           폴더2
-          <span  class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[1] != undefined">
+          <span class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[1] != undefined">
             {{foldersSize[1] | bytes}}
           </span>
         </ng-template>
       </tab>
-       <tab  (selectTab)="onTab(0)" *ngIf="memberPrivate">
-        <ng-template tabHeading >
+      <tab (selectTab)="onTab(0)" *ngIf="memberPrivate">
+        <ng-template tabHeading>
           개인폴더1
           <span class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[0] != undefined">
             {{foldersSize[0] | bytes}}
           </span>
         </ng-template>
       </tab>
-      <tab  (selectTab)="onTab(1)" *ngIf="memberPrivate">
-        <ng-template tabHeading >
+      <tab (selectTab)="onTab(1)" *ngIf="memberPrivate">
+        <ng-template tabHeading>
           개인폴더2
           <span class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[1] != undefined">
             {{foldersSize[1] | bytes}}
           </span>
         </ng-template>
       </tab>
-      <tab  (selectTab)="onTab(2)" *ngIf="memberPrivate">
-        <ng-template tabHeading >
+      <tab (selectTab)="onTab(2)" *ngIf="memberPrivate">
+        <ng-template tabHeading>
           개인폴더3
           <span class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[2] != undefined">
             {{foldersSize[2] | bytes}}
@@ -74,11 +75,11 @@
 
     <div class="container mt-2" style="margin-bottom:100px">
       <div class="alert alert-dark  d-flex justify-content-between align-items-center" role="alert"
-           style="height:50px;font-size:12px;">
+        style="height:50px;font-size:12px;">
         <div>
           <span *ngIf="showingFolderName!==undefined && showingFolderName.length!=0">
             <span *ngIf="rootFolderData!=null && rootFolderData.userData.errorMessage!=null"
-                  class="badge badge-danger badge-pill">
+              class="badge badge-danger badge-pill">
               {{rootFolderData.userData.errorMessage}}
             </span>
             {{showingFolderName}}
@@ -88,35 +89,35 @@
         <div class="float-right">
 
           <button type="button" class="btn btn-secondary btn-sm" (click)="onChangeFolder(0)"
-                  *ngIf="selectedFolderIndex==0">폴더선택
+            *ngIf="selectedFolderIndex==0">폴더선택
           </button>
           <button type="button" class="btn btn-secondary btn-sm" (click)="onChangeFolder(1)"
-                  *ngIf="selectedFolderIndex==1">폴더선택
-          </button>
-          <button type="button" class="btn btn-secondary btn-sm" (click)="onChangeFolder(0)"
-                  *ngIf="selectedFolderIndex==2">폴더선택
-          </button>
-          <button type="button" class="btn btn-secondary btn-sm" (click)="onChangeFolder(1)"
-                  *ngIf="selectedFolderIndex==3">폴더선택
+            *ngIf="selectedFolderIndex==1">폴더선택
           </button>
           <button type="button" class="btn btn-secondary btn-sm" (click)="onChangeFolder(2)"
-                  *ngIf="selectedFolderIndex==4">폴더선택
+            *ngIf="selectedFolderIndex==2">폴더선택
           </button>
+         <!-- <button type="button" class="btn btn-secondary btn-sm" (click)="onChangeFolder(1)"
+            *ngIf="selectedFolderIndex==3">폴더선택
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="onChangeFolder(2)"
+            *ngIf="selectedFolderIndex==4">폴더선택
+          </button> -->
         </div>
       </div>
 
 
       <ul class="list-group" *ngIf="showingFolderName!=null">
         <!--<li class="list-group-item d-flex justify-content-between align-items-center kk-folder-item"-->
-            <!--(click)="onRequestFolderPosts(selectedFolderIndex, parentFolder)"-->
-            <!--*ngIf="rootFolderName.length<showingFolderName.length">-->
-          <!--<div><img src="assets/images/back-icon.png"/>&nbsp;뒤로</div>-->
+        <!--(click)="onRequestFolderPosts(selectedFolderIndex, parentFolder)"-->
+        <!--*ngIf="rootFolderName.length<showingFolderName.length">-->
+        <!--<div><img src="assets/images/back-icon.png"/>&nbsp;뒤로</div>-->
         <!--</li>-->
         <li class="list-group-item d-flex justify-content-between align-items-center kk-folder-item"
-            (click)="onRequestFolderPosts(selectedFolderIndex, folder.code, folder.files)"
-            *ngFor="let folder of showingFolderList">
+          (click)="onRequestFolderPosts(selectedFolderIndex, folder.code, folder.files)"
+          *ngFor="let folder of showingFolderList">
           <div>
-            <img src="assets/images/folder-icon.png"/> &nbsp; {{folder.title}}
+            <img src="assets/images/folder-icon.png" /> &nbsp; {{folder.title}}
           </div>
           <div>
             {{folder.userData.updated | date :  'yyyy/MM/dd HH:mm:ss'}}
@@ -124,7 +125,7 @@
           </div>
         </li>
         <li class="list-group-item d-flex justify-content-between align-items-center kk-file-item"
-            *ngFor="let file of showingFileList">
+          *ngFor="let file of showingFileList">
           <div>{{file.title}}</div>
           <div>{{file.userData.updated | date:'yyyy/MM/dd HH:mm:ss'}}
             <span class="badge badge-light badge-pill">{{file.userData.totalSize | bytes}}</span>
