@@ -132,7 +132,7 @@ function createWindow() {
  
    //kimcy: release 할때는 해당 부부을 false, 개발할때는 true
    function isDev() {
-     return false;
+     return true;
    };
  
    // The following is optional and will open the DevTools:
@@ -819,7 +819,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
         .where({id: arg.fileid})
         .update({chainstatus: 1})  
         .then(()=>{
-          console.log('arg.uploadtype = ',arg.uploadtype);
+          //console.log('arg.uploadtype = ',arg.uploadtype);
           mainWindow.webContents.send(arg.uploadtype, {
             error: null,
             body: body,
@@ -833,9 +833,9 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
         .where({id: arg.fileid})
         .update({chainstatus: 2})  
         .then(()=>{
-          console.log('arg.uploadtype = ',arg.uploadtype);
+          //console.log('arg.uploadtype = ',arg.uploadtype);
           if (mainWindow && !mainWindow.isDestroyed()){
-            mainWindow.webContents.send(arg.uploadtype, {error: "chain-error"});
+            mainWindow.webContents.send(arg.uploadtype, {error: "chain-error", body:body});
           }
         });
 

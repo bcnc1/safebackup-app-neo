@@ -268,7 +268,7 @@ export class UploadFiletreeService {
 
           this.notification.next({
             cmd: 'LOG',
-            message: '[' + (this.folderIndex + 1) + '] ' + ' : 전송오류 파일 업로드 완료 (' + this.sendIndex+1 + '/' + this.chainsToSend.length + ')'
+            message: '[' + (this.folderIndex + 1) + '] ' + ' :체인에러 파일 업로드 완료 (' + this.sendIndex+1 + '/' + this.chainsToSend.length + ')'
           });
 
           this.sendIndex++;
