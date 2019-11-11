@@ -351,13 +351,17 @@ export class UploadFiletreeService {
       if(this.member.private){
         if(response.error === null ){
 
+          this.notification.next({
+            cmd: 'LOG',
+            message: '[' + (this.folderIndex + 1) + '] ' + ' : 파일 업로드 완료 (' + this.sendIndex+1 + '/' + this.changefilesToSend.length + ')'
+          });
+
           this.sendIndex++;
-          //log.info('22..업로드 완료후 sendIndex = ',this.sendIndex);
+
           if(this.addfilesToSend.length > this.sendIndex){
-           // log.info('22..다음파일업로드 addfilesToSend.length = ',this.addfilesToSend.length);
             this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
           }else{
-          //  log.info('개인계정, 업데이트 목록 요청');
+            log.info('개인계정, 업로드완료, 업데이트 목록 요청');
             //this.requestUpdateList();
             this.sendIndex = 0;
 
@@ -440,7 +444,7 @@ export class UploadFiletreeService {
 
       if(this.changefilesToSend.length > 0){
         //파일 업로드 
-        log.info('처음, 업데이트, sendIndex = ', this.sendIndex);
+        log.info('업데이트 시작, sendIndex = ', this.sendIndex);
         this.uploadManager(this.changefilesToSend[this.sendIndex], "change-file");
       } else{
         //2. 업데이트 목록 요청 하고 업로드
@@ -899,9 +903,11 @@ export class UploadFiletreeService {
     if(type == 'chain-error' || type == 'chain-create' || type == 'chain-update'){
       this.electronService.ipcRenderer.send('SEND-CHAINFILE', post);
       chainuploading = true;
+      log.info('체인파일은 = ',post);
     }else{
       this.electronService.ipcRenderer.send('SEND-FILE', post); //비동기
       chainuploading = false;
+      log.info('업로드파일은 = ',post);
     }
     if(!chainuploading){
       this.notification.next({

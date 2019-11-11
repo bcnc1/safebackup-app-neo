@@ -339,7 +339,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
           log.info('다음폴더 업로드 !!');
           this.onStartUploadFolder(message.folderIndex , 5);
         } else {
-          console.log('homepage -> 모두완료 다음시간설정');
+          log.info('homepage -> 모두완료 다음시간설정');
           this.uploading = false;
           //kimcy: test code
           const minutes =  60 * getRandomInt(1, 4); //5*getRandomInt(1, 4); //60 * getRandomInt(1, 4); //1분부터 4분까지 랜덤
