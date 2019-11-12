@@ -567,7 +567,7 @@ if (!gotTheLock) {
     knex(tableName).where({
       uploadstatus: 0
     }).then((results)=>{
-      log.info(' UPLOADTREE, 조회 결과  = ', results);
+      //log.info(' UPLOADTREE, 조회 결과  = ', results);
       if(mainWindow && !mainWindow.isDestroyed()){
         log.info('보냄 UPLOADTREE, main ', results);
         mainWindow.webContents.send("UPLOADTREE", {tree:results});

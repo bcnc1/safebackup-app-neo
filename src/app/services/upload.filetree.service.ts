@@ -262,7 +262,7 @@ export class UploadFiletreeService {
        *  send는 chainuploadCb 에서 보내준다.
       ----------------------------------------------------*/
       this.electronService.ipcRenderer.on('chain-error', (event: Electron.IpcMessageEvent, response: any) => {
-        //log.info('받음 chain-error = ',response.error);
+        log.info('받음 chain-error = ',response.error);
   
         if(response.error == null ){
 
@@ -279,7 +279,7 @@ export class UploadFiletreeService {
           if(this.chainsToSend.length > this.sendIndex){
             this.uploadManager(this.chainsToSend[this.sendIndex], "chain-error");
           }else{
-            //log.info('22..업로드 목록으로 이동 ');
+            log.info('22..업로드 목록으로 이동 ');
             //this.requestUploadList(event); 
             this.sendIndex = 0;
             this.electronService.ipcRenderer.send('REQ-UPLOADTREE', {
@@ -605,13 +605,7 @@ export class UploadFiletreeService {
    requestUploadList(event){
     console.log('requestUploadList');
     log.info('업로드 목록 요청 username = ',this.member.username);
-    //log.info('선택된 폴더 = ', this.folders[this.folderIndex]);
     this.sendIndex = 0;
-    // this.electronService.ipcRenderer.send('REQ-UPLOADTREE', {
-    //   folderIndex: this.folderIndex,
-    //   username: this.member.username
-    // });
-
   }
 
    requestUpdateList(){
