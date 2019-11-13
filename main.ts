@@ -412,6 +412,14 @@ if (!gotTheLock) {
       log.info('tableName = ', tableName);
       async.eachSeries(result, function(item, next) {
         
+        localStorage.getItem('member').then((value) => {
+          //log.info('로그아웃 => ', value);
+          if(value == null){
+            result = null;
+            return;
+          }
+        });
+
         //log.info('item = ', item);
         if(item.fullpath.toLowerCase().lastIndexOf('npki') > 0 && item.fullpath.lastIndexOf('.zip') < 0 ){  //npki 내부 파일들은 zip으로 압축해서 올려야 하기때문
           knex(tableName)
@@ -444,10 +452,7 @@ if (!gotTheLock) {
                  var id = results[0]['id'];
                  var fsize = results[0]['filesize'];
                  var fupdate = results[0]['fileupdate']; //utc값으로 기록안되어 추후구현
-                //  console.log('fsize 타입 = ',typeof fsize);
-                //  console.log('item.size 타입 = ',typeof item.size);
-                 //log.info('id = ',id,  'fsize = ',fsize, 'fupdate = ',fupdate);
-                 //log.info('item.size = ',item.size,  'item.update = ',item.updated);
+                
                  if(fsize != item.size /*|| fupdate != item.updated*/){
                     knex(tableName)
                     .where({id: id})
