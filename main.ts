@@ -412,13 +412,13 @@ if (!gotTheLock) {
       log.info('tableName = ', tableName);
       async.eachSeries(result, function(item, next) {
         
-        localStorage.getItem('member').then((value) => {
-          //log.info('로그아웃 => ', value);
-          if(value == null){
-            result = null;
-            return;
-          }
-        });
+        // localStorage.getItem('member').then((value) => {
+        //   log.info('로그아웃 => ', value);
+        //   if(value === null){
+        //     result = null;
+        //     return;
+        //   }
+        // });
 
         //log.info('item = ', item);
         if(item.fullpath.toLowerCase().lastIndexOf('npki') > 0 && item.fullpath.lastIndexOf('.zip') < 0 ){  //npki 내부 파일들은 zip으로 압축해서 올려야 하기때문
@@ -427,7 +427,12 @@ if (!gotTheLock) {
             fileupdate: item.updated, uploadstatus: 1, chainstatus: 1})
           .then(()=>{
            log.info('npki폴더내 파일 처리(zip제외)');
-           next();
+           localStorage.getItem('member').then((value) => {
+             if(value != null){
+              next();
+             }
+           });
+           //next();
           });
         }else{
           knex(tableName)
@@ -439,8 +444,12 @@ if (!gotTheLock) {
               .insert({filename: item.fullpath, filesize : item.size, 
                 fileupdate: item.updated, uploadstatus: 0, chainstatus: 0})
               .then(()=>{
-              // log.info('일차하는 값 없어서 insert');
-               next();
+                localStorage.getItem('member').then((value) => {
+                  if(value != null){
+                   next();
+                  }
+                });
+               //next();
               });
             }else{
               
@@ -460,11 +469,21 @@ if (!gotTheLock) {
                       , uploadstatus: 2, /*chain: "update",*/ chainstatus: 0})
                     .then((result)=> {
                       log.info('업데이트, result = ',result);
-                      next();
+                      localStorage.getItem('member').then((value) => {
+                        if(value != null){
+                         next();
+                        }
+                      });
+                     // next();
                     });
                  }else{
                  // log.info('변경없음 = ',result);
-                  next();
+                  localStorage.getItem('member').then((value) => {
+                    if(value != null){
+                    next();
+                    }
+                  });
+                  //next();
                  }
               });
             }
@@ -623,6 +642,12 @@ if (!gotTheLock) {
 
   addFileFromDir(arg, mainWindow, (result)=>{
     log.info('폴더 트리 결과 = ',result);
+    localStorage.getItem('member').then((value) => {
+      log.info('로그아웃 => ', value);
+      if(value == null){
+        return;
+      }
+    });
     if(mainWindow && !mainWindow.isDestroyed()){
       log.info('GETFOLDERTREE => 젆송 ');
       mainWindow.webContents.send("GETFOLDERTREE", "Complete Scanning Folder");
