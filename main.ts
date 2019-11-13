@@ -132,7 +132,7 @@ function createWindow() {
  
    //kimcy: release 할때는 해당 부부을 false, 개발할때는 true
    function isDev() {
-     return false;
+     return true;
    };
  
    // The following is optional and will open the DevTools:
@@ -408,7 +408,7 @@ if (!gotTheLock) {
     .on('ready', function() 
     { 
       log.info('Initial scan complete. Ready for changes.');
-      log.info('result = ', result);
+      //log.info('result = ', result);
       log.info('tableName = ', tableName);
       async.eachSeries(result, function(item, next) {
         
@@ -880,7 +880,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   //kimcy error kt에서 응답이 null이 나와서 수정
   function fileuploadCb(error, response, body) {
     if ( response.statusCode == 201) {
-      //console.log('업로드 성공');
+      console.log('업로드 성공');
       //console.log('tablename = ', tableName);
       //console.log('data_backup = ', typeof arg.data_backup);
       var bkzip = arg.data_backup;
@@ -897,6 +897,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
       .update({uploadstatus: 1})
       .then(()=>{
         if(mainWindow && !mainWindow.isDestroyed()){
+          console.log('업로드후 db쓰기 완료 다음파일 주세요');
           mainWindow.webContents.send(arg.uploadtype, {
             error: null,
             body: body,
