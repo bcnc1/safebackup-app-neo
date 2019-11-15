@@ -6,7 +6,7 @@ import {LOCAL_STORAGE, StorageService} from 'ngx-webstorage-service';
 import { createInjectable } from "@angular/compiler/src/core";
 import { userInfo } from "os";
 import { LoggerConfig } from "ngx-logger";
-
+import * as moment from 'moment';
 
 
 const {app, BrowserWindow, ipcMain} = require("electron");
@@ -363,12 +363,11 @@ if (!gotTheLock) {
           knex.schema.createTable(tableName, function(t) {
             t.increments('id').primary();
             t.text('filename');
-           // t.string('property');  //data_bakup, npki
             t.integer('filesize');
             t.time('fileupdate',{useTz: true}); //2019-07-25T07:02:31.587Z 저장이되어야 하느데
             t.integer('uploadstatus'); //0: 초기값(업로드해야), 1: 업로드완료 2:업데이트(아직업로드안됨, 업로드되면 1)
-           // t.string('chain');
             t.integer('chainstatus'); //0: 초기값(업로드해야), 1: 업로드 완료, 2: 업로드에러 
+            t.string('time');
           }).then(()=>{
             log.info('11..callback true');
             callback(true);
@@ -412,19 +411,13 @@ if (!gotTheLock) {
       log.info('tableName = ', tableName);
       async.eachSeries(result, function(item, next) {
         
-        // localStorage.getItem('member').then((value) => {
-        //   log.info('로그아웃 => ', value);
-        //   if(value === null){
-        //     result = null;
-        //     return;
-        //   }
-        // });
 
         //log.info('item = ', item);
         if(item.fullpath.toLowerCase().lastIndexOf('npki') > 0 && item.fullpath.lastIndexOf('.zip') < 0 ){  //npki 내부 파일들은 zip으로 압축해서 올려야 하기때문
+          //var ft = moment().add(interval);
           knex(tableName)
           .insert({filename: item.fullpath, filesize : item.size, 
-            fileupdate: item.updated, uploadstatus: 1, chainstatus: 1})
+            fileupdate: item.updated, uploadstatus: 1, chainstatus: 1 , time: item.updated})
           .then(()=>{
            log.info('npki폴더내 파일 처리(zip제외)');
            localStorage.getItem('member').then((value) => {
@@ -449,43 +442,80 @@ if (!gotTheLock) {
                    next();
                   }
                 });
-               //next();
               });
             }else{
               
-             // console.log('업데이트, item = ', item);
-  
-              knex(tableName)
-              .where({filename: item.fullpath}).select('id')
-              .then((result)=>{
-                 var id = results[0]['id'];
-                 var fsize = results[0]['filesize'];
-                 var fupdate = results[0]['fileupdate']; //utc값으로 기록안되어 추후구현
-                
-                 if(fsize != item.size /*|| fupdate != item.updated*/){
-                    knex(tableName)
+             //log.info('업데이트 준비, results = ', results , 'item = ',item);
+             
+             for(var i =0; i< results.length; i++){
+
+                var id = results[i]['id'];
+                var fsize = results[i]['filesize'];
+                var fupdate = results[i]['fileupdate']; //utc값으로 기록안되어 추후구현
+                var uploadstatus = results[i]['uploadstatus'];
+
+                if(uploadstatus == 0 && fsize != item.size){
+                  //업로드 되기 전에 변경되었음 create로..
+                  knex(tableName)
                     .where({id: id})
                     .update({filesize: item.size, fileupdate: item.update
-                      , uploadstatus: 2, /*chain: "update",*/ chainstatus: 0})
-                    .then((result)=> {
-                      log.info('업데이트, result = ',result);
-                      localStorage.getItem('member').then((value) => {
-                        if(value != null){
-                         next();
-                        }
+                      , uploadstatus: 1,  chainstatus: 0}).then((result)=>{
+                        log.info('업로드 안됨 상태는 업로드 = ',item.fullpath, '결과 = ',result);
                       });
-                     // next();
+                } else if(uploadstatus == 1 && fsize != item.size){
+                  //업로드된 후 변경되었음 update..
+                  knex(tableName)
+                    .where({id: id})
+                    .update({filesize: item.size, fileupdate: item.update
+                      , uploadstatus: 2, chainstatus: 0})
+                    .then((result)=> {
+                      log.info('업로드되어있음으로 상태는 업데이트 = ',item.fullpath, '결과 = ',result);
                     });
-                 }else{
-                 // log.info('변경없음 = ',result);
-                  localStorage.getItem('member').then((value) => {
-                    if(value != null){
-                    next();
-                    }
-                  });
-                  //next();
-                 }
-              });
+
+                }else{
+                  log.error('오류 => results = ',results, 'item = ',item);
+                }
+
+             }
+             
+             //변경사항 체크 완료 
+             localStorage.getItem('member').then((value) => {
+              if(value != null){
+              next();
+              }
+            });
+
+              // knex(tableName)
+              // .where({filename: item.fullpath}).select('id')
+              // .then((result)=>{
+              //    var id = results[0]['id'];
+              //    var fsize = results[0]['filesize'];
+              //    var fupdate = results[0]['fileupdate']; //utc값으로 기록안되어 추후구현
+                
+              //    if(fsize != item.size /*|| fupdate != item.updated*/){
+              //       knex(tableName)
+              //       .where({id: id})
+              //       .update({filesize: item.size, fileupdate: item.update
+              //         , uploadstatus: 2, /*chain: "update",*/ chainstatus: 0})
+              //       .then((result)=> {
+              //         log.info('업데이트, result = ',result);
+              //         localStorage.getItem('member').then((value) => {
+              //           if(value != null){
+              //            next();
+              //           }
+              //         });
+              //        // next();
+              //       });
+              //    }else{
+              //    // log.info('변경없음 = ',result);
+              //     localStorage.getItem('member').then((value) => {
+              //       if(value != null){
+              //       next();
+              //       }
+              //     });
+              //     //next();
+              //    }
+              // });
             }
           });
         }

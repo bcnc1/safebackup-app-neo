@@ -340,17 +340,37 @@ export class HomePageComponent implements OnInit, OnDestroy {
           this.onStartUploadFolder(message.folderIndex , 5);
         } else {
           log.info('homepage -> 모두완료 다음시간설정');
+
           this.uploading = false;
           //kimcy: test code
-          const minutes =  60 * getRandomInt(1, 4); //5*getRandomInt(1, 4); //60 * getRandomInt(1, 4); //1분부터 4분까지 랜덤
+          const minutes =  60 * getRandomInt(1, 4); 
           const interval = 1000 * 60 * minutes;
           const next = moment().add(interval);
-          const str = next.format('MM월DD일 HH시 mm분');
-          this.konsoleService.sendMessage({
-            cmd: 'LOG',
-            message: str + '에 백업이 재실행됩니다.'
-          });
-          this.logger.debug(new Date(), '다음 백업 대기 업로딩? ', this.uploading);
+          
+          //서버에서 배치타임 (delete)되는 시간을 벌어주기 위해
+          if(moment().endOf('day').diff(next) < 0 ){
+            //다음날임으로 6시간 후 시작
+            log.info('다음날임으로 6시간 후 시작');
+            var nextTime = next.add(6,'hour');
+            const str = nextTime.format('MM월DD일 HH시 mm분');
+            this.konsoleService.sendMessage({
+              cmd: 'LOG',
+              message: str + '에 백업이 재실행됩니다.'
+            });
+          } else{
+            const str = next.format('MM월DD일 HH시 mm분');
+            this.konsoleService.sendMessage({
+              cmd: 'LOG',
+              message: str + '에 백업이 재실행됩니다.'
+            });
+          }
+
+          // const str = next.format('MM월DD일 HH시 mm분');
+          // this.konsoleService.sendMessage({
+          //   cmd: 'LOG',
+          //   message: str + '에 백업이 재실행됩니다.'
+          // });
+          //this.logger.debug(new Date(), '다음 백업 대기 업로딩? ', this.uploading);
           this.memberAPI.getLoginToken(this.member,this.storageService); //업로드 완료 후 토큰 갱신
 
           //긴급점검 체크

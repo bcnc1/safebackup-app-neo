@@ -146,39 +146,7 @@ export class UploadFiletreeService {
       });
     });
 
-
-
-
-    /*----------------------------------------------------
-     *  IPC Response : 예전 Get FileTree 예는 아래와 같다.
-     * (3) [{…}, {…}, {…}]
-          0:
-          filename: ".DS_Store"
-          fullpath: "/Users/kimcy/Downloads/bk2/.DS_Store"
-          size: 6148
-          type: "file"
-          __proto__: Object
-          
-          index: 3,
-          children: {children: Array(0), name: "kim", type: "folder"}
-          filename: "kim"
-          fullpath: "/Users/kimcy/Downloads/bk2/kim"
-          size: 64
-          type: "folder"
-          //하는일:
-          1. npk폴더이면 압축
-          2. 한폴더가 다 끝났으면 다음폴더
-          3. 전달 받은 파일트리로 부터 목록구성
-          4. 업로드 목록구성하고 해당폴더의 전체 사이즈 계산하야여 전달
-
-      1. 목록구성이 완료되었다는 메세지 받음
-      2. 선택된 폴더에 NPKI가 있는지 보고 있다면 zip파일을 만든다(이미만들어진 zip파일은 삭제)
-      3. 선택된 폴더의 정보 즉 dir 전체 사이즈를 알려준다.
-
-      현재 폴더트리 구성이 완료되면 업로드 시작
-      this.subject.next(this.filesToSend[0]); //processFile 호출?? 을 사용해 볼까?
-     ------------------------------------------------------------------------*/
-     this.electronService.ipcRenderer.on('GETFOLDERTREE', (event: Electron.IpcMessageEvent, response: any) => {
+    this.electronService.ipcRenderer.on('GETFOLDERTREE', (event: Electron.IpcMessageEvent, response: any) => {
       log.info('새로만든, 받음 GETFOLDERTREE, response = ',response);
 
     
@@ -298,8 +266,7 @@ export class UploadFiletreeService {
        *  IPC Response : Get UPLOADTREE
        
       ----------------------------------------------------*/
-     this.electronService.ipcRenderer.on('UPLOADTREE', (event: Electron.IpcMessageEvent, response: any) => {
-     //this.electronService.ipcRenderer.once('UPLOADTREE', (event: Electron.IpcMessageEvent, response: any) => {
+    this.electronService.ipcRenderer.on('UPLOADTREE', (event: Electron.IpcMessageEvent, response: any) => {
       log.info('받음 UPLOADTREE ');
       const fileTree = response.tree; 
 
