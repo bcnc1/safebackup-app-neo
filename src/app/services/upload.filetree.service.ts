@@ -155,16 +155,14 @@ export class UploadFiletreeService {
       //1. 블록체인 에러 목록 요청 하고 업로드
       log.info('this.member.private = ',this.member.private);
       if(this.member.private){
-        //this.requestUploadList(event);
         this.sendIndex = 0;
         this.electronService.ipcRenderer.send('REQ-UPLOADTREE', {
           folderIndex: this.folderIndex,
           username: this.member.username
         });
       }else{
-        //this.requestChainErrorList(event);
         this.sendIndex = 0;
-        this.electronService.ipcRenderer.send('REQ-CHAINTREE', {
+        this.electronService.ipcRenderer.send('REQ-CHAINTREE', { //블록체인 에러목록조회
           folderIndex: this.folderIndex,
           username: this.member.username
         });
@@ -570,20 +568,13 @@ export class UploadFiletreeService {
   }
 
    requestUploadList(event){
-    console.log('requestUploadList');
+    //console.log('requestUploadList');
     log.info('업로드 목록 요청 username = ',this.member.username);
     this.sendIndex = 0;
   }
 
    requestUpdateList(){
     log.info('업데이트 요청');
-    //log.info('선택된 폴더 = ', this.folders[this.folderIndex]);
-    // this.sendIndex = 0;
-
-    // this.electronService.ipcRenderer.send('REQ-UPDATETREE', {
-    //   folderIndex: this.folderIndex,
-    //   username: this.member.username
-    // });
  
   }
 

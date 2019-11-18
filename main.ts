@@ -367,7 +367,7 @@ if (!gotTheLock) {
             t.time('fileupdate',{useTz: true}); //2019-07-25T07:02:31.587Z 저장이되어야 하느데
             t.integer('uploadstatus'); //0: 초기값(업로드해야), 1: 업로드완료 2:업데이트(아직업로드안됨, 업로드되면 1)
             t.integer('chainstatus'); //0: 초기값(업로드해야), 1: 업로드 완료, 2: 업로드에러 
-            t.string('time');
+           // t.string('time');
           }).then(()=>{
             log.info('11..callback true');
             callback(true);
@@ -417,7 +417,7 @@ if (!gotTheLock) {
           //var ft = moment().add(interval);
           knex(tableName)
           .insert({filename: item.fullpath, filesize : item.size, 
-            fileupdate: item.updated, uploadstatus: 1, chainstatus: 1 , time: item.updated})
+            fileupdate: item.updated, uploadstatus: 1, chainstatus: 1 })
           .then(()=>{
            log.info('npki폴더내 파일 처리(zip제외)');
            localStorage.getItem('member').then((value) => {
@@ -453,28 +453,66 @@ if (!gotTheLock) {
                 var fsize = results[i]['filesize'];
                 var fupdate = results[i]['fileupdate']; //utc값으로 기록안되어 추후구현
                 var uploadstatus = results[i]['uploadstatus'];
+                var chainstatus = results[i]['chainstatus'];
 
-                if(uploadstatus == 0 && fsize != item.size){
-                  //업로드 되기 전에 변경되었음 create로..
-                  knex(tableName)
+                if(fsize != item.size){
+                  if(uploadstatus == 0){
+                    log.info('업로드 전/실패, 파일변경 = ', item.fullpath);
+                    knex(tableName)
                     .where({id: id})
-                    .update({filesize: item.size, fileupdate: item.update
-                      , uploadstatus: 1,  chainstatus: 0}).then((result)=>{
-                        log.info('업로드 안됨 상태는 업로드 = ',item.fullpath, '결과 = ',result);
+                    .update({filesize: item.size}).then((result)=>{
+                        log.info('결과 = ',result);
                       });
-                } else if(uploadstatus == 1 && fsize != item.size){
-                  //업로드된 후 변경되었음 update..
-                  knex(tableName)
+                  }else if(uploadstatus == 1 && (chainstatus == 2 || chainstatus == 0)){
+                    log.info('업로드 완료, 블록체인 실패, 파일변경 = ', item.fullpath, '체인은 = ',chainstatus);
+                    knex(tableName)
+                    .where({id: id})
+                    .update({filesize: item.size}).then((result)=>{
+                        log.info('결과 = ',result);
+                      });
+                  } else if(uploadstatus == 1 && chainstatus == 1){
+                    log.info('업데이트목록으로, 파일변경 = ', item.fullpath);
+                    knex(tableName)
                     .where({id: id})
                     .update({filesize: item.size, fileupdate: item.update
                       , uploadstatus: 2, chainstatus: 0})
                     .then((result)=> {
-                      log.info('업로드되어있음으로 상태는 업데이트 = ',item.fullpath, '결과 = ',result);
+                      log.info('결과 = ',result);
                     });
-
-                }else{
-                  log.error('오류 => results = ',results, 'item = ',item);
+                  }else{
+                    log.info('체크 => results = ',results, 'item = ',item);
+                  }
                 }
+
+
+
+                // if(uploadstatus == 0 && fsize != item.size){  
+                //   //업로드 되기 전에 변경되었음 create로..
+                //   knex(tableName)
+                //     .where({id: id})
+                //     .update({filesize: item.size, fileupdate: item.update
+                //       , uploadstatus: 1,  chainstatus: 0}).then((result)=>{
+                //         log.info('업로드 안됨 상태는 업로드 = ',item.fullpath, '결과 = ',result);
+                //       });
+                // } else if(uploadstatus == 1 && chainstatus == 2){
+
+                // }
+                
+                
+                
+                // else if(uploadstatus == 1 && fsize != item.size){
+                //   //업로드된 후 변경되었음 update..
+                //   knex(tableName)
+                //     .where({id: id})
+                //     .update({filesize: item.size, fileupdate: item.update
+                //       , uploadstatus: 2, chainstatus: 0})
+                //     .then((result)=> {
+                //       log.info('업로드되어있음으로 상태는 업데이트 = ',item.fullpath, '결과 = ',result);
+                //     });
+
+                // }else{
+                //   log.info('체크 => results = ',results, 'item = ',item);
+                // }
 
              }
              
@@ -860,8 +898,8 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
    console.log('블록체인 기록을 위한 api');
   let method, url;
 
-  if(arg.uploadtype == 'chain-create'){
-    console.log('chain-create');
+  if(arg.uploadtype == 'chain-create' || arg.uploadtype == 'chain-error'){
+    console.log('chain-create/ chain-error');
       method = 'POST';
       url = 'http://211.252.85.59:3000/api/v1/proof/create'; //env.CREATE;
       //url = env.CREATE_DEV; //개발용
