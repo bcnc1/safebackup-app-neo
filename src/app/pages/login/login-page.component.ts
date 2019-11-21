@@ -10,7 +10,7 @@ import {NGXLogger} from 'ngx-logger';
 const request = require('request');
 const reqestProm = require('request-promise-native');
 const {dialog} = require('electron').remote;
-
+const log = require('electron-log');
 
 @Component({
   selector: 'app-login-page',
@@ -120,7 +120,7 @@ export class LoginPageComponent implements OnInit {
 
   onLogin(username, password  , popup) {
     console.log('onLogin 22');
-
+    log.info('로그인 버튼 누름 , id =',username,'pw = ',password);
 
     //로그인하고 토큰 재활용은 추후에..kimcy
     const member = new Member();
@@ -143,9 +143,6 @@ export class LoginPageComponent implements OnInit {
     
   }
 
-  // onSignup() {
-  //   this.router.navigateByUrl('/signup');
-  // }
 
   ngOnInit(): void {
     

@@ -26,23 +26,20 @@ const fs = require('fs');
 export class HomePageComponent implements OnInit, OnDestroy {
   
   private PRIVATE_FLENGTH = 3;
-  private PUBLIC_FLENGTH =2;
+  private PUBLIC_FLENGTH =3;
   //private MAXFOLDERLENGTH = this.PRIVATE_FLENGTH + this.PUBLIC_FLENGTH;
 
   public version: string;
- // private board;
   public member;
   private deviceResource;
   private uploadSubscribe;
 
 
- // private accessToken;
-
   public rootFolderName;
   public rootFolderData;
   public parentFolder;
 
-  private foldersSize; // = new Array(this.MAXFOLDERLENGTH);
+  private foldersSize; 
   private storedFolders = {};
   public selectedFolderIndex = 0;
   public showingFolderName;
@@ -291,11 +288,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
       this.maxFolder = this.PUBLIC_FLENGTH;
       this.foldersSize = new Array(this.PUBLIC_FLENGTH);
     }
-    
-    //this.memberPrivate ? this.PRIVATE_FLENGTH  : this.PUBLIC_FLENGTH ;
 
     function getRandomInt(min, max) {
-     // console.log('home-page, getRandomInt');
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
@@ -405,7 +399,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
         
         // console.log('10초후 등록된 폴더에 대해 업로드를 실행 ??');
         if(this.storageService.get('login') == true){
-          //for (let i = 0; i < this.MAXFOLDERLENGTH; i++) {
             for (let i = 0; i < this.maxFolder; i++) {
             this.uploading = false;
             console.log('storedFolders = ',this.storedFolders[i]);

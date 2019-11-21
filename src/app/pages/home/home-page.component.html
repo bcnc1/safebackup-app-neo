@@ -46,6 +46,14 @@
           </span>
         </ng-template>
       </tab>
+      <tab (selectTab)="onTab(2)" *ngIf="!memberPrivate">
+        <ng-template tabHeading>
+          폴더3
+          <span class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[1] != undefined">
+            {{foldersSize[2] | bytes}}
+          </span>
+        </ng-template>
+      </tab>
       <tab (selectTab)="onTab(0)" *ngIf="memberPrivate">
         <ng-template tabHeading>
           개인폴더1
