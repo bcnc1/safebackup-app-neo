@@ -1025,13 +1025,20 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
     }
   };
 
-  var upload = fs.createReadStream(arg.filepath,{highWaterMark : 256*1024});
+  try{
+    var upload = fs.createReadStream(arg.filepath,{highWaterMark : 256*1024});
     var r = reqestProm(options, fileuploadCb);
+    upload.pipe(r);
+  }catch(err){
+    log.error('업로드 에러 : ',err);
+  }
+  // var upload = fs.createReadStream(arg.filepath,{highWaterMark : 256*1024});
+  //   var r = reqestProm(options, fileuploadCb);
     
-    console.log('11..업로드 시작');
-    upload.pipe(r).catch(function(err){
-      log.error('업로드 에러 : ',err);
-    });
+  //   console.log('11..업로드 시작');
+  //   upload.pipe(r).catch(function(err){
+  //     log.error('업로드 에러 : ',err);
+  //   });
  }
 
 
