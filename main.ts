@@ -382,6 +382,7 @@ if (!gotTheLock) {
 
  }
 
+ const MaxByte = 5*1024*1024*1024;
  function addFileFromDir(arg, window, callback){
   console.log('addFileFromDir => folderIndex = ', arg);
   var tableName = arg.username+':'+arg.folderIndex;
@@ -433,16 +434,31 @@ if (!gotTheLock) {
           .then((results)=>{
             if(results.length == 0 ){
               //log.info('22..일치하는 값 없음 = results = ', results);
-              knex(tableName)
-              .insert({filename: item.fullpath, filesize : item.size, 
-                fileupdate: item.updated, uploadstatus: 0, chainstatus: 0})
-              .then(()=>{
-                localStorage.getItem('member').then((value) => {
-                  if(value != null){
-                   next();
-                  }
+              //5g이상은 업로드로 처리
+              if(item.size >= MaxByte){
+                  knex(tableName)
+                .insert({filename: item.fullpath, filesize : item.size, 
+                  fileupdate: item.updated, uploadstatus: 1, chainstatus: 1})
+                .then(()=>{
+                  localStorage.getItem('member').then((value) => {
+                    if(value != null){
+                    next();
+                    }
+                  });
                 });
-              });
+              }else{
+                knex(tableName)
+                .insert({filename: item.fullpath, filesize : item.size, 
+                  fileupdate: item.updated, uploadstatus: 0, chainstatus: 0})
+                .then(()=>{
+                  localStorage.getItem('member').then((value) => {
+                    if(value != null){
+                     next();
+                    }
+                  });
+                });
+              }
+              
             }else{
               
              //log.info('업데이트 준비, results = ', results , 'item = ',item);
@@ -472,13 +488,22 @@ if (!gotTheLock) {
                       });
                   } else if(uploadstatus == 1 && chainstatus == 1){
                     log.info('업데이트목록으로, 파일변경 = ', item.fullpath);
-                    knex(tableName)
-                    .where({id: id})
-                    .update({filesize: item.size, fileupdate: item.update
-                      , uploadstatus: 2, chainstatus: 0})
-                    .then((result)=> {
-                      log.info('결과 = ',result);
-                    });
+                    if(item.size < MaxByte){
+                      knex(tableName)
+                      .where({id: id})
+                      .update({filesize: item.size, fileupdate: item.update
+                        , uploadstatus: 2, chainstatus: 0})
+                      .then((result)=> {
+                        log.info('결과 = ',result);
+                      });
+                    }
+                    // knex(tableName)
+                    // .where({id: id})
+                    // .update({filesize: item.size, fileupdate: item.update
+                    //   , uploadstatus: 2, chainstatus: 0})
+                    // .then((result)=> {
+                    //   log.info('결과 = ',result);
+                    // });
                   }else{
                     log.info('체크 => results = ',results, 'item = ',item);
                   }

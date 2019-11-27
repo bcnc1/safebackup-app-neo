@@ -188,41 +188,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
      const folder = this.storageService.get(folderKey);  //폴더키로 조회하면 선택한 폴더를 스토리지로 부터 얻을 수 있다.
      log.info('home-page onStartUploadFolder = ', folder, 'folderKey = ', folderKey);
 
-     
-
-    // if(after == 3){ //폴더를 선택할 경우
-    //   this.timergetTree =  setTimeout(()=> {
-    //     //log.info('11..setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after);
-    //     log.info('fscan = ', this.storageService.get('fscan'));
-    //     if(this.storageService.get('fscan') === 'start'){
-    //       //다음번 5초후에..
-    //       if(folderIndex == 1){
-    //           this.timergetTreeInterval1 = setInterval(()=> {
-    //             this.uploading = true;
-    //             this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
-    //         },5000);
-    //       }else if(folderIndex == 2){
-    //           this.timergetTreeInterval2 = setInterval(()=> {
-    //             this.uploading = true;
-    //             this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
-    //         },5000);
-    //       }
-            
-  
-    //     }else{
-    //       this.uploading = true;
-    //       this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
-    //     }
-        
-    //  }, after * 1000);  
-    // }else{
-    //    this.timergetTree =  setTimeout(()=> {
-    //     //log.info('11..setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after); //after가 2이면 처음
-    //     this.uploading = true;
-    //     this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
-    //  }, after * 1000);  
-    // }
-
 
     this.timergetTree =  setTimeout(()=> {
         //log.info('11..setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after); //after가 2이면 처음
@@ -236,27 +201,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
         // this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
      }, after * 1000);  
 
-    // log.info('fscan = ', this.storageService.get('fscan'));
-    // if(after == 3 && this.storageService.get('fscan') == 'start'){
-    //   clearTimeout(this.timergetTree);
-      
-    // }
-
-
-    // if(this.storageService.get('fscan',StorageTranscoders.STRING) === "end"){
-    //  // clearTimeout(this.timergetTree);
-    //   this.timergetTree =  setTimeout(()=> {
-    //       log.info('11..setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after); //after가 2이면 처음
-    //       this.uploading = true;
-    //       this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
-    //   }, after * 1000);  
-    // }else{
-    // //   this.timergetTree =  setTimeout(()=> {
-    // //     log.info('11..setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after); //after가 2이면 처음
-    // //     this.uploading = true;
-    // //     this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
-    // //  }, after * 1000);  
-    // }
      
   }
 
