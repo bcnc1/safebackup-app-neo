@@ -695,13 +695,13 @@ if (!gotTheLock) {
 
  ipcMain.on("GETFOLDERTREE", (event, arg) => {
   
-  log.info('받음, GETFOLDERTREE, main');
+  log.info('받음, GETFOLDERTREE, arg = ',arg);
   if (arg.path == null) {  //이게 없으면 watcher동작 안함
     console.log('arg.path == null');
     return;
   }
 
-  log.info('선택한 폴더는 = ', arg.path);
+  //log.info('선택한 폴더는 = ', arg.path);
   //zip파일 생성
   if(arg.path.toLowerCase().lastIndexOf('npki') > 0){
     log.info('zip파일생성');
@@ -716,6 +716,11 @@ if (!gotTheLock) {
         return;
       }
     });
+
+    localStorage.setItem('fscan','end').then(()=>{
+      log.info('폴더스캔완료');
+    })
+
     if(mainWindow && !mainWindow.isDestroyed()){
       log.info('GETFOLDERTREE => 젆송 ');
       mainWindow.webContents.send("GETFOLDERTREE", "Complete Scanning Folder");
@@ -928,7 +933,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
         });
       
     }else{
-       console.log('chain응답 실패 = ',error); 
+       log.error('chain응답 실패 = ',error, 'info = ',arg); 
        knex(tableName)
         .where({id: arg.fileid})
         .update({chainstatus: 2})  
@@ -943,9 +948,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   }
   
 
-  // console.log('arg.container = ',typeof arg.container);
-  // console.log('arg.filename = ',typeof arg.filename);
-  console.log('reqestProm 호출 method = ',method);
+  //console.log('reqestProm 호출 method = ',method);
   var options = {  
     method: method,
     uri: url, 
@@ -986,7 +989,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
       if(bkzip != 'not-store'){
         localStorage.setItem('data_backup',bkzip).then(()=>{
           console.log('zip저장');
-        })
+        });
       }
 
 
@@ -1007,7 +1010,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
         }
       });
     }else{
-      log.error('업로드 실패, error = ',error, 'status = ', response.statusCode);
+      log.error('업로드 실패, error = ',error, 'status = ', response.statusCode, 'info = ',arg);
       if (mainWindow && !mainWindow.isDestroyed()){
         mainWindow.webContents.send(arg.uploadtype, {error: response.statusCode});
       }

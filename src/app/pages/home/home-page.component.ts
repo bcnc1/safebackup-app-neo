@@ -52,6 +52,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
   private maxFolder;
   private timergetTree;
   private timerStart;
+  private timergetTreeInterval1;
+  private timergetTreeInterval2;
 
   constructor(
     private memberAPI: M5MemberService,
@@ -173,6 +175,10 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
 
   //kimcy: folderIndex 가 0이면 처음부터 시작
+  //case1: 폴더선택시: folderIndex: 선택한 폴더, after: 3
+  //case2: 자동로그인시: folderIndex: 0, after: 2
+  //case3: 업로드완료: folderIndex: 0, after: 1~4시간사이 랜덤
+  //case4: 업로드완료 후 다음폴더: folderIndex: 다음폴더, after: 5
   onStartUploadFolder(folderIndex, after) {
     //after 3이면 백업버튼?
     if (after == null) {
@@ -184,11 +190,73 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
      
 
+    // if(after == 3){ //폴더를 선택할 경우
+    //   this.timergetTree =  setTimeout(()=> {
+    //     //log.info('11..setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after);
+    //     log.info('fscan = ', this.storageService.get('fscan'));
+    //     if(this.storageService.get('fscan') === 'start'){
+    //       //다음번 5초후에..
+    //       if(folderIndex == 1){
+    //           this.timergetTreeInterval1 = setInterval(()=> {
+    //             this.uploading = true;
+    //             this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
+    //         },5000);
+    //       }else if(folderIndex == 2){
+    //           this.timergetTreeInterval2 = setInterval(()=> {
+    //             this.uploading = true;
+    //             this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
+    //         },5000);
+    //       }
+            
+  
+    //     }else{
+    //       this.uploading = true;
+    //       this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
+    //     }
+        
+    //  }, after * 1000);  
+    // }else{
+    //    this.timergetTree =  setTimeout(()=> {
+    //     //log.info('11..setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after); //after가 2이면 처음
+    //     this.uploading = true;
+    //     this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
+    //  }, after * 1000);  
+    // }
+
+
     this.timergetTree =  setTimeout(()=> {
-        log.info('11..setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after); //after가 2이면 처음
-        this.uploading = true;
-        this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
-     }, after * 1000);  //보통은 로그인후 3초후에 시작, 여기서 시간값을 바꾸면 시작값이 안 맞는다.(다음폴더는 5초후에), 백업시작버튼누르면 3초후에, 다음번은 1~4시간안에
+        //log.info('11..setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after); //after가 2이면 처음
+
+        log.info('fscan = ', this.storageService.get('fscan'));
+        if(this.storageService.get('fscan') != 'start' || this.storageService.get('fscan',StorageTranscoders.STRING) === "end"){
+          this.uploading = true;
+          this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
+        }
+        // this.uploading = true;
+        // this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
+     }, after * 1000);  
+
+    // log.info('fscan = ', this.storageService.get('fscan'));
+    // if(after == 3 && this.storageService.get('fscan') == 'start'){
+    //   clearTimeout(this.timergetTree);
+      
+    // }
+
+
+    // if(this.storageService.get('fscan',StorageTranscoders.STRING) === "end"){
+    //  // clearTimeout(this.timergetTree);
+    //   this.timergetTree =  setTimeout(()=> {
+    //       log.info('11..setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after); //after가 2이면 처음
+    //       this.uploading = true;
+    //       this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
+    //   }, after * 1000);  
+    // }else{
+    // //   this.timergetTree =  setTimeout(()=> {
+    // //     log.info('11..setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after); //after가 2이면 처음
+    // //     this.uploading = true;
+    // //     this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
+    // //  }, after * 1000);  
+    // }
      
   }
 
@@ -433,7 +501,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
       //log.info('받음,home-page, SELECTFOLDER = ',response.directory);
 
       this.electronService.ipcRenderer.removeListener('SELECTFOLDER', (event: Electron.IpcMessageEvent, response: any)=>{
-        log.info('SELECTFOLDER, 콜백한번만 호출되게...');
+        //log.info('SELECTFOLDER, 콜백한번만 호출되게...');
       });
 
       if (response.directory != null) {

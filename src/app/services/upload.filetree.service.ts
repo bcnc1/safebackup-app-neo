@@ -23,62 +23,6 @@ const {app} = require("electron");
 const zipper = require('zip-local');
 
 
-//  function getObjList(containername, token,  marker, list) {
-    
-    
-//   // console.log('lnitObjList = ',containername, 'token = ',token,
-//   //             'marker = ',marker,'list = ',list);
-              
-//   var options = {
-//       uri: M5MemberService.s3Storage+'/'+containername+'?format=json'
-//            +'&limit='+1000+'&marker='+marker,
-//       headers: {
-//         'X-Auth-Token': token
-//       }
-//   };
-//   // Return new promise 
-//   return new Promise(function(resolve, reject) {
-//     // Do async job
-//       request.get(options, function(error, response, body) {
-//         if (!error && (response.statusCode == 200)){
-//           var objCountInContainer = parseInt(response.headers['x-container-object-count']);
-//           console.log("목록 : count : " + objCountInContainer);
-
-//           if(objCountInContainer <= 1000) {
-//             // one time
-//             resolve(body);
-//           }else {
-//             var partiallist;
-            
-//             list += body;
-//             list = list.replace("][", ",").replace(",]", "]");
-//             console.log('1000개 이상 = ',list);
-//             partiallist = JSON.parse(body);
-
-//             if(partiallist.length == 0) {
-//               // console.log("file list : " + list);
-//               partiallist = JSON.parse(list);
-//               console.log("my file list count : " + partiallist.length);
-//               resolve(list);
-//             }
-//             else {
-//               marker = partiallist[partiallist.length-1].name; // the last
-//               console.log('재귀함수 호출');
-//               resolve(getObjList(containername, token, marker, list));
-//               //console.log('this = ', typeof this);
-//               //resolve(['recursive', marker, list, this]);
-//             }
-//           }
-//         }else if (!error && (response.statusCode == 404 || response.statusCode == 204)) {
-//             resolve(list);
-//         }else{
-//           reject(error);
-//         } 
-//       });
-//   });
-// }
-
-
 @Injectable()
 export class UploadFiletreeService {
 
@@ -117,10 +61,6 @@ export class UploadFiletreeService {
     this.member;
     console.log('dd..맴버 = ',this.member);
 
-    //this.fillFollders();
-   
-    //this.board = this.storageService.get('board');
-    //this.accessToken = this.storageService.get('accessToken');
 
     this.notification = new Subject();
     this.subject = new Subject();
@@ -530,19 +470,19 @@ export class UploadFiletreeService {
    올바른 폴더를 올리기 위해서...
    일단 사용안함.
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-   fillFollders() {
-    //console.log('fillFollders ');
-   // this.folders = new Array(4);
+  //  fillFollders() {
+  //   //console.log('fillFollders ');
+  //  // this.folders = new Array(4);
 
 
-    // for (let i = 0; i < 4; i++) {
-    //   this.folders[i] = {
-    //     path: this.storageService.get(this.getFolderKey(i))
-    //   };
-    // }
+  //   // for (let i = 0; i < 4; i++) {
+  //   //   this.folders[i] = {
+  //   //     path: this.storageService.get(this.getFolderKey(i))
+  //   //   };
+  //   // }
 
-    //console.log('this.folders = ',this.folders);
-  }
+  //   //console.log('this.folders = ',this.folders);
+  // }
 
   getFolderPath(folderIndex) {
     return this.storageService.get(this.getFolderKey(folderIndex));
@@ -587,82 +527,6 @@ export class UploadFiletreeService {
 
     return 'folder:' + this.member.username + ':' + folderIndex;
   }
-
-  //kimcy
-  // getContainerList(storage, callback){
-   
-  //    console.log('getContainerList');
-  //    var list = "";
-  //    this.member = storage.get('member');
-  //    console.log('44..맴버 = ',this.member);
-  //   if(this.member == undefined){
-  //     console.log('이경우는 어딜까??')
-  //     return callback(false);
-  //   }
-  //   const token = this.member.token;
-  //   var contaniername = this.member.username.replace(/"/g, '').replace(/"/g, '');
-  //   var getObjListPromise = getObjList(contaniername, token,  "", list)
-  //   //console.log('getObjListPromise = ', typeof getObjListPromise);
-
-  //   getObjListPromise.then(function(result){
-
-  //     console.log('결과 = ', result);
-  //     storage.set('list',result);
-  //     return callback(true);
-  //   },function(error){
-  //     console.log('목록가져오기 실패 = ',error);
-  //     return callback(false);
-  //   });
-  //   //var initializePromise = this.initialize(contaniername, this.member.token);
-
-  //   // initializePromise.then(function(result) {
-  //   //    if(result === 'again'){
-  //   //       var againMember = storage.get('member');
-  //   //       var againContanier = againMember.username.replace(/"/g, '').replace(/"/g, '');
-  //   //       var againToken = againMember.token;
-  //   //       var options = {
-  //   //         uri: M5MemberService.s3Storage+'/'+againContanier+'?format=json',
-  //   //         headers: {
-  //   //           'X-Auth-Token': againToken
-  //   //         }
-  //   //       };
-  //   //       request.get(options, function(err, resp, body) {
-  
-  //   //           if(resp.statusCode == 200){
-  //   //             console.log('2번째 목록얻어오기 성공');
-  //   //             console.log(body);
-  //   //             //resolve([resp.headers,body]);  //배열로 멀티값전달
-  //   //             //storage.set('list',body);
-  //   //           }else if(resp.statusCode == 204){
-  //   //           console.log('처음 목록얻어오기 성공');
-  //   //           storage.set('list',"No Content");
-  //   //           }else{
-  //   //               console.log('2번째 목록얻어오기 실패 = ',err);
-  //   //           }
-  //   //       });
-
-  //   //    }else if(result === "No Content"){
-  //   //     storage.set('list',result);
-  //   //    // console.log("11..결과 body :",storage.get('list'));
-  //   //     return callback(true);
-  //   //    } else{
-  //   //       if(result[0] <= PAGE_COUNT){
-  //   //         console.log('result[1] = ',result[1]);
-  //   //         storage.set('list',result[1]);
-  //   //         return callback(true);;
-  //   //       }else{
-
-  //   //       }
-  //   //    }
-
-  //   // }, function(err) {
-  //   //     console.log(err);
-  //   //     return callback(false);
-
-  //   // })
-
-  // }
-
 
   public setUploadingStatus(set){
     this.uploading = set;
@@ -855,11 +719,11 @@ export class UploadFiletreeService {
     if(type == 'chain-error' || type == 'chain-create' || type == 'chain-update'){
       this.electronService.ipcRenderer.send('SEND-CHAINFILE', post);
       chainuploading = true;
-      log.info('체인파일은 = ',post);
+      //log.info('체인파일은 = ',post);
     }else{
       this.electronService.ipcRenderer.send('SEND-FILE', post); //비동기
       chainuploading = false;
-      log.info('업로드파일은 = ',post);
+      //log.info('업로드파일은 = ',post);
     }
     if(!chainuploading){
       this.notification.next({
@@ -877,11 +741,11 @@ export class UploadFiletreeService {
     this.uploading = true;
     this.folderIndex = folderIndex;
     //this.folders[folderIndex].path = fullpath;
-    console.log('받은 member = ',member);
+    //console.log('받은 member = ',member);
     this.member = member;
-    console.log('this.member = ',this.member);
+    //console.log('this.member = ',this.member);
 
-    console.log('getFolderTree, fullpath = ',fullpath);
+    log.info('getFolderTree, fullpath = ',fullpath);
 
     if(fullpath == undefined){
       this.uploading = false;
@@ -904,7 +768,9 @@ export class UploadFiletreeService {
           username: member.username,
           path: fullpath
         });
+
       }
+      this.storageService.set('fscan','start');
     }
 
   }
