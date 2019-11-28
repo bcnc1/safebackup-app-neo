@@ -21,7 +21,7 @@ const log = require('electron-log');
 const PAGE_COUNT = 1000;
 const {app} = require("electron");
 const zipper = require('zip-local');
-
+const reqestProm = require('request-promise-native')
 
 @Injectable()
 export class UploadFiletreeService {
@@ -149,8 +149,7 @@ export class UploadFiletreeService {
           this.uploadManager(this.chainsToSend[this.sendIndex], "chain-error");
         } else{
           //2. 업로드 목록 요청 하고 업로드
-          log.info('11..업로드 목록으로 이동 ');
-          //this.requestUploadList(event); 
+          //log.info('11..업로드 목록으로 이동 ');
           this.sendIndex = 0;
           this.electronService.ipcRenderer.send('REQ-UPLOADTREE', {
             folderIndex: this.folderIndex,
@@ -186,7 +185,6 @@ export class UploadFiletreeService {
             this.uploadManager(this.chainsToSend[this.sendIndex], "chain-error");
           }else{
             log.info('22..업로드 목록으로 이동 ');
-            //this.requestUploadList(event); 
             this.sendIndex = 0;
             this.electronService.ipcRenderer.send('REQ-UPLOADTREE', {
               folderIndex: this.folderIndex,
@@ -219,8 +217,7 @@ export class UploadFiletreeService {
           filesize:fileTree[i]['filesize']
         });
       }
-      
-      //log.info('addfilesToSend = ',this.addfilesToSend);
+
 
       if(this.addfilesToSend.length > 0){
         //파일 업로드 
@@ -230,7 +227,6 @@ export class UploadFiletreeService {
       } else{
         //2. 업데이트 목록 요청 하고 업로드
         log.info('목록없음으로, 업데이트 목록 요청');
-        //this.requestUpdateList();
         this.sendIndex = 0;
 
         this.electronService.ipcRenderer.send('REQ-UPDATETREE', {
@@ -267,7 +263,7 @@ export class UploadFiletreeService {
             this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
           }else{
             log.info('개인계정, 업로드완료, 업데이트 목록 요청');
-            //this.requestUpdateList();
+
             this.sendIndex = 0;
 
             this.electronService.ipcRenderer.send('REQ-UPDATETREE', {
@@ -276,6 +272,11 @@ export class UploadFiletreeService {
             });
           }
   
+        }else{
+          log.error('업로드 에러 = ', response.error);
+          if(response.error == '403' || response.error == 403){
+            this.getNewToken();
+          } 
         }
       }else{
         if(response.error === null ){ //파일업로드 완료
@@ -308,7 +309,7 @@ export class UploadFiletreeService {
           this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
         }else{
           log.info('파일업로드완료 , 업데이트으로 이동')
-          //this.requestUpdateList();
+
           this.sendIndex = 0;
 
           this.electronService.ipcRenderer.send('REQ-UPDATETREE', {
@@ -492,19 +493,7 @@ export class UploadFiletreeService {
    requestChainErrorList(event){
     console.log('requestChainErrorList');
     log.info('블록체인 업로드 실패 목록 요청');
-    //log.info('선택된 폴더 = ', this.folders[this.folderIndex]);
-
     this.sendIndex = 0;
-    // this.electronService.ipcRenderer.send('REQ-CHAINTREE', {
-    //   folderIndex: this.folderIndex,
-    //   username: this.member.username
-    // });
-    // event.sender.send('REQ-CHAINTREE', {
-    //     folderIndex: this.folderIndex,
-    //     username: this.member.username
-    //   });
-
-
   }
 
    requestUploadList(event){
@@ -519,78 +508,78 @@ export class UploadFiletreeService {
   }
 
   //스토리지에 저장된 폴더의 키를 반환한다.
-  private getFolderKey(folderIndex) {
+private getFolderKey(folderIndex) {
 
-    this.member = this.memberAPI.isLoggedin();
+  this.member = this.memberAPI.isLoggedin();
 
-   // console.log('getFolderKey => 맴버 ', this.member);
+  // console.log('getFolderKey => 맴버 ', this.member);
 
-    return 'folder:' + this.member.username + ':' + folderIndex;
-  }
+  return 'folder:' + this.member.username + ':' + folderIndex;
+}
 
-  public setUploadingStatus(set){
-    this.uploading = set;
-  }
+public setUploadingStatus(set){
+  this.uploading = set;
+}
 
-  public setUploadMember(set){
-    this.member = set;
-  }
+public setUploadMember(set){
+  this.member = set;
+}
 
   
 
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    *  Process Tree to File list to send
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-  private processTreeElement(folderIndex, fileItem) {
-    console.log('uppload.filetree, processTreeElement => folderIndex :',folderIndex);
-    console.log('fileItem :',fileItem); //하나의 파일
-    console.log('fileItem 타입 :',fileItem.type); //하나의 파일
-    console.log('filesToSend :',this.filesToSend);  //어디서 값을 넣어줬을끼?, 현재는 배열로 폴더에 있는 파일들을 가르킨다.
-    let size = 0;
+  // private processTreeElement(folderIndex, fileItem) {
+  //   console.log('uppload.filetree, processTreeElement => folderIndex :',folderIndex);
+  //   console.log('fileItem :',fileItem); //하나의 파일
+  //   console.log('fileItem 타입 :',fileItem.type); //하나의 파일
+  //   console.log('filesToSend :',this.filesToSend);  //어디서 값을 넣어줬을끼?, 현재는 배열로 폴더에 있는 파일들을 가르킨다.
+  //   let size = 0;
     
-    if (this.filesToSend == null) {
-      this.filesToSend = [];
-    }
+  //   if (this.filesToSend == null) {
+  //     this.filesToSend = [];
+  //   }
 
-    if (fileItem.type === 'folder') {
-      console.log('folder');
-      /*---------------------------------------------------------------
-       * 폴더
-       *---------------------------------------------------------------*/
-      for (const c in fileItem.children) {
-        if (fileItem.children.hasOwnProperty(c)) {
-          size += this.processTreeElement(folderIndex, fileItem.children[c]);
-        }
-      }
+  //   if (fileItem.type === 'folder') {
+  //     console.log('folder');
+  //     /*---------------------------------------------------------------
+  //      * 폴더
+  //      *---------------------------------------------------------------*/
+  //     for (const c in fileItem.children) {
+  //       if (fileItem.children.hasOwnProperty(c)) {
+  //         size += this.processTreeElement(folderIndex, fileItem.children[c]);
+  //       }
+  //     }
 
-      this.filesToSend.push({
-        folderIndex: folderIndex,
-        index: this.filesToSend.length,
-        file: fileItem,
-        size: size
-      });
+  //     this.filesToSend.push({
+  //       folderIndex: folderIndex,
+  //       index: this.filesToSend.length,
+  //       file: fileItem,
+  //       size: size
+  //     });
 
-      // const used1 = process.memoryUsage().heapUsed / 1024 / 1024;
-      // console.log(`22 ..The script uses approximately ${Math.round(used1 * 100) / 100} MB`);
-      return size;
+  //     // const used1 = process.memoryUsage().heapUsed / 1024 / 1024;
+  //     // console.log(`22 ..The script uses approximately ${Math.round(used1 * 100) / 100} MB`);
+  //     return size;
 
-    } else if (fileItem.type === 'file') {
-      /*---------------------------------------------------------------
-       * 파일
-       *---------------------------------------------------------------*/
-      this.filesToSend.push({
-        folderIndex: folderIndex,
-        index: this.filesToSend.length,
-        folder: path.basename(fileItem.fullpath),
-        file: fileItem
-      });
+  //   } else if (fileItem.type === 'file') {
+  //     /*---------------------------------------------------------------
+  //      * 파일
+  //      *---------------------------------------------------------------*/
+  //     this.filesToSend.push({
+  //       folderIndex: folderIndex,
+  //       index: this.filesToSend.length,
+  //       folder: path.basename(fileItem.fullpath),
+  //       file: fileItem
+  //     });
 
-      // const used = process.memoryUsage().heapUsed / 1024 / 1024;
-      // console.log(`11..The script uses approximately ${Math.round(used * 100) / 100} MB`);
-      size += fileItem.size;
-    }
-    return size;
-  }
+  //     // const used = process.memoryUsage().heapUsed / 1024 / 1024;
+  //     // console.log(`11..The script uses approximately ${Math.round(used * 100) / 100} MB`);
+  //     size += fileItem.size;
+  //   }
+  //   return size;
+  // }
 
   private gotoNext() {
     log.info('gotoNext , folderIndex = ', this.folderIndex);
@@ -604,56 +593,87 @@ export class UploadFiletreeService {
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    *  다음 파일 보내기
    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-  private gotoNextFile(index) {
-    //index는 폴더 인덱스
-    log.warn('gotoNextFile , 파일갯수 : ', this.filesToSend.length);
-    log.warn('gotoNextFile , filesToSend 사이즈 : ', this.filesToSend);
-    log.warn('gotoNextFile, 폴더인덱스 : ', index);  //process.getHeapStatistics().usedHeapSize
+  // private gotoNextFile(index) {
+  //   //index는 폴더 인덱스
+  //   log.warn('gotoNextFile , 파일갯수 : ', this.filesToSend.length);
+  //   log.warn('gotoNextFile , filesToSend 사이즈 : ', this.filesToSend);
+  //   log.warn('gotoNextFile, 폴더인덱스 : ', index);  //process.getHeapStatistics().usedHeapSize
 
-    //console.log('gotoNextFile filesToSend 사이즈 = ',this.filesToSend.length,'index= ',index);
+  //   //console.log('gotoNextFile filesToSend 사이즈 = ',this.filesToSend.length,'index= ',index);
 
 
-    console.log('gotoNextFile send = ',this.filesToSend.length,'index= ',index);
-    //log.warn()
-    if (this.filesToSend.length - 1 > index) { //폴더갯수와 현재 폴더를 비교하여 다음폴더 진행
-      this.subject.next(this.filesToSend[index + 1]); //processFile 호출
-    } else {
-      console.log('업로드 종료');
-      log.warn('gotoNextFile, 업로드 종료 : ', index);
-      // this.notification.next({
-      //   cmd: 'LOG',
-      //   message: '"폴더' + (this.folderIndex + 1) + '" : ' + this.folders[this.folderIndex].path + ' 업로드 종료'
-      // });
-      this.notification.next({
-        cmd: 'FOLDER.SENT',
-        folderIndex: this.folderIndex
-      });
-      this.uploading = false;
-    }
+  //   console.log('gotoNextFile send = ',this.filesToSend.length,'index= ',index);
+  //   //log.warn()
+  //   if (this.filesToSend.length - 1 > index) { //폴더갯수와 현재 폴더를 비교하여 다음폴더 진행
+  //     this.subject.next(this.filesToSend[index + 1]); //processFile 호출
+  //   } else {
+  //     console.log('업로드 종료');
+  //     log.warn('gotoNextFile, 업로드 종료 : ', index);
+
+  //     this.notification.next({
+  //       cmd: 'FOLDER.SENT',
+  //       folderIndex: this.folderIndex
+  //     });
+  //     this.uploading = false;
+  //   }
+  // }
+
+  // private gotoNextFileChain(index,result) {
+  //   //console.log('gotoNextFile send = ',this.filesToSend.length,'index= ',index);
+  //   console.log('result = ',result);
+  //   if (this.filesToSend.length - 1 > index && request) {
+  //     console.log('성공한경우');
+  //     this.subject.next(this.filesToSend[index + 1]);
+  //   } else if(this.filesToSend.length - 1 > index && !request){
+  //     console.log('성공한실패한경우');
+  //   } else {
+  //     console.log('업로드 종료');
+  //     this.notification.next({
+  //       cmd: 'FOLDER.SENT',
+  //       folderIndex: this.folderIndex
+  //     });
+  //     this.uploading = false;
+  //   }
+  // }
+
+  // private getNewTokenCb(error, response, body) {
+  //   if(response.statusCode == 200){
+  //     this.member
+  //     this.storageService.set()
+  //   }
+  // }
+
+  private getNewToken(){
+  
+    this.member = this.memberAPI.isLoggedin();
+
+    var options = {  
+      method: 'POST',
+      uri: M5MemberService.login, 
+      headers:{
+          'Content-Type': 'application/json'
+      },
+      body:{
+        id:this.member.username,
+        pwd:this.member.password,
+        client: M5MemberService.safebackupVersion
+      },
+      json: true    
+    };
+
+    reqestProm(options).then((body) =>{
+ 
+     // console.log('member = ',this.member);
+      //var member = this.memberAPI.isLoggedin();
+      //console.log('토큰 = ',body.token);
+      this.member.token = body.token;
+      this.storageService.set('member',this.member);
+    }).catch(function (err) {
+      // POST failed...
+      log.error('토큰받기 실패 = ',err);
+    });
+
   }
-
-  private gotoNextFileChain(index,result) {
-    //console.log('gotoNextFile send = ',this.filesToSend.length,'index= ',index);
-    console.log('result = ',result);
-    if (this.filesToSend.length - 1 > index && request) {
-      console.log('성공한경우');
-      this.subject.next(this.filesToSend[index + 1]);
-    } else if(this.filesToSend.length - 1 > index && !request){
-      console.log('성공한실패한경우');
-    } else {
-      console.log('업로드 종료');
-      // this.notification.next({
-      //   cmd: 'LOG',
-      //   message: '"폴더' + (this.folderIndex + 1) + '" : ' + this.folders[this.folderIndex].path + ' 업로드 종료'
-      // });
-      this.notification.next({
-        cmd: 'FOLDER.SENT',
-        folderIndex: this.folderIndex
-      });
-      this.uploading = false;
-    }
-  }
-
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   *  uploadManager
 
@@ -682,24 +702,14 @@ export class UploadFiletreeService {
           console.log('fileExtension = ',fileExtension);
           if(fileExtension == "zip"){
            backupZip = 'not-store';
-          } /*else{
-           backupZip = 'none';
-          }*/
+          } 
          }else{
           console.log('업로드된 zip 없음 ');
           backupZip = 'none';
          }
          
        }
-      //  else if(this.storageService.get('data_backup',StorageTranscoders.STRING) ){
-      //   backupZip = 'undefined';
-      //  }else{
-      //   backupZip = 'none';
-      //  }
-      //  let tmp = path.basename(item.filepath);
-      //  backupZip = tmp.substring(0,tmp.lastIndexOf('.'));
-      //  log.info("backupZip = ",backupZip);
-      //backupZip = path.basename(item.filepath);
+
     }else{  //data_backup 폴더가 아닌경우..
       console.log('DATA_BACKUP폴더아님 ');
       backupZip = 'not-store';
@@ -719,17 +729,17 @@ export class UploadFiletreeService {
     if(type == 'chain-error' || type == 'chain-create' || type == 'chain-update'){
       this.electronService.ipcRenderer.send('SEND-CHAINFILE', post);
       chainuploading = true;
-      //log.info('체인파일은 = ',post);
+      log.info('체인파일은 = ',post);
     }else{
       this.electronService.ipcRenderer.send('SEND-FILE', post); //비동기
       chainuploading = false;
-      //log.info('업로드파일은 = ',post);
+      log.info('업로드파일은 = ',post);
     }
     if(!chainuploading){
       this.notification.next({
         cmd: 'SENDING.STARTED',
         message: '[' + (item.folderIndex + 1) + '] ' + item.filepath + ' 업로딩...' + size.toFixed(2) +'KB'
-        //message: '[' + (item.folderIndex + 1) + '] ' + path.basename(item.filepath) + ' 업로딩...' 
+
       });
     }
 

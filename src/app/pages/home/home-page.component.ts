@@ -343,6 +343,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
         if(message.folderIndex < this.maxFolder){
           log.info('다음폴더 업로드 !!');
+
           this.onStartUploadFolder(message.folderIndex , 5);
         } else {
           log.info('homepage -> 모두완료 다음시간설정');
