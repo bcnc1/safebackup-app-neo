@@ -186,17 +186,18 @@ export class HomePageComponent implements OnInit, OnDestroy {
     }
      const folderKey = this.getFolderKey(folderIndex);
      const folder = this.storageService.get(folderKey);  //폴더키로 조회하면 선택한 폴더를 스토리지로 부터 얻을 수 있다.
-     log.info('home-page onStartUploadFolder = ', folder, 'folderKey = ', folderKey);
+     log.info('home-page onStartUploadFolder = ', folder, 'folderKey = ', folderKey, 'after = ',after);
 
 
     this.timergetTree =  setTimeout(()=> {
         //log.info('11..setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after); //after가 2이면 처음
 
         log.info('fscan = ', this.storageService.get('fscan'));
-        if(this.storageService.get('fscan') != 'start' || this.storageService.get('fscan',StorageTranscoders.STRING) === "end"){
+        if(this.storageService.get('fscan') != 'start' ){
           this.uploading = true;
           this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
         }
+
         // this.uploading = true;
         // this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
      }, after * 1000);  

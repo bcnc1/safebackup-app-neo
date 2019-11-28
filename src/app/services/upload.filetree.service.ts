@@ -662,10 +662,7 @@ public setUploadMember(set){
     };
 
     reqestProm(options).then((body) =>{
- 
-     // console.log('member = ',this.member);
-      //var member = this.memberAPI.isLoggedin();
-      //console.log('토큰 = ',body.token);
+
       this.member.token = body.token;
       this.storageService.set('member',this.member);
     }).catch(function (err) {
