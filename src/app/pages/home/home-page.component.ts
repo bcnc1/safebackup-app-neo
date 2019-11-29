@@ -281,15 +281,12 @@ export class HomePageComponent implements OnInit, OnDestroy {
     clearTimeout(this.timerStart);
   }
 
-  // unregCallback(){
-  //   this.electronService.ipcRenderer.removeAllListeners('SELECTFOLDER');
-  // }
   ngOnInit() {
-    console.log('home-page, ngOnInit');
+   // console.log('home-page, ngOnInit');
     this.version = environment.VERSION;
     this.electronService.ipcRenderer.send('PCRESOURCE', null);
     console.log('보냄 home-page, PCRESOURCE');
-   // this.logger.debug('- HOMEPAGE ngOnInit: ', this.version);
+
     
     this.member = this.memberAPI.isLoggedin();
     this.memberPrivate = this.member.private;

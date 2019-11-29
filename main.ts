@@ -1005,7 +1005,9 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
 
   //kimcy error kt에서 응답이 null이 나와서 수정
   function fileuploadCb(error, response, body) {
-    if ( response.statusCode == 201) {
+    log.debug('fileuploadCb => error : ',error);
+    log.debug('fileuploadCb => response : ',response);
+    if ( !error && response.statusCode == 201) {
       console.log('업로드 성공');
       //console.log('tablename = ', tableName);
       //console.log('data_backup = ', typeof arg.data_backup);
