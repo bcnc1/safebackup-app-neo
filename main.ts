@@ -384,11 +384,13 @@ if (!gotTheLock) {
 
  const MaxByte = 5*1024*1024*1024;
  function addFileFromDir(arg, window, callback){
-  console.log('addFileFromDir => folderIndex = ', arg);
+  //console.log('addFileFromDir => folderIndex = ', arg);
   var tableName = arg.username+':'+arg.folderIndex;
   const watcher = chokidar.watch(arg.path, {
     ignored: /(^|[\/\\])\../, // ignore dotfiles
-    persistent: true
+    //persistent: true
+    persistent: false,
+    interval: 200,
   });
 
   var result = [];
