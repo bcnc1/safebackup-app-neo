@@ -704,8 +704,8 @@ if (!gotTheLock) {
 
     knex(tableName)
     .where({uploadstatus: 1})
-    .where({
-      chainstatus: 2   
+    .whereNot({
+      chainstatus: 1   
     }).then((results)=>{
       log.info('블록체인 조회 결과  = ', results);
       if(mainWindow && !mainWindow.isDestroyed()){
@@ -963,7 +963,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
        log.error('chain응답 실패 = ',error, 'info = ',arg); 
        knex(tableName)
         .where({id: arg.fileid})
-        .update({chainstatus: 2})  
+        .update({uploadstatus: 1, chainstatus: 2})  
         .then(()=>{
           //console.log('arg.uploadtype = ',arg.uploadtype);
           if (mainWindow && !mainWindow.isDestroyed()){
@@ -1007,41 +1007,53 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
 
   //kimcy error kt에서 응답이 null이 나와서 수정
   function fileuploadCb(error, response, body) {
-    log.debug('fileuploadCb => error : ',error);
-    log.debug('fileuploadCb => response : ',response);
-    if ( !error && response.statusCode == 201) {
-      console.log('업로드 성공');
-      //console.log('tablename = ', tableName);
-      //console.log('data_backup = ', typeof arg.data_backup);
-      var bkzip = arg.data_backup;
-      console.log('bkzip = ', bkzip);
-      if(bkzip != 'not-store'){
-        localStorage.setItem('data_backup',bkzip).then(()=>{
-          console.log('zip저장');
-        });
-      }
+    //log.debug('fileuploadCb => error : ',error);
+    //log.debug('fileuploadCb => response : ',response);
 
-
-      knex(tableName)
-      .where({id: arg.fileid})
-      .update({uploadstatus: 1})
-      .then(()=>{
-        if(mainWindow && !mainWindow.isDestroyed()){
-          console.log('업로드후 db쓰기 완료 다음파일 주세요');
-          mainWindow.webContents.send(arg.uploadtype, {
-            error: null,
-            body: body,
-            index: arg.folderIndex,
-            startTime: startTime,
-            endTime: new Date().getTime(),
-           // data_backup: arg.data_backup
+    //if ( !error && response.statusCode == 201) {
+    if(!error && (response != null || response != undefined)){
+     if(response.statusCode == 201){
+        console.log('업로드 성공');
+        //console.log('tablename = ', tableName);
+        //console.log('data_backup = ', typeof arg.data_backup);
+        var bkzip = arg.data_backup;
+        console.log('bkzip = ', bkzip);
+        if(bkzip != 'not-store'){
+          localStorage.setItem('data_backup',bkzip).then(()=>{
+            //console.log('zip저장');
           });
         }
-      });
-    }else{
-      log.error('업로드 실패, error = ',error, 'status = ', response.statusCode, 'info = ',arg);
+
+
+        knex(tableName)
+        .where({id: arg.fileid})
+        .update('uploadstatus', 1)
+        .then(()=>{
+          if(mainWindow && !mainWindow.isDestroyed()){
+            //console.log('업로드후 db쓰기 완료 다음파일 주세요');
+            mainWindow.webContents.send(arg.uploadtype, {
+              error: null,
+              body: body,
+              index: arg.folderIndex,
+              startTime: startTime,
+              endTime: new Date().getTime(),
+            // data_backup: arg.data_backup
+            });
+          }
+        }).catch(function(error){
+          log.error('knex 에러 = ',error);
+        });
+     }else{
+      log.error('11..업로드 실패, error = ',error, 'status = ', response.statusCode, 'info = ',arg);
       if (mainWindow && !mainWindow.isDestroyed()){
         mainWindow.webContents.send(arg.uploadtype, {error: response.statusCode});
+      }
+     }
+      
+    }else{
+      log.error('22..업로드 실패, error = ',error, 'info = ',arg);
+      if (mainWindow && !mainWindow.isDestroyed()){
+        mainWindow.webContents.send(arg.uploadtype, {error: "000"});
       }
     }
   }

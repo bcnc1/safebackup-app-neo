@@ -251,10 +251,10 @@ export class UploadFiletreeService {
 
       if(this.member.private){
         if(response.error === null ){
-
+          //console.log('sendIndex = ', typeof this.sendIndex);
           this.notification.next({
             cmd: 'LOG',
-            message: '[' + (this.folderIndex + 1) + '] ' + ' : 파일 업로드 완료 (' + this.sendIndex+1 + '/' + this.addfilesToSend.length + ')'
+            message: '[' + (this.folderIndex + 1) + '] ' + ' : 파일 업로드 완료 (' + (this.sendIndex + 1) + '/' + this.addfilesToSend.length + ')'
           });
 
           this.sendIndex++;
@@ -273,8 +273,9 @@ export class UploadFiletreeService {
           }
   
         }else{
-          log.error('업로드 에러 = ', response.error);
-          if(response.error == '403' || response.error == 403){
+          log.error('11..업로드 에러 = ', response.error);
+          if(response.error == '403' || response.error == 403 
+             || response.error == '401' || response.error == 401){
             this.getNewToken();
           } 
         }
@@ -283,6 +284,12 @@ export class UploadFiletreeService {
           log.info('파일업로드완료 , 블록체인으로 이동')
           //main
           this.uploadManager(this.addfilesToSend[this.sendIndex], "chain-create");
+        }else{
+          log.error('22..업로드 에러 = ', response.error);
+          if(response.error == '403' || response.error == 403 
+             || response.error == '401' || response.error == 401){
+            this.getNewToken();
+          } 
         }
       }
     });
@@ -297,9 +304,10 @@ export class UploadFiletreeService {
 
       if(response.error == null){
 
+        //console.log('sendIndex = ', typeof this.sendIndex);
         this.notification.next({
           cmd: 'LOG',
-          message: '[' + (this.folderIndex + 1) + '] ' + ' : 파일 업로드 완료 (' + (this.sendIndex+1) + '/' + this.addfilesToSend.length + ')'
+          message: '[' + (this.folderIndex + 1) + '] ' + ' : 파일 업로드 완료 (' + (this.sendIndex + 1) + '/' + this.addfilesToSend.length + ')'
         });
 
         this.sendIndex++;
