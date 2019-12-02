@@ -388,8 +388,8 @@ if (!gotTheLock) {
   var tableName = arg.username+':'+arg.folderIndex;
   const watcher = chokidar.watch(arg.path, {
     ignored: /(^|[\/\\])\../, // ignore dotfiles
-    persistent: true,
-    //persistent: false,
+    //persistent: true,
+    persistent: false,
     interval: 400,
   });
 
