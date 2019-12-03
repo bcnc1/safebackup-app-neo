@@ -32,9 +32,9 @@ export class UploadFiletreeService {
   private filesToSend;
 
   //kimcy : 기존 변수 대신사용
-  private chainsToSend;
-  private addfilesToSend;
-  private changefilesToSend;
+  private chainsToSend = null;
+  private addfilesToSend = null;
+  private changefilesToSend = null;
   private sendIndex;
 
   private folderIndex;
@@ -150,6 +150,7 @@ export class UploadFiletreeService {
         } else{
           //2. 업로드 목록 요청 하고 업로드
           //log.info('11..업로드 목록으로 이동 ');
+          this.chainsToSend = null;
           this.sendIndex = 0;
           this.electronService.ipcRenderer.send('REQ-UPLOADTREE', {
             folderIndex: this.folderIndex,
@@ -227,6 +228,7 @@ export class UploadFiletreeService {
       } else{
         //2. 업데이트 목록 요청 하고 업로드
         log.info('목록없음으로, 업데이트 목록 요청');
+        this.addfilesToSend = null;
         this.sendIndex = 0;
 
         this.electronService.ipcRenderer.send('REQ-UPDATETREE', {
@@ -258,12 +260,13 @@ export class UploadFiletreeService {
           });
 
           this.sendIndex++;
-          console.log('add-file 다음파일 = ',this.sendIndex);
+          //console.log('add-file 다음파일 = ',this.sendIndex);
           if(this.addfilesToSend.length > this.sendIndex){
             this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
           }else{
             log.info('개인계정, 업로드완료, 업데이트 목록 요청');
 
+            this.addfilesToSend = null;
             this.sendIndex = 0;
 
             this.electronService.ipcRenderer.send('REQ-UPDATETREE', {
@@ -318,6 +321,7 @@ export class UploadFiletreeService {
         }else{
           log.info('파일업로드완료 , 업데이트으로 이동')
 
+          this.addfilesToSend = null;
           this.sendIndex = 0;
 
           this.electronService.ipcRenderer.send('REQ-UPDATETREE', {
@@ -362,7 +366,8 @@ export class UploadFiletreeService {
         this.uploadManager(this.changefilesToSend[this.sendIndex], "change-file");
       } else{
         //2. 업데이트 목록 요청 하고 업로드
-        log.info('업로드/업데이트 항목없음, 한폴더에 대한 모든 업로드/업데이트 완료');
+        log.info('업데이트 항목없음, 한폴더에 대한 모든 업데이트 완료');
+        this.changefilesToSend = null;
         this.gotoNext();
       }
 
@@ -393,7 +398,8 @@ export class UploadFiletreeService {
           if(this.changefilesToSend.length > this.sendIndex){
             this.uploadManager(this.changefilesToSend[this.sendIndex], "change-file");
           }else{
-            log.info('개인계정,  한폴더에 대한 모든 업로드/업데이트 완료');
+            log.info('개인계정,  한폴더에 대한 모든 업데이트 완료');
+            this.changefilesToSend = null;
             this.gotoNext();
           }
   
@@ -427,7 +433,8 @@ export class UploadFiletreeService {
         //  log.info('this.changefilesToSend.length = ', this.changefilesToSend.length);
           this.uploadManager(this.changefilesToSend[this.sendIndex], "change-file");
         }else{
-          log.info('블록체인포함, 한폴더에 대한 모든 업로드/업데이트 완료');
+          log.info('블록체인포함, 한폴더에 대한 모든 업데이트 완료');
+          this.changefilesToSend = null;
           this.gotoNext();
         }
 
@@ -684,7 +691,8 @@ public setUploadMember(set){
 
   -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   private uploadManager(item, type){
-    let post, chainuploading, backupZip;
+    let post = null;
+    let chainuploading, backupZip;
     this.member = this.memberAPI.isLoggedin();
     var size =  (item.filesize / 1024 ) ;
     
