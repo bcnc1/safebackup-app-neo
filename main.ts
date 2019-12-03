@@ -973,9 +973,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
 
     }
   }
-  
 
-  //console.log('reqestProm 호출 method = ',method);
   var options = {  
     method: method,
     uri: url, 
@@ -1000,7 +998,10 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
  *  container명은 로그인시 id로...
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
  var fileupload = function (arg){
-  
+
+  var upload = null;
+  var r = null;
+
   //const STORAGE_URL = env.STORAGE_URL;
   let startTime = new Date().getTime();
   let tableName = arg.container+':'+arg.folderIndex;
@@ -1016,6 +1017,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
         console.log('업로드 성공');
         //console.log('tablename = ', tableName);
         //console.log('data_backup = ', typeof arg.data_backup);
+        
         var bkzip = arg.data_backup;
         console.log('bkzip = ', bkzip);
         if(bkzip != 'not-store'){
@@ -1070,8 +1072,8 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   };
 
   try{
-    var upload = fs.createReadStream(arg.filepath,{highWaterMark : 256*1024});
-    var r = reqestProm(options, fileuploadCb);
+    upload = fs.createReadStream(arg.filepath,{highWaterMark : 256*1024});
+    r = reqestProm(options, fileuploadCb);
     upload.pipe(r);
   }catch(err){
     log.error('업로드 에러 : ',err);
