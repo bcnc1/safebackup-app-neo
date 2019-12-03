@@ -589,6 +589,7 @@ if (!gotTheLock) {
       log.info("끝 = ", err);
       watcher.close();
       callback(true);
+      result = null;
     })
 
   })
@@ -1072,8 +1073,8 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   };
 
   try{
-    upload = fs.createReadStream(arg.filepath,{highWaterMark : 256*1024});
-    r = reqestProm(options, fileuploadCb);
+     upload = fs.createReadStream(arg.filepath,{highWaterMark : 256*1024});
+     r = reqestProm(options, fileuploadCb);
     upload.pipe(r);
   }catch(err){
     log.error('업로드 에러 : ',err);
