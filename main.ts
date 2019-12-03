@@ -393,7 +393,8 @@ if (!gotTheLock) {
     interval: 400,
   });
 
-  var result = [];
+  //var result = [];
+  let result = [];
   watcher
     .on('add', function(path, stats){
       //log.info('add path = ',path, 'stats = ',stats);
