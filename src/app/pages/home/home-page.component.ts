@@ -309,7 +309,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
   
     this.uploadSubscribe = this.uploadFiletreeService.notified().subscribe(message => {
 
-
+      //this.uploadSubscribe.complete();
       if (message.cmd === 'LOG') {
         /*---------------------------------------------------------------
               일반 로그

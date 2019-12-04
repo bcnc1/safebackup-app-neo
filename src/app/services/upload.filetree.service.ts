@@ -9,7 +9,7 @@ import * as path from 'path';
 import * as moment from 'moment';
 import {Observable, Subject, Subscription} from 'rxjs';
 import {M5Service} from './m5/m5.service';
-import {KonsoleService} from './konsole.service';
+//import {KonsoleService} from './konsole.service';
 import {ObjectUtils} from '../utils/ObjectUtils';
 import {NGXLogger} from 'ngx-logger';
 import {BytesPipe} from 'angular-pipes';
@@ -44,7 +44,7 @@ export class UploadFiletreeService {
   private accessToken;
 
   private uploading = false;
-  private notification;
+  private notification = null;
 
 
 
@@ -54,7 +54,7 @@ export class UploadFiletreeService {
     private memberAPI: M5MemberService,
     private postAPI: M5PostService,
     private electronService: ElectronService,
-    private konsoleService: KonsoleService,
+  //  private konsoleService: KonsoleService,
     private logger: NGXLogger,
     @Inject(LOCAL_STORAGE) private storageService: StorageService) {
     //this.member = this.memberAPI.isLoggedin();
@@ -63,7 +63,7 @@ export class UploadFiletreeService {
 
 
     this.notification = new Subject();
-    this.subject = new Subject();
+    //this.subject = new Subject();
     //this.subscription = this.subject.subscribe(response => this.processFile(response));
 
     /*----------------------------------------------------
@@ -253,11 +253,20 @@ export class UploadFiletreeService {
 
       if(this.member.private){
         if(response.error === null ){
+          console.log('파일업로드 완료 = ', (this.sendIndex + 1));
           //console.log('sendIndex = ', typeof this.sendIndex);
+
+          // if(this.notification == null){
+          //   console.log('22 서브젝트 생성');
+          //   this.notification = new Subject();
+          // }
+          
           this.notification.next({
             cmd: 'LOG',
             message: '[' + (this.folderIndex + 1) + '] ' + ' : 파일 업로드 완료 (' + (this.sendIndex + 1) + '/' + this.addfilesToSend.length + ')'
           });
+          //this.notification.complete();
+          //this.notification = null;
 
           this.sendIndex++;
           //console.log('add-file 다음파일 = ',this.sendIndex);
@@ -749,11 +758,21 @@ public setUploadMember(set){
       log.info('업로드파일은 = ',post);
     }
     if(!chainuploading){
+      console.log('파일업로딩 ',size.toFixed(2));
+
+      // if(this.notification == null){
+      //   console.log('11..서브젝트 생성');
+      //       this.notification = new Subject();
+      // }
+
       this.notification.next({
         cmd: 'SENDING.STARTED',
         message: '[' + (item.folderIndex + 1) + '] ' + item.filepath + ' 업로딩...' + size.toFixed(2) +'KB'
 
       });
+      
+      //this.notification.complete();
+     // this.notification = null;
     }
 
 
