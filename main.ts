@@ -1020,6 +1020,8 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
     if(!error && (response != null || response != undefined)){
      if(response.statusCode == 201){
         console.log('업로드 성공');
+        upload = null;
+        r = null;
         //console.log('tablename = ', tableName);
         //console.log('data_backup = ', typeof arg.data_backup);
         
@@ -1052,6 +1054,8 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
         });
      }else{
       log.error('11..업로드 실패, error = ',error, 'status = ', response.statusCode, 'info = ',arg);
+      upload = null;
+      r = null;
       if (mainWindow && !mainWindow.isDestroyed()){
         mainWindow.webContents.send(arg.uploadtype, {error: response.statusCode});
       }
@@ -1059,6 +1063,8 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
       
     }else{
       log.error('22..업로드 실패, error = ',error, 'info = ',arg);
+      upload = null;
+      r = null;
       if (mainWindow && !mainWindow.isDestroyed()){
         mainWindow.webContents.send(arg.uploadtype, {error: "000"});
       }
