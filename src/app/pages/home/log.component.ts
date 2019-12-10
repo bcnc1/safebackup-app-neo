@@ -21,7 +21,7 @@ import {NGXLogger} from 'ngx-logger';
 
 export class LogComponent implements OnInit, OnDestroy {
 
-  public logs = [];
+  private logs = [];
   private progress = 0;
   public subscription: Subscription;
 
@@ -42,10 +42,14 @@ export class LogComponent implements OnInit, OnDestroy {
 
 
   ngOnInit() {
-    this.logger.debug('LOG COMPONENT', this.subscription);
+    //this.logger.debug('LOG COMPONENT', this.subscription);
     this.subscription = this.konsoleService.getMessage().subscribe(message => {
-
+      //let logs = [];
+      //logs.unshift({created: new Date(), message: '안심백업이 시작됩니다...'});
+      console.log('로그 메세지 = ', message);
+      
       this.zone.run(() => {
+        
         if (message.cmd === 'SENDING.PROGRESS') {
           this.progress = parseInt(message.message);
         } else if (message.cmd === 'SENDING.STARTED') {
@@ -57,17 +61,21 @@ export class LogComponent implements OnInit, OnDestroy {
             }
           );
         } else {
+          console.log('log = ',this.logs);
           this.logs.unshift({
               cmd: message.cmd,
               created: new Date(),
               message: message.message
             }
           );
+          this.logs.pop();
+         // log = null;
         }
 
       });
     });
     this.logs.unshift({created: new Date(), message: '안심백업이 시작됩니다...'});
+   // logs.unshift({created: new Date(), message: '안심백업이 시작됩니다...'});
   }
 
 
