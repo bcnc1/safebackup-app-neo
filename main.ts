@@ -746,9 +746,9 @@ if (!gotTheLock) {
       }
     });
 
-    localStorage.setItem('fscan','end').then(()=>{
-      log.info('폴더스캔완료');
-    })
+    // localStorage.setItem('fscan','end').then(()=>{
+    //   log.info('폴더스캔완료');
+    // })
 
     if(mainWindow && !mainWindow.isDestroyed()){
       log.info('GETFOLDERTREE => 젆송 ');

@@ -49,7 +49,7 @@
       <tab (selectTab)="onTab(2)" *ngIf="!memberPrivate">
         <ng-template tabHeading>
           폴더3
-          <span class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[1] != undefined">
+          <span class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[2] != undefined">
             {{foldersSize[2] | bytes}}
           </span>
         </ng-template>
@@ -105,12 +105,6 @@
           <button type="button" class="btn btn-secondary btn-sm" (click)="onChangeFolder(2)"
             *ngIf="selectedFolderIndex==2">폴더선택
           </button>
-         <!-- <button type="button" class="btn btn-secondary btn-sm" (click)="onChangeFolder(1)"
-            *ngIf="selectedFolderIndex==3">폴더선택
-          </button>
-          <button type="button" class="btn btn-secondary btn-sm" (click)="onChangeFolder(2)"
-            *ngIf="selectedFolderIndex==4">폴더선택
-          </button> -->
         </div>
       </div>
 

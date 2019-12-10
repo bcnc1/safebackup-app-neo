@@ -812,7 +812,7 @@ public setUploadMember(set){
         });
 
       }
-      this.storageService.set('fscan','start');
+     // this.storageService.set('fscan','start');
     }
 
   }

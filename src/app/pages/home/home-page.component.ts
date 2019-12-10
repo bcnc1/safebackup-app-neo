@@ -52,8 +52,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
   private maxFolder;
   private timergetTree;
   private timerStart;
-  private timergetTreeInterval1;
-  private timergetTreeInterval2;
+  // private timergetTreeInterval1;
+  // private timergetTreeInterval2;
 
   constructor(
     private memberAPI: M5MemberService,
@@ -92,9 +92,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.electronService.ipcRenderer.removeAllListeners('SELECTFOLDER');
   }
 
-  // gotoRoot(){
-  //   this.router.navigateByUrl('/');
-  // }
 
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    *  탭 버튼을 누를경우 저장된 폴더의 패스를 구해와서 보여주기 위한 것임
@@ -167,10 +164,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
     const paths = path.dirname(gotoPath).split(path.sep);
     this.parentFolder = paths.slice(0, paths.length).join('/');
 
-    //this.logger.debug('SUBFOLDER', gotoPath, this.parentFolder);
-    //kimcy: 이걸보여주면? 무엇이?
-    //this.showingFolderList.push(this.parentFolder); //test code html line95에서 폴더 타이틀 찾는 부분에서 죽는다.
-
   }
 
 
@@ -190,13 +183,19 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
 
     this.timergetTree =  setTimeout(()=> {
-        //log.info('11..setTimeout, folderIndex = ', folderIndex, 'folder = ',folder, 'after = ',after); //after가 2이면 처음
-
-        log.info('fscan = ', this.storageService.get('fscan'));
-        if(this.storageService.get('fscan') != 'start' ){
+        
+        //log.info('fscan = ', this.storageService.get('fscan'));
+        if(!this.uploading){
           this.uploading = true;
           this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
+        }else{
+          this.onStartUploadFolder(folderIndex, after)
         }
+
+        // if(this.storageService.get('fscan') != 'start' ){
+        //   this.uploading = true;
+        //   this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
+        // }
 
         // this.uploading = true;
         // this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
@@ -341,7 +340,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
         if(message.folderIndex < this.maxFolder){
           log.info('다음폴더 업로드 !!');
-
+          this.uploading = false;
           this.onStartUploadFolder(message.folderIndex , 5);
         } else {
           log.info('homepage -> 모두완료 다음시간설정');

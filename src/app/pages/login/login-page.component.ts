@@ -138,7 +138,7 @@ export class LoginPageComponent implements OnInit {
       console.log('22..',this.username, this.password);
     }
 
-    this.storageService.set('fscan','end'); 
+    //this.storageService.set('fscan','end'); 
     //kimcy: 토큰은 여기서 넣어준다..
     this.onLoginB(member, false, this.storageService, this.router);
     
