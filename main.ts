@@ -44,7 +44,7 @@ var knex = require('knex')({
 });
 var member;
 //const env = environment;
-const  async = require("async");
+//const  async = require("async");
 const zipper = require('zip-local');
 //console.log('knex = ',knex);
 //const storageService = LOCAL_STORAGE;
@@ -390,7 +390,8 @@ if (!gotTheLock) {
     ignored: /(^|[\/\\])\../, // ignore dotfiles
     persistent: true,
     //persistent: false,
-    interval: 400,
+    interval: 200,
+    binaryInterval: 600
   });
 
   //var result = [];
@@ -413,6 +414,7 @@ if (!gotTheLock) {
       log.info('Initial scan complete. Ready for changes.');
       //log.info('result = ', result);
       log.info('tableName = ', tableName);
+      var  async = require("async");
       async.eachSeries(result, function(item, next) {
         
 
@@ -591,6 +593,7 @@ if (!gotTheLock) {
       watcher.close();
       callback(true);
       result = null;
+      async = null;
     })
 
   })
