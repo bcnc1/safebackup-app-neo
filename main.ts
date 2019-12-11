@@ -389,7 +389,7 @@ if (!gotTheLock) {
   const watcher = chokidar.watch(arg.path, {
     ignored: /(^|[\/\\])\../, // ignore dotfiles
     persistent: true,
-    //interval: 200,
+    interval: 500,
     //binaryInterval: 600
   });
 
