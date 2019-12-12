@@ -77,9 +77,16 @@ export class LogComponent implements OnInit, OnDestroy {
             }
           );
 
-          if(this.logs.length > 4){
+          while(this.logs.length > 5){
             this.logs.pop();
           }
+          // for(var i = this.logs.length; this.logs.length < 5; this.logs.length--){
+          //     this.logs.pop();
+          // }
+          // if(this.logs.length > 4){
+
+          //   this.logs.pop();
+          // }
           
          // log = null;
         }

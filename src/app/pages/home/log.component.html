@@ -1,17 +1,12 @@
 <div class="kk-log-container fixed-bottom pre-scrollable" style="height:100px">
 
   <ul class="list-group list-group-flush">
-    <li class="list-group-item"
+     <li class="list-group-item"
         style="font-size:10px"
-        *ngFor="let log of logs; index as i">
+        *ngFor="let log of logs; index as i"> 
       <div class="d-flex justify-content-between align-items-center">
         <div>{{log.created | date: 'yyyy/MM/dd HH:mm:ss'}} {{log.message}}</div>
-      <!--  <div class="progress"  style="width:120px"
-             *ngIf="i==0 && log.cmd==='SENDING.STARTED'">
 
-          <div class="progress-bar progress-bar-striped progress-bar-animated"
-               [style.width]="progress + '%'">{{progress}}%</div>
-        </div>   kimcy progress bar 막음 -->
       </div>
     </li>
   </ul>
