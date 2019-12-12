@@ -70,6 +70,11 @@ export class LogComponent implements OnInit, OnDestroy {
           );
         } else {
           console.log('log = ',this.logs);
+
+          while(this.logs.length > 5){
+            this.logs.pop();
+          }
+          
           this.logs.unshift({
               cmd: message.cmd,
               created: new Date(),
@@ -77,24 +82,14 @@ export class LogComponent implements OnInit, OnDestroy {
             }
           );
 
-          while(this.logs.length > 5){
-            this.logs.pop();
-          }
-          // for(var i = this.logs.length; this.logs.length < 5; this.logs.length--){
-          //     this.logs.pop();
-          // }
-          // if(this.logs.length > 4){
-
-          //   this.logs.pop();
-          // }
           
-         // log = null;
+
         }
 
       });
     });
     this.logs.unshift({created: new Date(), message: '안심백업이 시작됩니다...'});
-   // logs.unshift({created: new Date(), message: '안심백업이 시작됩니다...'});
+
   }
 
 
