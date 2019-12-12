@@ -1,11 +1,27 @@
 <div class="kk-log-container fixed-bottom pre-scrollable" style="height:100px">
 
-  <ul class="list-group list-group-flush">
-     <li class="list-group-item"
+  <ul id= "logsul" class="list-group list-group-flush">
+     <li id= "logsli" class="list-group-item"
         style="font-size:10px"
         *ngFor="let log of logs; index as i"> 
       <div class="d-flex justify-content-between align-items-center">
         <div>{{log.created | date: 'yyyy/MM/dd HH:mm:ss'}} {{log.message}}</div>
+        <script>
+          
+          
+          
+          
+          // function appendLi() {
+          //   var list = document.getElementById("logsul");
+          //   list.appendChild(item);
+          // }
+
+          // function removeLi() {
+          //   var item = document.getElementById("logsli");
+          //   item.parentNode.removeChild(item);
+          // }
+          
+          </script>
 
       </div>
     </li>
