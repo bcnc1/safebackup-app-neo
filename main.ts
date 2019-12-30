@@ -70,6 +70,7 @@ drBackupAutoLauncher.enable();
 /* 글로벌로 해야  garbage colllection이 안된다고함 */
 let tray = null;
 let contextMenu = null;
+var exist_tableName = new Set();
 
 function createWindow() {
   console.log('createWindow');
@@ -501,47 +502,11 @@ if (!gotTheLock) {
                         log.info('결과 = ',result);
                       });
                     }
-                    // knex(tableName)
-                    // .where({id: id})
-                    // .update({filesize: item.size, fileupdate: item.update
-                    //   , uploadstatus: 2, chainstatus: 0})
-                    // .then((result)=> {
-                    //   log.info('결과 = ',result);
-                    // });
+
                   }else{
                     log.info('체크 => results = ',results, 'item = ',item);
                   }
                 }
-
-
-
-                // if(uploadstatus == 0 && fsize != item.size){  
-                //   //업로드 되기 전에 변경되었음 create로..
-                //   knex(tableName)
-                //     .where({id: id})
-                //     .update({filesize: item.size, fileupdate: item.update
-                //       , uploadstatus: 1,  chainstatus: 0}).then((result)=>{
-                //         log.info('업로드 안됨 상태는 업로드 = ',item.fullpath, '결과 = ',result);
-                //       });
-                // } else if(uploadstatus == 1 && chainstatus == 2){
-
-                // }
-                
-                
-                
-                // else if(uploadstatus == 1 && fsize != item.size){
-                //   //업로드된 후 변경되었음 update..
-                //   knex(tableName)
-                //     .where({id: id})
-                //     .update({filesize: item.size, fileupdate: item.update
-                //       , uploadstatus: 2, chainstatus: 0})
-                //     .then((result)=> {
-                //       log.info('업로드되어있음으로 상태는 업데이트 = ',item.fullpath, '결과 = ',result);
-                //     });
-
-                // }else{
-                //   log.info('체크 => results = ',results, 'item = ',item);
-                // }
 
              }
              
@@ -552,37 +517,6 @@ if (!gotTheLock) {
               }
             });
 
-              // knex(tableName)
-              // .where({filename: item.fullpath}).select('id')
-              // .then((result)=>{
-              //    var id = results[0]['id'];
-              //    var fsize = results[0]['filesize'];
-              //    var fupdate = results[0]['fileupdate']; //utc값으로 기록안되어 추후구현
-                
-              //    if(fsize != item.size /*|| fupdate != item.updated*/){
-              //       knex(tableName)
-              //       .where({id: id})
-              //       .update({filesize: item.size, fileupdate: item.update
-              //         , uploadstatus: 2, /*chain: "update",*/ chainstatus: 0})
-              //       .then((result)=> {
-              //         log.info('업데이트, result = ',result);
-              //         localStorage.getItem('member').then((value) => {
-              //           if(value != null){
-              //            next();
-              //           }
-              //         });
-              //        // next();
-              //       });
-              //    }else{
-              //    // log.info('변경없음 = ',result);
-              //     localStorage.getItem('member').then((value) => {
-              //       if(value != null){
-              //       next();
-              //       }
-              //     });
-              //     //next();
-              //    }
-              // });
             }
           });
         }
@@ -701,6 +635,7 @@ if (!gotTheLock) {
 
  /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  *  IPC : REQ-CHAINTREE
+ *  모든 테이블을 뒤져야 한다.
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
  ipcMain.on("REQ-CHAINTREE", (event, arg) => {
   console.log('받음, REQ-CHAINTREE, main folderIndex = ',arg.folderIndex);
@@ -901,6 +836,8 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
 
 
   var tableName = arg.username +':'+arg.folderIndex;
+
+  exist_tableName.add(tableName);
 
   log.info('tableName = , tableName');
 

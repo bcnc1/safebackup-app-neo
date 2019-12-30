@@ -192,13 +192,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
           this.onStartUploadFolder(folderIndex, after)
         }
 
-        // if(this.storageService.get('fscan') != 'start' ){
-        //   this.uploading = true;
-        //   this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
-        // }
-
-        // this.uploading = true;
-        // this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
      }, after * 1000);  
 
      
