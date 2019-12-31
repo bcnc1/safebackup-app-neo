@@ -412,26 +412,29 @@ if (!gotTheLock) {
     .on('ready', function() 
     { 
       log.info('Initial scan complete. Ready for changes.');
-      //log.info('result = ', result);
-      log.info('tableName = ', tableName);
+      console.log('result = ', result);
+      //log.info('tableName = ', tableName);
       var  async = require("async");
       async.eachSeries(result, function(item, next) {
-        
 
-        //log.info('item = ', item);
         if(item.fullpath.toLowerCase().lastIndexOf('npki') > 0 && item.fullpath.lastIndexOf('.zip') < 0 ){  //npki 내부 파일들은 zip으로 압축해서 올려야 하기때문
-          //var ft = moment().add(interval);
-          knex(tableName)
-          .insert({filename: item.fullpath, filesize : item.size, 
-            fileupdate: item.updated, uploadstatus: 1, chainstatus: 1 })
-          .then(()=>{
-           log.info('npki폴더내 파일 처리(zip제외)');
-           localStorage.getItem('member').then((value) => {
+          // DB에 기록하지 않는다.
+          // knex(tableName)
+          // .insert({filename: item.fullpath, filesize : item.size, 
+          //   fileupdate: item.updated, uploadstatus: 1, chainstatus: 1 })
+          // .then(()=>{
+          //  log.info('npki폴더내 파일 처리(zip제외)');
+          //  localStorage.getItem('member').then((value) => {
+          //    if(value != null){
+          //     next();
+          //    }
+          //  });
+
+          // });
+          localStorage.getItem('member').then((value) => {
              if(value != null){
               next();
              }
-           });
-           //next();
           });
         }else{
           knex(tableName)
@@ -607,6 +610,11 @@ if (!gotTheLock) {
       uploadstatus: 2
     }).then((results)=>{
       log.info(' 조회 결과  = ', results);
+
+      results.forEach(function(element){
+        element.tbName = tableName;
+      });
+
       if(mainWindow && !mainWindow.isDestroyed()){
         //log.info('보냄 CHAINTREE, main ', results);
         mainWindow.webContents.send("UPDATETREE", {tree:results});
@@ -624,6 +632,9 @@ if (!gotTheLock) {
     knex(tableName).where({
       uploadstatus: 0
     }).then((results)=>{
+      results.forEach(function(element){
+        element.tbName = tableName;
+      });
       //log.info(' UPLOADTREE, 조회 결과  = ', results);
       if(mainWindow && !mainWindow.isDestroyed()){
         log.info('보냄 UPLOADTREE, main ', results);
@@ -639,19 +650,71 @@ if (!gotTheLock) {
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
  ipcMain.on("REQ-CHAINTREE", (event, arg) => {
   console.log('받음, REQ-CHAINTREE, main folderIndex = ',arg.folderIndex);
-  var tableName = arg.username+':'+arg.folderIndex;
+ // var maxfolder;
+  var chaintree = [];
+  localStorage.getItem('maxfolder').then((value) => {
+    log.info('폴더는 => ', value);
+   // maxfolder = value;
+    getChaintree(value);
 
-    knex(tableName)
-    .where({uploadstatus: 1})
-    .whereNot({
-      chainstatus: 1   
-    }).then((results)=>{
-      log.info('블록체인 조회 결과  = ', results);
-      if(mainWindow && !mainWindow.isDestroyed()){
-        log.info('보냄 CHAINTREE, main ', results);
-        mainWindow.webContents.send("CHAINTREE", {tree:results});
-      }
-    })
+  });
+
+ 
+  function getChaintree(maxfolder){
+    console.log('getChaintree ');
+    for(let i = maxfolder; i >= 0 ; i--){
+      setTimeout(()=>{
+        if(i == 0){
+          //log.info('체인에러결과 = ', chaintree);
+          if(mainWindow && !mainWindow.isDestroyed()){
+              log.info('보냄 CHAINTREE, main ', chaintree);
+              mainWindow.webContents.send("CHAINTREE", {tree:chaintree});
+          }
+        }else{
+          knex.schema.hasTable(arg.username+':'+(maxfolder - i)).then((exists) =>{
+            if(exists){
+              var tableName = arg.username+':'+(maxfolder - i);
+              //console.log('tablename = ', tableName);
+              knex(tableName)
+              .where({uploadstatus: 1})
+              .whereNot({
+                chainstatus: 1  
+              }).then((results) => {
+                  //log.info('테이블 조회 결과 = ', results);
+                  if(results.length > 0){
+                    results.forEach(function(element){
+                      //log.info('11..element = ', element);
+                      element.tbName = tableName;
+                     // log.info('22..element = ', element);
+                      chaintree.push(element);
+                    });
+                  }
+              });
+            }
+          });
+        }
+        
+      }, (maxfolder - i)*300)
+    }
+  }
+
+  
+
+ 
+
+  // var tableName = arg.username+':'+arg.folderIndex;
+
+  //   knex(tableName)
+  //   .where({uploadstatus: 1})
+  //   .whereNot({
+  //     chainstatus: 1   
+  //   }).then((results)=>{
+  //     log.info('블록체인 조회 결과  = ', results);
+  //     if(mainWindow && !mainWindow.isDestroyed()){
+  //       log.info('보냄 CHAINTREE, main ', results);
+  //       mainWindow.webContents.send("CHAINTREE", {tree:results});
+  //     }
+  //   })
  });
 
 
@@ -871,6 +934,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
    console.log('블록체인 기록을 위한 api');
   let method, url;
 
+  //chain-error: 파일업로드는 됬지만 블록체인에 기록되지 않은 상태.
   if(arg.uploadtype == 'chain-create' || arg.uploadtype == 'chain-error'){
     console.log('chain-create/ chain-error');
       method = 'POST';
@@ -881,7 +945,8 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
     url = 'http://211.252.85.59:3000/api/v1/proof/update'; //env.UPDATE;
     //url = env.UPDATE_DEV;
   }
-  let tableName = arg.container+':'+arg.folderIndex;
+  //let tableName = arg.container+':'+arg.folderIndex;
+  let tableName = arg.tablename;
 
   function chainuploadCb(error, response, body) {
 
@@ -1025,13 +1090,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   }catch(err){
     log.error('업로드 에러 : ',err);
   }
-  // var upload = fs.createReadStream(arg.filepath,{highWaterMark : 256*1024});
-  //   var r = reqestProm(options, fileuploadCb);
-    
-  //   console.log('11..업로드 시작');
-  //   upload.pipe(r).catch(function(err){
-  //     log.error('업로드 에러 : ',err);
-  //   });
+
  }
 
 

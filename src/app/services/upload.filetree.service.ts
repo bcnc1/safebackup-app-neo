@@ -137,7 +137,8 @@ export class UploadFiletreeService {
             folderIndex: this.folderIndex,
             file: this.deviceResource.macaddress+'/'+fileTree[i]['filename'].replace(/\\/g, '/'),
             filepath: fileTree[i]['filename'].replace(/\\/g, '/'),
-            filesize: fileTree[i]['filesize']
+            filesize: fileTree[i]['filesize'],
+            tableName: fileTree[i]['tbName']
           });
         }
   
@@ -215,7 +216,8 @@ export class UploadFiletreeService {
           folderIndex: this.folderIndex,
           file: this.deviceResource.macaddress+'/'+fileTree[i]['filename'].replace(/\\/g, '/'),
           filepath:fileTree[i]['filename'].replace(/\\/g, '/'),
-          filesize:fileTree[i]['filesize']
+          filesize:fileTree[i]['filesize'],
+          tableName: fileTree[i]['tbName']
         });
       }
 
@@ -312,7 +314,7 @@ export class UploadFiletreeService {
        
       ----------------------------------------------------*/
     this.electronService.ipcRenderer.on("chain-create", (event: Electron.IpcMessageEvent, response: any) => {
-      //log.info('create proof = ',response);
+      console.log('chain-create = ',response);
 
       if(response.error == null){
 
@@ -363,7 +365,8 @@ export class UploadFiletreeService {
           folderIndex: this.folderIndex,
           file: this.deviceResource.macaddress+'/'+fileTree[i]['filename'].replace(/\\/g, '/'),
           filepath:fileTree[i]['filename'].replace(/\\/g, '/'),
-          filesize:fileTree[i]['filesize']
+          filesize:fileTree[i]['filesize'],
+          tableName: fileTree[i]['tbName']
         });
       }
       
@@ -549,61 +552,7 @@ public setUploadMember(set){
   this.member = set;
 }
 
-  
 
-  /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-   *  Process Tree to File list to send
-   -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-  // private processTreeElement(folderIndex, fileItem) {
-  //   console.log('uppload.filetree, processTreeElement => folderIndex :',folderIndex);
-  //   console.log('fileItem :',fileItem); //하나의 파일
-  //   console.log('fileItem 타입 :',fileItem.type); //하나의 파일
-  //   console.log('filesToSend :',this.filesToSend);  //어디서 값을 넣어줬을끼?, 현재는 배열로 폴더에 있는 파일들을 가르킨다.
-  //   let size = 0;
-    
-  //   if (this.filesToSend == null) {
-  //     this.filesToSend = [];
-  //   }
-
-  //   if (fileItem.type === 'folder') {
-  //     console.log('folder');
-  //     /*---------------------------------------------------------------
-  //      * 폴더
-  //      *---------------------------------------------------------------*/
-  //     for (const c in fileItem.children) {
-  //       if (fileItem.children.hasOwnProperty(c)) {
-  //         size += this.processTreeElement(folderIndex, fileItem.children[c]);
-  //       }
-  //     }
-
-  //     this.filesToSend.push({
-  //       folderIndex: folderIndex,
-  //       index: this.filesToSend.length,
-  //       file: fileItem,
-  //       size: size
-  //     });
-
-  //     // const used1 = process.memoryUsage().heapUsed / 1024 / 1024;
-  //     // console.log(`22 ..The script uses approximately ${Math.round(used1 * 100) / 100} MB`);
-  //     return size;
-
-  //   } else if (fileItem.type === 'file') {
-  //     /*---------------------------------------------------------------
-  //      * 파일
-  //      *---------------------------------------------------------------*/
-  //     this.filesToSend.push({
-  //       folderIndex: folderIndex,
-  //       index: this.filesToSend.length,
-  //       folder: path.basename(fileItem.fullpath),
-  //       file: fileItem
-  //     });
-
-  //     // const used = process.memoryUsage().heapUsed / 1024 / 1024;
-  //     // console.log(`11..The script uses approximately ${Math.round(used * 100) / 100} MB`);
-  //     size += fileItem.size;
-  //   }
-  //   return size;
-  // }
 
   private gotoNext() {
     log.info('gotoNext , folderIndex = ', this.folderIndex);
@@ -745,7 +694,8 @@ public setUploadMember(set){
       fileid: item.fileid,
       folderIndex: item.folderIndex,
       uploadtype: type,
-      data_backup: backupZip
+      data_backup: backupZip,
+      tablename: item.tableName 
     };
 
     if(type == 'chain-error' || type == 'chain-create' || type == 'chain-update'){
@@ -760,10 +710,6 @@ public setUploadMember(set){
     if(!chainuploading){
       console.log('파일업로딩 ',size.toFixed(2));
 
-      // if(this.notification == null){
-      //   console.log('11..서브젝트 생성');
-      //       this.notification = new Subject();
-      // }
 
       this.notification.next({
         cmd: 'SENDING.STARTED',

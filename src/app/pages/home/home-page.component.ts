@@ -283,13 +283,21 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.member = this.memberAPI.isLoggedin();
     this.memberPrivate = this.member.private;
 
+    //console.log('memberPrivate = ', this.memberPrivate);
+
     if(this.memberPrivate){
       this.maxFolder = this.PRIVATE_FLENGTH;
       this.foldersSize = new Array(this.PRIVATE_FLENGTH);
     }else{
       this.maxFolder = this.PUBLIC_FLENGTH;
       this.foldersSize = new Array(this.PUBLIC_FLENGTH);
+
+     // console.log('maxFolder =' ,this.maxFolder);
+
+      this.storageService.set('maxfolder', this.maxFolder); 
     }
+
+    
 
     function getRandomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;

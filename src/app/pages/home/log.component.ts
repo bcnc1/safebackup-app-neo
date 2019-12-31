@@ -70,11 +70,11 @@ export class LogComponent implements OnInit, OnDestroy {
           );
         } else {
           console.log('log = ',this.logs);
-          var i = 5;
-          var item = document.getElementById("logsli");
+          // var i = 5;
+          // var item = document.getElementById("logsli");
           while(this.logs.length > 5){
             this.logs.pop();
-            item.parentNode.removeChild(item[i--]);
+           // item.parentNode.removeChild(item[i--]);
           }
           
           this.logs.unshift({
