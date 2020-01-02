@@ -52,8 +52,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
   private maxFolder;
   private timergetTree;
   private timerStart;
-  // private timergetTreeInterval1;
-  // private timergetTreeInterval2;
+
 
   constructor(
     private memberAPI: M5MemberService,
@@ -166,7 +165,16 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
   }
 
+  onRetryUpload(){
+    log.info('재 시작');
+    if(this.uploading == true && this.storageService.get('upload') == 'error'){
+      this.uploading = false;
+      this.storageService.set('upload', 'init');
+    }
 
+    log.info('this.uploading = ',this.uploading);
+    this.onStartUploadFolder(0, 3);
+  }
   //kimcy: folderIndex 가 0이면 처음부터 시작
   //case1: 폴더선택시: folderIndex: 선택한 폴더, after: 3
   //case2: 자동로그인시: folderIndex: 0, after: 2
@@ -189,6 +197,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
           this.uploading = true;
           this.uploadFiletreeService.getFolderTree(folderIndex, folder, this.member);
         }else{
+          log.info('업로드 중이라 다시 셋팅 값 = ', after);
           this.onStartUploadFolder(folderIndex, after)
         }
 
@@ -229,7 +238,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
     let filename = this.storageService.get('data_backup',StorageTranscoders.STRING);
     log.info('checkDay => filename = ',filename);
-    if(filename != "none"){
+    if(filename != "none" && filename != undefined){
       const fyyyy = Number(filename.substr(0, 4));
       const fmm = Number(filename.substr(4, 2));
       const fdd = Number(filename.substr(6, 2));
@@ -370,22 +379,18 @@ export class HomePageComponent implements OnInit, OnDestroy {
             });
           }
 
-          // const str = next.format('MM월DD일 HH시 mm분');
-          // this.konsoleService.sendMessage({
-          //   cmd: 'LOG',
-          //   message: str + '에 백업이 재실행됩니다.'
-          // });
-          //this.logger.debug(new Date(), '다음 백업 대기 업로딩? ', this.uploading);
           this.memberAPI.getLoginToken(this.member,this.storageService); //업로드 완료 후 토큰 갱신
+
+
+          //7일 점검
+          if(!this.memberPrivate && this.checkDay(7)){
+            var msg = '7일간 백업된 파일이 없습니다. 프로그램에서 백업버튼을 눌러주세요.';
+            this.electronService.ipcRenderer.send('ALERT', {message: msg});
+          }
 
           //긴급점검 체크
           if(!this.memberPrivate && this.checkEmergency()){
             var msg = '긴급점검! 백업된 파일이 없습니다. 프로그램에서 백업버튼을 눌러주세요.';
-            this.electronService.ipcRenderer.send('ALERT', {message: msg});
-          }
-          //7일 점검
-          if(!this.memberPrivate && this.checkDay(7)){
-            var msg = '7일간 백업된 파일이 없습니다. 프로그램에서 백업버튼을 눌러주세요.';
             this.electronService.ipcRenderer.send('ALERT', {message: msg});
           }
 

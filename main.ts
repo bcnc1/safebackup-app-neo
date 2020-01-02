@@ -70,7 +70,7 @@ drBackupAutoLauncher.enable();
 /* 글로벌로 해야  garbage colllection이 안된다고함 */
 let tray = null;
 let contextMenu = null;
-var exist_tableName = new Set();
+//var exist_tableName = new Set();
 
 function createWindow() {
   console.log('createWindow');
@@ -469,7 +469,7 @@ if (!gotTheLock) {
               
             }else{
               
-             //log.info('업데이트 준비, results = ', results , 'item = ',item);
+             log.info('업데이트 준비, results = ', results );
              
              for(var i =0; i< results.length; i++){
 
@@ -478,6 +478,8 @@ if (!gotTheLock) {
                 var fupdate = results[i]['fileupdate']; //utc값으로 기록안되어 추후구현
                 var uploadstatus = results[i]['uploadstatus'];
                 var chainstatus = results[i]['chainstatus'];
+
+                log.info('변경 fsize = ', fsize , '현재 item = ',item);
 
                 if(fsize != item.size){
                   if(uploadstatus == 0){
@@ -900,7 +902,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
 
   var tableName = arg.username +':'+arg.folderIndex;
 
-  exist_tableName.add(tableName);
+ // exist_tableName.add(tableName);
 
   log.info('tableName = , tableName');
 
@@ -1010,7 +1012,8 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
 
   //const STORAGE_URL = env.STORAGE_URL;
   let startTime = new Date().getTime();
-  let tableName = arg.container+':'+arg.folderIndex;
+  //let tableName = arg.container+':'+arg.folderIndex;
+  let tableName = arg.tablename;
 
   //kimcy error kt에서 응답이 null이 나와서 수정
   function fileuploadCb(error, response, body) {
@@ -1083,14 +1086,37 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
     }
   };
 
-  try{
-     upload = fs.createReadStream(arg.filepath,{highWaterMark : 256*1024});
-     r = reqestProm(options, fileuploadCb);
-    upload.pipe(r);
-  }catch(err){
+  //pipe는 에러를 전달하지 못함으로
+  // try{
+    
+  //    upload = fs.createReadStream(arg.filepath,{highWaterMark : 256*1024});
+  //    r = reqestProm(options, fileuploadCb);
+  //   upload.pipe(r);
+  // }catch(err){
+  //   log.error('업로드 에러 : ',err);
+  // }
+   try{
+    if(fs.existsSync(arg.filepath)){
+      //파일이 존재함으로 업로드..
+      upload = fs.createReadStream(arg.filepath,{highWaterMark : 256*1024});
+      r = reqestProm(options, fileuploadCb);
+      upload.pipe(r);
+    }else{
+      //db목록에서 삭제
+      log.info('파일없음으로 db목록에서 삭제: ',arg.filepath);
+      // log.info('tableName: ',tableName);
+      // var delId = arg.fileid;
+      knex(tableName)
+        .where({id: arg.fileid})
+        .del().then(()=>{
+          if (mainWindow && !mainWindow.isDestroyed()){
+            mainWindow.webContents.send(arg.uploadtype, {error: "1010"}); 
+          }
+        });
+    }
+   } catch(err){
     log.error('업로드 에러 : ',err);
-  }
-
+   }
  }
 
 

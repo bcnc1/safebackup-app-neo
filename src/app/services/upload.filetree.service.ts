@@ -197,6 +197,7 @@ export class UploadFiletreeService {
         }else{
           log.error('에러 목록 업데이트중, 블록체인에러, 백업시작버튼을 눌러 다시 시작해야 한다. = ',response 
                    , 'id = ', this.chainsToSend[this.sendIndex].fileid);
+          this.storageService.set('upload','error');
         }
       });
       
@@ -298,7 +299,22 @@ export class UploadFiletreeService {
           log.info('파일업로드완료 , 블록체인으로 이동')
           //main
           this.uploadManager(this.addfilesToSend[this.sendIndex], "chain-create");
-        }else{
+        }else if(response.error === "1010" ){
+          this.notification.next({
+            cmd: 'LOG',
+            message: '[' + (this.folderIndex + 1) + '] ' + ' : 해당 파일이 존재하지 않습니다 !!' 
+          });
+
+          this.sendIndex++;
+          if(this.addfilesToSend.length > this.sendIndex){
+            this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
+          }else{
+            log.info('삭제된 파일이 폴더의 마지막!!');
+            this.gotoNext();
+          }
+        }
+        
+        else{
           log.error('22..업로드 에러 = ', response.error);
           if(response.error == '403' || response.error == 403 
              || response.error == '401' || response.error == 401){
@@ -344,6 +360,7 @@ export class UploadFiletreeService {
       }else{
         log.error('블록체인에러, 백업시작버튼을 눌러 다시 시작해야 한다. = ',response
                  , 'id = ', this.addfilesToSend[this.sendIndex].fileid);
+        this.storageService.set('upload','error');
       }
     });
 
@@ -453,6 +470,7 @@ export class UploadFiletreeService {
       }else{
         log.error('블록체인에러, 백업시작버튼을 눌러 다시 시작해야 한다. = ',response
                  , 'id = ', this.changefilesToSend[this.sendIndex].fileid);
+        this.storageService.set('upload','error');
       }
     }); 
 
@@ -661,8 +679,15 @@ public setUploadMember(set){
         console.log('data_backup zip = ',path.extname(item.filepath));
 
        if(path.extname(item.filepath).toLowerCase() == ".zip"){
-        backupZip = path.basename(item.filepath);
-       }else{
+        //backupZip = path.basename(item.filepath); //파일명추출
+        var filname = path.basename(item.filepath);
+        var pattern = /[0-9]{4}[0-9]{2}[0-9]{2}/;
+        if(pattern.test(filename)){
+          backupZip = filname;
+        }else{
+          backupZip = 'not-store';
+        }
+       }else{ 
          var filename = this.storageService.get('data_backup',StorageTranscoders.STRING)
          console.log('filename = ',filename);
          if(filename != undefined){
@@ -716,12 +741,7 @@ public setUploadMember(set){
         message: '[' + (item.folderIndex + 1) + '] ' + item.filepath + ' 업로딩...' + size.toFixed(2) +'KB'
 
       });
-      
-      //this.notification.complete();
-     // this.notification = null;
     }
-
-
   }
   
 
