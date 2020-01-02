@@ -95,7 +95,7 @@ function createWindow() {
      }
    ]);
  
-   tray.setToolTip('안심백업 v3.0');
+   tray.setToolTip('안심백업 v3.1');
    tray.setContextMenu(contextMenu);
  
    tray.on('click', function (e) {
