@@ -119,7 +119,7 @@ export class LoginPageComponent implements OnInit {
 
 
   onLogin(username, password  , popup) {
-    console.log('onLogin 22');
+    //console.log('onLogin 22');
     log.info('로그인 버튼 누름 , id =',username,'pw = ',password);
 
     //로그인하고 토큰 재활용은 추후에..kimcy

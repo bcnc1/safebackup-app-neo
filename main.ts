@@ -62,11 +62,6 @@ var drBackupAutoLauncher = new AutoLaunch({
 drBackupAutoLauncher.enable();
 
 
-// function logger(level, text) {
-//   log.warn(level, text);
-// }
-
-
 /* 글로벌로 해야  garbage colllection이 안된다고함 */
 let tray = null;
 let contextMenu = null;
@@ -95,7 +90,7 @@ function createWindow() {
      }
    ]);
  
-   tray.setToolTip('안심백업 v3.1');
+   tray.setToolTip('안심백업 v3.2.0');
    tray.setContextMenu(contextMenu);
  
    tray.on('click', function (e) {
@@ -386,7 +381,9 @@ if (!gotTheLock) {
  const MaxByte = 5*1024*1024*1024;
  function addFileFromDir(arg, window, callback){
   //console.log('addFileFromDir => folderIndex = ', arg);
-  var tableName = arg.username+':'+arg.folderIndex;
+  //var tableName = arg.username+':'+arg.folderIndex;
+  var tableName = arg.username;
+
   const watcher = chokidar.watch(arg.path, {
     ignored: /(^|[\/\\])\../, // ignore dotfiles
     persistent: true,
@@ -606,7 +603,8 @@ if (!gotTheLock) {
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
  ipcMain.on("REQ-UPDATETREE", (event, arg) => {
   console.log('받음, REQ-UPDATETREE, main folderIndex = ',arg.folderIndex);
-  var tableName = arg.username+':'+arg.folderIndex;
+ // var tableName = arg.username+':'+arg.folderIndex;
+ var tableName = arg.username;
 
     knex(tableName).where({
       uploadstatus: 2
@@ -629,7 +627,8 @@ if (!gotTheLock) {
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
  ipcMain.on("REQ-UPLOADTREE", (event, arg) => {
   console.log('받음, REQ-UPLOADTREE, main folderIndex = ',arg.folderIndex);
-  var tableName = arg.username+':'+arg.folderIndex;
+  //var tableName = arg.username+':'+arg.folderIndex;
+  var tableName = arg.username;
 
     knex(tableName).where({
       uploadstatus: 0
@@ -900,15 +899,13 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   });
 
 
-  var tableName = arg.username +':'+arg.folderIndex;
+  //var tableName = arg.username +':'+arg.folderIndex;
 
- // exist_tableName.add(tableName);
-
-  log.info('tableName = , tableName');
 
   if(mainWindow && !mainWindow.isDestroyed()){
     
-    var tableName = arg.username +':'+arg.folderIndex;
+    //var tableName = arg.username +':'+arg.folderIndex;
+    var tableName = arg.username; 
     //db생성
     //db table 생성
     createTable(tableName, mainWindow,(result) => {
