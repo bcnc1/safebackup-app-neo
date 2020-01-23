@@ -65,7 +65,7 @@ drBackupAutoLauncher.enable();
 /* 글로벌로 해야  garbage colllection이 안된다고함 */
 let tray = null;
 let contextMenu = null;
-//var exist_tableName = new Set();
+
 
 function createWindow() {
   console.log('createWindow');
@@ -651,71 +651,75 @@ if (!gotTheLock) {
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
  ipcMain.on("REQ-CHAINTREE", (event, arg) => {
   console.log('받음, REQ-CHAINTREE, main folderIndex = ',arg.folderIndex);
- // var maxfolder;
-  var chaintree = [];
-  localStorage.getItem('maxfolder').then((value) => {
-    log.info('폴더는 => ', value);
-   // maxfolder = value;
-    getChaintree(value);
+ 
+  //db table이 여러개일때..
+  // var chaintree = [];
+  // localStorage.getItem('maxfolder').then((value) => {
+  //   log.info('폴더는 => ', value);
 
-  });
+  //   getChaintree(value);
+
+
+
+  // });
 
  
-  function getChaintree(maxfolder){
-    console.log('getChaintree ');
-    for(let i = maxfolder; i >= 0 ; i--){
-      setTimeout(()=>{
-        if(i == 0){
-          //log.info('체인에러결과 = ', chaintree);
-          if(mainWindow && !mainWindow.isDestroyed()){
-              log.info('보냄 CHAINTREE, main ', chaintree);
-              mainWindow.webContents.send("CHAINTREE", {tree:chaintree});
-          }
-        }else{
-          knex.schema.hasTable(arg.username+':'+(maxfolder - i)).then((exists) =>{
-            if(exists){
-              var tableName = arg.username+':'+(maxfolder - i);
-              //console.log('tablename = ', tableName);
-              knex(tableName)
-              .where({uploadstatus: 1})
-              .whereNot({
-                chainstatus: 1  
-              }).then((results) => {
-                  //log.info('테이블 조회 결과 = ', results);
-                  if(results.length > 0){
-                    results.forEach(function(element){
-                      //log.info('11..element = ', element);
-                      element.tbName = tableName;
-                     // log.info('22..element = ', element);
-                      chaintree.push(element);
-                    });
-                  }
-              });
-            }
-          });
-        }
+  // //db table의 여러개일때..
+  // function getChaintree(maxfolder){
+  //   console.log('getChaintree ');
+  //   for(let i = maxfolder; i >= 0 ; i--){
+  //     setTimeout(()=>{
+  //       if(i == 0){
+  //         //log.info('체인에러결과 = ', chaintree);
+  //         if(mainWindow && !mainWindow.isDestroyed()){
+  //             log.info('보냄 CHAINTREE, main ', chaintree);
+  //             mainWindow.webContents.send("CHAINTREE", {tree:chaintree});
+  //         }
+  //       }else{
+  //         knex.schema.hasTable(arg.username+':'+(maxfolder - i)).then((exists) =>{
+  //           if(exists){
+  //             var tableName = arg.username+':'+(maxfolder - i);
+  //             //console.log('tablename = ', tableName);
+  //             knex(tableName)
+  //             .where({uploadstatus: 1})
+  //             .whereNot({
+  //               chainstatus: 1  
+  //             }).then((results) => {
+  //                 //log.info('테이블 조회 결과 = ', results);
+  //                 if(results.length > 0){
+  //                   results.forEach(function(element){
+  //                     //log.info('11..element = ', element);
+  //                     element.tbName = tableName;
+  //                    // log.info('22..element = ', element);
+  //                     chaintree.push(element);
+  //                   });
+  //                 }
+  //             });
+  //           }
+  //         });
+  //       }
         
-      }, (maxfolder - i)*300)
-    }
-  }
+  //     }, (maxfolder - i)*300)
+  //   }
+  // }
 
   
 
  
+ //db 테이블이 1개일때..
+  var tableName = arg.username;
 
-  // var tableName = arg.username+':'+arg.folderIndex;
-
-  //   knex(tableName)
-  //   .where({uploadstatus: 1})
-  //   .whereNot({
-  //     chainstatus: 1   
-  //   }).then((results)=>{
-  //     log.info('블록체인 조회 결과  = ', results);
-  //     if(mainWindow && !mainWindow.isDestroyed()){
-  //       log.info('보냄 CHAINTREE, main ', results);
-  //       mainWindow.webContents.send("CHAINTREE", {tree:results});
-  //     }
-  //   })
+    knex(tableName)
+    .where({uploadstatus: 1})
+    .whereNot({
+      chainstatus: 1   
+    }).then((results)=>{
+      log.info('블록체인 조회 결과  = ', results);
+      if(mainWindow && !mainWindow.isDestroyed()){
+        log.info('보냄 CHAINTREE, main ', results);
+        mainWindow.webContents.send("CHAINTREE", {tree:results});
+      }
+    })
  });
 
 
@@ -873,20 +877,20 @@ ipcMain.on('PCRESOURCE', (event, arg) => {
  *  IPC : get A FOLDER size
  *  
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
- ipcMain.on('REQ-DIRSIZE', (event, arg) => {
-  var tableName = arg.username +':'+arg.folderIndex;
-  knex(tableName).sum('filesize')
-  .then((result)=>{
-    log.info('폴더사이즈 , folderIndex =  ',arg.folderIndex, 'size = ', result);
-    //console.log('사이즈 = ', result.sum(`filesize`));
-    //console.log('사이즈 = ', result[0]['sum(`filesize`)']);
-    mainWindow.webContents.send("DIRSIZE", {
-      error: null,
-      folderIndex: arg.folderIndex,
-      dirsize: result[0]['sum(`filesize`)']
-    });
-  });
- });
+//  ipcMain.on('REQ-DIRSIZE', (event, arg) => {
+//   var tableName = arg.username +':'+arg.folderIndex;
+//   knex(tableName).sum('filesize')
+//   .then((result)=>{
+//     log.info('폴더사이즈 , folderIndex =  ',arg.folderIndex, 'size = ', result);
+//     //console.log('사이즈 = ', result.sum(`filesize`));
+//     //console.log('사이즈 = ', result[0]['sum(`filesize`)']);
+//     mainWindow.webContents.send("DIRSIZE", {
+//       error: null,
+//       folderIndex: arg.folderIndex,
+//       dirsize: result[0]['sum(`filesize`)']
+//     });
+//   });
+//  });
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  *  IPC : SELECT A FOLDER
  *  폴더 선택 이벤트 처리
@@ -1007,7 +1011,6 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   var upload = null;
   var r = null;
 
-  //const STORAGE_URL = env.STORAGE_URL;
   let startTime = new Date().getTime();
   //let tableName = arg.container+':'+arg.folderIndex;
   let tableName = arg.tablename;
@@ -1017,7 +1020,6 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
     //log.debug('fileuploadCb => error : ',error);
     //log.debug('fileuploadCb => response : ',response);
 
-    //if ( !error && response.statusCode == 201) {
     if(!error && (response != null || response != undefined)){
      if(response.statusCode == 201){
         console.log('업로드 성공');
@@ -1083,15 +1085,6 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
     }
   };
 
-  //pipe는 에러를 전달하지 못함으로
-  // try{
-    
-  //    upload = fs.createReadStream(arg.filepath,{highWaterMark : 256*1024});
-  //    r = reqestProm(options, fileuploadCb);
-  //   upload.pipe(r);
-  // }catch(err){
-  //   log.error('업로드 에러 : ',err);
-  // }
    try{
     if(fs.existsSync(arg.filepath)){
       //파일이 존재함으로 업로드..

@@ -252,24 +252,15 @@ export class UploadFiletreeService {
     this.electronService.ipcRenderer.on("add-file", (event: Electron.IpcMessageEvent, response: any) => {
       console.info('받음, 업로드,  add-file ');
 
-      //log.info('this.member.private = ' , this.member.private)
-
       if(this.member.private){
         if(response.error === null ){
           console.log('파일업로드 완료 = ', (this.sendIndex + 1));
-          //console.log('sendIndex = ', typeof this.sendIndex);
 
-          // if(this.notification == null){
-          //   console.log('22 서브젝트 생성');
-          //   this.notification = new Subject();
-          // }
           
           this.notification.next({
             cmd: 'LOG',
             message: '[' + (this.folderIndex + 1) + '] ' + ' : 파일 업로드 완료 (' + (this.sendIndex + 1) + '/' + this.addfilesToSend.length + ')'
           });
-          //this.notification.complete();
-          //this.notification = null;
 
           this.sendIndex++;
           //console.log('add-file 다음파일 = ',this.sendIndex);
@@ -581,58 +572,6 @@ public setUploadMember(set){
     this.uploading = false;
   }
 
-  /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-   *  다음 파일 보내기
-   -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-  // private gotoNextFile(index) {
-  //   //index는 폴더 인덱스
-  //   log.warn('gotoNextFile , 파일갯수 : ', this.filesToSend.length);
-  //   log.warn('gotoNextFile , filesToSend 사이즈 : ', this.filesToSend);
-  //   log.warn('gotoNextFile, 폴더인덱스 : ', index);  //process.getHeapStatistics().usedHeapSize
-
-  //   //console.log('gotoNextFile filesToSend 사이즈 = ',this.filesToSend.length,'index= ',index);
-
-
-  //   console.log('gotoNextFile send = ',this.filesToSend.length,'index= ',index);
-  //   //log.warn()
-  //   if (this.filesToSend.length - 1 > index) { //폴더갯수와 현재 폴더를 비교하여 다음폴더 진행
-  //     this.subject.next(this.filesToSend[index + 1]); //processFile 호출
-  //   } else {
-  //     console.log('업로드 종료');
-  //     log.warn('gotoNextFile, 업로드 종료 : ', index);
-
-  //     this.notification.next({
-  //       cmd: 'FOLDER.SENT',
-  //       folderIndex: this.folderIndex
-  //     });
-  //     this.uploading = false;
-  //   }
-  // }
-
-  // private gotoNextFileChain(index,result) {
-  //   //console.log('gotoNextFile send = ',this.filesToSend.length,'index= ',index);
-  //   console.log('result = ',result);
-  //   if (this.filesToSend.length - 1 > index && request) {
-  //     console.log('성공한경우');
-  //     this.subject.next(this.filesToSend[index + 1]);
-  //   } else if(this.filesToSend.length - 1 > index && !request){
-  //     console.log('성공한실패한경우');
-  //   } else {
-  //     console.log('업로드 종료');
-  //     this.notification.next({
-  //       cmd: 'FOLDER.SENT',
-  //       folderIndex: this.folderIndex
-  //     });
-  //     this.uploading = false;
-  //   }
-  // }
-
-  // private getNewTokenCb(error, response, body) {
-  //   if(response.statusCode == 200){
-  //     this.member
-  //     this.storageService.set()
-  //   }
-  // }
 
   private getNewToken(){
   
