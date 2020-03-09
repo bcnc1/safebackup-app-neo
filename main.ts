@@ -90,7 +90,7 @@ function createWindow() {
      }
    ]);
  
-   tray.setToolTip('안심백업 v3.2.0');
+   tray.setToolTip('안심백업 v3.2.1');
    tray.setContextMenu(contextMenu);
  
    tray.on('click', function (e) {
@@ -714,6 +714,11 @@ if (!gotTheLock) {
     .whereNot({
       chainstatus: 1   
     }).then((results)=>{
+
+      results.forEach(function(element){
+        element.tbName = tableName;
+      });
+
       log.info('블록체인 조회 결과  = ', results);
       if(mainWindow && !mainWindow.isDestroyed()){
         log.info('보냄 CHAINTREE, main ', results);
@@ -948,7 +953,8 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
     url = 'http://211.252.85.59:3000/api/v1/proof/update'; //env.UPDATE;
     //url = env.UPDATE_DEV;
   }
-  //let tableName = arg.container+':'+arg.folderIndex;
+
+  log.info('chainupload, arg = ',arg);
   let tableName = arg.tablename;
 
   function chainuploadCb(error, response, body) {
@@ -970,6 +976,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
       
     }else{
        log.error('chain응답 실패 = ',error, 'info = ',arg); 
+       //log.error('tableName = ',tableName);
        knex(tableName)
         .where({id: arg.fileid})
         .update({uploadstatus: 1, chainstatus: 2})  
@@ -1013,6 +1020,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
 
   let startTime = new Date().getTime();
   //let tableName = arg.container+':'+arg.folderIndex;
+  log.info('fileupload, arg = ',arg);
   let tableName = arg.tablename;
 
   //kimcy error kt에서 응답이 null이 나와서 수정
@@ -1025,8 +1033,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
         console.log('업로드 성공');
         upload = null;
         r = null;
-        //console.log('tablename = ', tableName);
-        //console.log('data_backup = ', typeof arg.data_backup);
+
         
         var bkzip = arg.data_backup;
         console.log('bkzip = ', bkzip);

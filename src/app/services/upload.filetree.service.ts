@@ -129,6 +129,8 @@ export class UploadFiletreeService {
         console.log('requestChainErrorList =>CHAINTREE');
         const fileTree = response.tree; 
   
+        //log.info('fileTree = ',fileTree);
+
         this.chainsToSend = [];
   
         for(let i =0; i<fileTree.length; i++){
@@ -611,7 +613,8 @@ public setUploadMember(set){
     this.member = this.memberAPI.isLoggedin();
     var size =  (item.filesize / 1024 ) ;
     
-    
+    log.info('item = ', item);
+
     if(item.filepath.toLowerCase().indexOf('data_backup') >= 0){
        //하위폴더, zip, 다른 파일이 존재함.
         console.log('data_backup basename = ',path.basename(item.filepath));
