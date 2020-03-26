@@ -622,27 +622,36 @@ public setUploadMember(set){
 
        if(path.extname(item.filepath).toLowerCase() == ".zip"){
         //backupZip = path.basename(item.filepath); //파일명추출
-        var filname = path.basename(item.filepath);
+        var filname = path.basename(item.filepath, path.extname(item.filepath));
+        console.log('data_backup filname = ',typeof filname);
         var pattern = /[0-9]{4}[0-9]{2}[0-9]{2}/;
-        if(pattern.test(filename)){
-          backupZip = filname;
+        //var pattern = /₩d{4}₩d{2}₩d{2}/;
+        // if(pattern.test(filename)){
+        //   backupZip = filname;
+        // }else{
+        //   backupZip = 'not-store';
+        // }
+        //backupZip = filname;
+        if ((new RegExp(pattern)).test(filname)){
+            backupZip = filname;
         }else{
           backupZip = 'not-store';
         }
        }else{ 
          var filename = this.storageService.get('data_backup',StorageTranscoders.STRING)
-         console.log('filename = ',filename);
-         if(filename != undefined){
-          console.log('업로드된 zip 있음 ');
+         log.info('filename = ',typeof filename);
+         log.info('filename = ', filename);
+         if(filename != "undefined" ){
+          log.info('업로드된 zip 있음 ');
           var fileLength = filename.length;
           var lastDot = filename.lastIndexOf('.')
           var fileExtension = filename.substring(lastDot+1, fileLength).toLowerCase(); 
-          console.log('fileExtension = ',fileExtension);
+          log.info('fileExtension = ',fileExtension);
           if(fileExtension == "zip"){
            backupZip = 'not-store';
           } 
          }else{
-          console.log('업로드된 zip 없음 ');
+          log.info('업로드된 zip 없음 ');
           backupZip = 'none';
          }
          

@@ -238,7 +238,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
     let filename = this.storageService.get('data_backup',StorageTranscoders.STRING);
     log.info('checkDay => filename = ',filename);
-    if(filename != "none" && filename != undefined){
+    if(filename != "none" && filename != "undefined"){
       const fyyyy = Number(filename.substr(0, 4));
       const fmm = Number(filename.substr(4, 2));
       const fdd = Number(filename.substr(6, 2));

@@ -128,7 +128,7 @@ function createWindow() {
  
    //kimcy: release 할때는 해당 부부을 false, 개발할때는 true
    function isDev() {
-     return false;
+     return true;
    };
  
    // The following is optional and will open the DevTools:
@@ -265,6 +265,7 @@ if (!gotTheLock) {
   console.log('Ready');
   createWindow();
   createSBDatabBase();
+  initDataBackup()
  });
 }
 
@@ -330,6 +331,33 @@ if (!gotTheLock) {
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  *  DataBase
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
+ //for migration auto
+//  function knexCreateTable(tbl){
+//   knex.schema.hasTable(tbl).then(function(exists){
+//     if (!exists) {
+//       return knex.schema.createTable(tbl, function(t) {
+//         t.increments('id').primary();
+//         t.text('filename');
+//         t.integer('filesize');
+//         t.time('fileupdate',{useTz: true}); 
+//         t.integer('uploadstatus'); //0: 초기값(업로드해야), 1: 업로드완료 2:업데이트(아직업로드안됨, 업로드되면 1)
+//         t.integer('chainstatus'); //0: 초기값(업로드해야), 1: 업로드 완료, 2: 업로드에러 
+//       })
+//       .then(()=>{
+//         log.info('knexCreateTable');
+//         //return true;
+//       }).catch(()=>{
+//         log.error('knexCreateTable error');
+//         //return false;
+//       });
+//     }else{
+//       return "table name is already";
+//     }
+//   });
+//  }
+
+
+
  var sqlite3 = require('sqlite3').verbose();
  
  function createSBDatabBase(){
@@ -343,16 +371,41 @@ if (!gotTheLock) {
       console.log('does not');
       var db = new sqlite3.Database(app.getPath('userData')+'/'+ 'sb.db');
       db.close();
-    }
-  });
 
+      //initDataBackup()//처음 한번만 만든다.
+    }
+
+    //"-"특수문자는 table명으로 사용하지 못함(for db migration)
+    // (async function(){
+    //   const res = await knexCreateTable(member.username);
+    //   console.log('KNEX', res);
+    // })();
+
+    // (async function(){
+    //   const res = await knexInsertTable(member.username);
+    //   console.log('KNEX', res);
+    // })();
+
+   });
+  
  }
+
+ function initDataBackup(){
+  localStorage.getItem('data_backup').then((value) => {
+    log.info('initDataBackup => ', value);
+    log.info('initDataBackup => ', typeof value);
+    if(value == undefined){
+      localStorage.setItem('data_backup',"undefined").then(()=>{
+        log.info('undefine 저장');
+      });
+    }
+ });
+  
+}
 
  function createTable(tableName, window, callback){
    console.log('createTable');
 
-      //timezone 챀고
-      //https://stackoverflow.com/questions/46152833/timestamp-fields-in-knex-js-migrations
       knex.schema.hasTable(tableName).then(function(exists) {
         log.info('createTable, exists = ',exists);
         if (!exists) {
@@ -391,7 +444,6 @@ if (!gotTheLock) {
     //binaryInterval: 600
   });
 
-  //var result = [];
   let result = [];
   watcher
     .on('add', function(path, stats){
@@ -908,9 +960,6 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   });
 
 
-  //var tableName = arg.username +':'+arg.folderIndex;
-
-
   if(mainWindow && !mainWindow.isDestroyed()){
     
     //var tableName = arg.username +':'+arg.folderIndex;
@@ -1039,7 +1088,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
         console.log('bkzip = ', bkzip);
         if(bkzip != 'not-store'){
           localStorage.setItem('data_backup',bkzip).then(()=>{
-            //console.log('zip저장');
+            console.log('zip저장');
           });
         }
 
