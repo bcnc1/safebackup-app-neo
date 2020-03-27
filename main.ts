@@ -90,7 +90,7 @@ function createWindow() {
      }
    ]);
  
-   tray.setToolTip('안심백업 v3.2.1');
+   tray.setToolTip('안심백업 v3.2.2');
    tray.setContextMenu(contextMenu);
  
    tray.on('click', function (e) {
@@ -128,7 +128,7 @@ function createWindow() {
  
    //kimcy: release 할때는 해당 부부을 false, 개발할때는 true
    function isDev() {
-     return true;
+     return false;
    };
  
    // The following is optional and will open the DevTools:

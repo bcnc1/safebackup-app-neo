@@ -235,7 +235,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
     //저장된파일이름
     //let filename;
     //let maxDate = moment().year(1990).month(0).date(1);
-
     let filename = this.storageService.get('data_backup',StorageTranscoders.STRING);
     log.info('checkDay => filename = ',filename);
     if(filename != "none" && filename != "undefined"){
@@ -249,13 +248,12 @@ export class HomePageComponent implements OnInit, OnDestroy {
         return true;
       }else{
         return false;
+
       }
     }else{
       log.error('checkDay, 저장된 zip파일명 없음')
     }
-
-
-  }
+}
 
   onStartBrowser(){
     require('electron').shell.openExternal("http://211.252.85.59/login");
@@ -380,18 +378,30 @@ export class HomePageComponent implements OnInit, OnDestroy {
           }
 
           this.memberAPI.getLoginToken(this.member,this.storageService); //업로드 완료 후 토큰 갱신
-
-
-          //7일 점검
-          if(!this.memberPrivate && this.checkDay(7)){
-            var msg = '7일간 백업된 파일이 없습니다. 프로그램에서 백업버튼을 눌러주세요.';
-            this.electronService.ipcRenderer.send('ALERT', {message: msg});
+          
+          //30일 점검
+          if(!this.memberPrivate && this.checkDay(30)){
+            var top = '[팜베이스] 안심백업'
+            var msg = '[위험]최근 30일간 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
+            this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
           }
-
+          
+          else if(!this.memberPrivate && this.checkDay(15)){
+            var top = '[팜베이스] 안심백업'
+            var msg = '[경고]최근 15일간 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
+            this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
+          }
+          
+          else if(!this.memberPrivate && this.checkDay(7)){
+            var top = '[팜베이스] 안심백업'
+            var msg = '[주의]최근 7일간 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
+            this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
+          }
           //긴급점검 체크
-          if(!this.memberPrivate && this.checkEmergency()){
-            var msg = '긴급점검! 백업된 파일이 없습니다. 프로그램에서 백업버튼을 눌러주세요.';
-            this.electronService.ipcRenderer.send('ALERT', {message: msg});
+          else if(!this.memberPrivate && this.checkEmergency()){
+            var top = '[팜베이스] 안심백업'
+            var msg = '긴급점검! 백업된 파일이 없습니다.\n프로그램에서 백업버튼을 눌러주세요.';
+            this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
           }
 
           this.onStartUploadFolder(0, interval / 1000);
