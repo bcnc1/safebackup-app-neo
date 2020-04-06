@@ -231,7 +231,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
   }
 
-  checkDay(day){
+checkDay(day){
     //저장된파일이름
     //let filename;
     //let maxDate = moment().year(1990).month(0).date(1);
@@ -304,6 +304,30 @@ export class HomePageComponent implements OnInit, OnDestroy {
       this.storageService.set('maxfolder', this.maxFolder); 
     }
 
+    //30일 점검
+    if(!this.memberPrivate && this.checkDay(30)){
+      var top = '[팜베이스] 안심백업'
+      var msg = '[위험]최근 30일간 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
+      this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
+    }
+    
+    else if(!this.memberPrivate && this.checkDay(15)){
+      var top = '[팜베이스] 안심백업'
+      var msg = '[경고]최근 15일간 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
+      this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
+    }
+    
+    else if(!this.memberPrivate && this.checkDay(7)){
+      var top = '[팜베이스] 안심백업'
+      var msg = '[주의]최근 7일간 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
+      this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
+    }
+    //긴급점검 체크
+    else if(!this.memberPrivate && this.checkEmergency()){
+      var top = '[팜베이스] 안심백업'
+      var msg = '긴급점검! 백업된 파일이 없습니다.\n프로그램에서 백업버튼을 눌러주세요.';
+      this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
+    }
     
 
     function getRandomInt(min, max) {
@@ -379,30 +403,30 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
           this.memberAPI.getLoginToken(this.member,this.storageService); //업로드 완료 후 토큰 갱신
           
-          //30일 점검
-          if(!this.memberPrivate && this.checkDay(30)){
-            var top = '[팜베이스] 안심백업'
-            var msg = '[위험]최근 30일간 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
-            this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
-          }
+          // //30일 점검
+          // if(!this.memberPrivate && this.checkDay(30)){
+          //   var top = '[팜베이스] 안심백업'
+          //   var msg = '[위험]최근 30일간 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
+          //   this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
+          // }
           
-          else if(!this.memberPrivate && this.checkDay(15)){
-            var top = '[팜베이스] 안심백업'
-            var msg = '[경고]최근 15일간 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
-            this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
-          }
+          // else if(!this.memberPrivate && this.checkDay(15)){
+          //   var top = '[팜베이스] 안심백업'
+          //   var msg = '[경고]최근 15일간 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
+          //   this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
+          // }
           
-          else if(!this.memberPrivate && this.checkDay(7)){
-            var top = '[팜베이스] 안심백업'
-            var msg = '[주의]최근 7일간 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
-            this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
-          }
-          //긴급점검 체크
-          else if(!this.memberPrivate && this.checkEmergency()){
-            var top = '[팜베이스] 안심백업'
-            var msg = '긴급점검! 백업된 파일이 없습니다.\n프로그램에서 백업버튼을 눌러주세요.';
-            this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
-          }
+          // else if(!this.memberPrivate && this.checkDay(7)){
+          //   var top = '[팜베이스] 안심백업'
+          //   var msg = '[주의]최근 7일간 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
+          //   this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
+          // }
+          // //긴급점검 체크
+          // else if(!this.memberPrivate && this.checkEmergency()){
+          //   var top = '[팜베이스] 안심백업'
+          //   var msg = '긴급점검! 백업된 파일이 없습니다.\n프로그램에서 백업버튼을 눌러주세요.';
+          //   this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
+          // }
 
           this.onStartUploadFolder(0, interval / 1000);
         }

@@ -802,7 +802,7 @@ if (!gotTheLock) {
   addFileFromDir(arg, mainWindow, (result)=>{
     log.info('폴더 트리 결과 = ',result);
     localStorage.getItem('member').then((value) => {
-      log.info('로그아웃 => ', value);
+      //log.info('로그아웃 => ', value);
       if(value == null){
         return;
       }
