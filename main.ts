@@ -813,7 +813,7 @@ if (!gotTheLock) {
     // })
 
     if(mainWindow && !mainWindow.isDestroyed()){
-      log.info('GETFOLDERTREE => 젆송 ');
+      log.info('GETFOLDERTREE => 전송 ');
       mainWindow.webContents.send("GETFOLDERTREE", "Complete Scanning Folder");
     }
   });

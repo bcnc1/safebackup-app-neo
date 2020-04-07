@@ -75,7 +75,7 @@
     "ts-node": "7.0.1",
     "tslint": "5.17.0",
     "typescript": "3.4.5",
-    "wait-on": "3.2.2",
+    "wait-on": "3.3.0",
     "webdriver-manager": "12.1.0"
   },
   "engines": {
@@ -106,7 +106,6 @@
     "check-disk-space": "^2.0.0",
     "chokidar": "^3.1.1",
     "core-js": "^2.6.1",
-
     "electron-browser-storage": "^1.0.6",
     "electron-json-storage": "^4.1.7",
     "electron-log": "^3.0.6",
