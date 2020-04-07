@@ -68,13 +68,13 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
 
   private getFolderKey(folderIndex) {  //폴더+사용자이름+폴더index 붙여서 return
-    console.log('home-page, getFolderKey => folderIndex ',folderIndex, this.member.username);
+   // log.info('home-page, getFolderKey => folderIndex ',folderIndex, this.member.username);
 
     this.member = this.memberAPI.isLoggedin();
 
     const key = 'folder:' + this.member.username + ':' + folderIndex;
-    //this.logger.debug('FOLDERKEY', key, 'username = ' + this.member.username);
-    console.log('FOLDERKEY', key, 'username = ' + this.member.username)
+
+   // log.info('FOLDERKEY', key, 'username = ' + this.member.username)
     return key;
   }
 
@@ -207,24 +207,30 @@ export class HomePageComponent implements OnInit, OnDestroy {
   }
 
   checkEmergency(){
-
+    //log.info("his.maxFolder = ",this.maxFolder);
     for (let i = 0; i < this.maxFolder; i++) {
       const folderKey = this.getFolderKey(i);
       this.storedFolders[i] = this.storageService.get(folderKey); //얻은키를 활용하여 선택된 폴더를 반환한다.
-      console.log(" this.storedFolders[i] = ", this.storedFolders[i]);
+      log.info(" this.storedFolders[i] = ", this.storedFolders[i]);
+      if(this.storedFolders[i] == null){
+        
+        log.info('맨처음 생략');
+        return false;
+      }
+      
       if(this.storedFolders[i].toLowerCase().indexOf('data_backup') >= 0){
         //lib..호환때문에..
-        console.log(" 저장값은?? ", this.storageService.get('data_backup',StorageTranscoders.STRING));
+        //log.info(" 저장값은?? ", this.storageService.get('data_backup',StorageTranscoders.STRING));
         //var isZip =  this.storageService.get('data_backup',StorageTranscoders.STRING);
         if( this.storageService.get('data_backup',StorageTranscoders.STRING)  === "none"){
-          console.log(" 긴급점검!! ");
+          log.info(" 긴급점검!! ");
           return true;
         }else{
-          console.log(" 긴급점검 아님 ");
+          log.info(" 긴급점검 아님 ");
           return false;
         }
       }else{
-        console.log(" databackup폴더아님 ");
+        log.info(" databackup폴더아님 ");
         return false;
       }
     }
@@ -252,6 +258,7 @@ checkDay(day){
       }
     }else{
       log.error('checkDay, 저장된 zip파일명 없음')
+      return false;
     }
 }
 
