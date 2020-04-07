@@ -332,7 +332,7 @@ checkDay(day){
     //긴급점검 체크
     else if(!this.memberPrivate && this.checkEmergency()){
       var top = '[팜베이스] 안심백업'
-      var msg = '긴급점검! 백업된 파일이 없습니다.\n프로그램에서 백업버튼을 눌러주세요.';
+      var msg = '긴급점검! 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
       this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
     }
     
