@@ -643,13 +643,15 @@ public setUploadMember(set){
          log.info('filename = ', filename);
          if(filename != "undefined" ){
           log.info('업로드된 zip 있음 ');
-          var fileLength = filename.length;
-          var lastDot = filename.lastIndexOf('.')
-          var fileExtension = filename.substring(lastDot+1, fileLength).toLowerCase(); 
-          log.info('fileExtension = ',fileExtension);
-          if(fileExtension == "zip"){
-           backupZip = 'not-store';
-          } 
+          // var fileLength = filename.length;
+          // var lastDot = filename.lastIndexOf('.')
+          // var fileExtension = filename.substring(lastDot+1, fileLength).toLowerCase(); 
+          // log.info('fileExtension = ',fileExtension);
+          // if(fileExtension == "zip"){
+          //  backupZip = 'not-store';
+          // }
+          log.info('스팩오류');
+          backupZip = 'not-store';
          }else{
           log.info('업로드된 zip 없음 ');
           backupZip = 'none';
