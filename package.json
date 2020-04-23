@@ -112,6 +112,7 @@
     "electron-simple-publisher": "^0.6.2",
     "electron-simple-updater": "^1.5.0",
     "electron-squirrel-startup": "^1.0.0",
+    "electron-updater": "^4.2.5",
     "font-awesome": "^4.7.0",
     "fs": "0.0.1-security",
     "get-folder-size": "^2.0.1",

@@ -1,5 +1,6 @@
 {
  "productName": "SafeBackup",
+ "appId": "com.blab.safebackup",
   "directories": {
     "output": "release/"
   },
@@ -21,6 +22,16 @@
     ],
   "win": {
     "icon": "dist",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "bsquarelab",
+        "repo": "SafeBackUp",
+        "private": true,
+        "releaseType": "release",
+        "token": "96520c74b63685c88d6278706100917b87b36bf7"
+      }
+    ],
     "target": [
       {
         "target": "nsis",

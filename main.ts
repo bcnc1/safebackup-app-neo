@@ -26,6 +26,8 @@ const Menu = require('electron').Menu;
 const dialog = electron.dialog;
 const log = require('electron-log');
 const updater = require('electron-simple-updater');
+const { autoUpdater } = require("electron-updater")
+
 //kimcy
 const reqestProm = require('request-promise-native')
 
@@ -50,10 +52,10 @@ const zipper = require('zip-local');
 //const storageService = LOCAL_STORAGE;
 const STORAGE_URL = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3'
 
-if (handleSquirrelEvent(app)) {
-  // squirrel event handled and app will exit in 1000ms, so don't do anything else
-  app.exit(0); //return;
-}
+// if (handleSquirrelEvent(app)) {
+//   // squirrel event handled and app will exit in 1000ms, so don't do anything else
+//   app.exit(0); //return;
+// }
 let mainWindow;
 
 var drBackupAutoLauncher = new AutoLaunch({
@@ -128,7 +130,7 @@ function createWindow() {
  
    //kimcy: release 할때는 해당 부부을 false, 개발할때는 true
    function isDev() {
-     return false;
+     return true;
    };
  
    // The following is optional and will open the DevTools:
@@ -185,6 +187,33 @@ function createWindow() {
             Updater
             kimcy: 업데이트 기능없음
     ----------------------------------------------------------------*/
+    autoUpdater.checkForUpdates();
+
+    autoUpdater.on('checking-for-update', () => {
+      log.info("checking-for-update");
+    });
+
+    autoUpdater.on('update-available', (info) => {
+      log.info("update-available");
+    });
+
+    autoUpdater.on('update-not-available', (info) => {
+      log.info("update-not-available");
+    });
+
+    autoUpdater.on('error', (err) => {
+      log.info("error = ",err);
+    });
+
+    autoUpdater.on('download-progress', (progressObj) => {
+      log.info("download-progress");
+    });
+
+    autoUpdater.on('update-downloaded', (info) => {
+      log.info("update-downloaded");
+      autoUpdater.quitAndInstall();  
+    });
+
   //  try {
   //    updater.init({
   //      url: 'http://version.doctorkeeper.com/safe4.json',

@@ -14,7 +14,7 @@ export class M5Service {
   static create = M5Service.apiServer +'/v1/proof/create';
   static update = M5Service.apiServer +'/v1/proof/update';
   static again =  M5Service.apiServer +'/v1/user/update';
-  static safebackupVersion = '3.2.4';
+  static safebackupVersion = '3.2.7';
 
   // static server = 'http://192.168.0.197:7919';
 
