@@ -210,8 +210,16 @@ function createWindow() {
     });
 
     autoUpdater.on('update-downloaded', (info) => {
-      log.info("update-downloaded");
-      autoUpdater.quitAndInstall();  
+      log.info("update-downloaded = ",info);
+      
+      const dialogOpts = {
+        title:'Application Update',
+        message: '새 버전이 업데이트 되었습니다!',
+        type: "info"
+      }
+      dialog.showMessageBox(dialogOpts,(returnValue)=>{
+        if(returnValue === 0) autoUpdater.quitAndInstall();  
+      });
     });
 
   //  try {

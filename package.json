@@ -1,5 +1,5 @@
 {
-  "name": "safebackup",
+  "name": "SafeBackup",
   "productName": "SafeBackup",
   "publishedName": "BCNC",
   "version": "3.2.4",
@@ -40,7 +40,9 @@
     "test": "npm run postinstall:web && ng test",
     "e2e": "npm run build:prod && mocha --timeout 300000 --require ts-node/register e2e/**/*.spec.ts",
     "version": "conventional-changelog -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
+    "package:windows": "cross-env NODE_ENV=production npm-run-all check-build-config build && electron-builder --win --x64 --ia32 --publish=never",
     "rebuild": "electron-rebuild -f -w sqlite3"
+    
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "0.800.0",

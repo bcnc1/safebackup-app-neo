@@ -27,9 +27,7 @@
         "provider": "github",
         "owner": "bsquarelab",
         "repo": "SafeBackUp",
-        "private": true,
-        "releaseType": "release",
-        "token": "96520c74b63685c88d6278706100917b87b36bf7"
+        "releaseType": "release"
       }
     ],
     "target": [

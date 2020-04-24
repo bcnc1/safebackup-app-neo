@@ -1,7 +1,7 @@
 owner: bsquarelab
 repo: SafeBackUp
 provider: github
-private: true
+private: false
 releaseType: release
 token: 96520c74b63685c88d6278706100917b87b36bf7
 updaterCacheDirName: safebackup-updater
