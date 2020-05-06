@@ -16,4 +16,7 @@ export const environment = {
   CREATE_DEV : 'http://localhost:3000/api/v1/proof/create',
   UPDATE_DEV : 'http://localhost:3000/api/v1/proof/update',
   
+  API_SERVER : 'http://211.252.85.59:3000/api',
+
+  URGENT_READ : 'http://211.252.85.59:3000/api/v1/notice/urgent/read'
 };

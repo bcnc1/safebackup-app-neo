@@ -2,7 +2,7 @@
   "name": "SafeBackup",
   "productName": "SafeBackup",
   "publishedName": "BCNC",
-  "version": "3.2.4",
+  "version": "3.3.0",
   "description": "with KT Cloud Storage",
   "author": {
     "name": "BC&Company",
@@ -42,7 +42,6 @@
     "version": "conventional-changelog -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
     "package:windows": "cross-env NODE_ENV=production npm-run-all check-build-config build && electron-builder --win --x64 --ia32 --publish=never",
     "rebuild": "electron-rebuild -f -w sqlite3"
-    
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "0.800.0",
@@ -114,7 +113,7 @@
     "electron-simple-publisher": "^0.6.2",
     "electron-simple-updater": "^1.5.0",
     "electron-squirrel-startup": "^1.0.0",
-    "electron-updater": "^4.2.5",
+    "electron-updater": "^4.3.1",
     "font-awesome": "^4.7.0",
     "fs": "0.0.1-security",
     "get-folder-size": "^2.0.1",

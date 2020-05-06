@@ -48,6 +48,7 @@ export class LoginPageComponent implements OnInit {
 
       initialize(username, password) {
         // Setting URL and headers for request
+        log.info('login =>initialize version = ', M5MemberService.safebackupVersion);
         var options = {
             uri: M5MemberService.login,
             method: 'POST',
@@ -71,11 +72,14 @@ export class LoginPageComponent implements OnInit {
                     reject(err);
                 } else {
                     if(resp.statusCode == 200){
+                      log.info('login body = ',body);
                       var result = [];
                       result.push(body.token);
                       result.push(body.private);
-                     console.log('login result = ',result);
-                     resolve(result);
+                      result.push(body.noticeurgent);
+                      result.push(body.nobackupdays);
+                      log.info('login result = ',result);
+                      resolve(result);
                     }else{
                       console.log('22..로그인실패');
                       reject(resp.headers);
@@ -90,13 +94,15 @@ export class LoginPageComponent implements OnInit {
       var initializePromise = this.initialize(member.username, member.password);
 
       initializePromise.then(function(result) {
-           var userToken = result[0];
-           //console.log("userToken :",userToken);
-           member.token = userToken;
+          var userToken = result[0];
+          member.token = userToken;
 
           var userPrivate = result[1];
           member.private = userPrivate;
-          //console.log('22..계정 = ',member.private);
+       
+          member.noticeurgent = result[2];
+          member.nobackupdays = result[3];
+
           storage.set('member',member);
           storage.set('login',true);
           
@@ -130,12 +136,11 @@ export class LoginPageComponent implements OnInit {
       member.password = this.password;
       popup = true;
 
-      console.log('11..',this.username, this.password);
     } else {
       popup = false;
       member.username = username;
       member.password = password;
-      console.log('22..',this.username, this.password);
+
     }
 
     //this.storageService.set('fscan','end'); 

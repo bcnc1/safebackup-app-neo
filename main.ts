@@ -45,17 +45,16 @@ var knex = require('knex')({
   }
 });
 var member;
-//const env = environment;
-//const  async = require("async");
+
 const zipper = require('zip-local');
-//console.log('knex = ',knex);
-//const storageService = LOCAL_STORAGE;
+
 const STORAGE_URL = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4cb4-a066-f46c53b474a3'
 
 // if (handleSquirrelEvent(app)) {
 //   // squirrel event handled and app will exit in 1000ms, so don't do anything else
 //   app.exit(0); //return;
 // }
+
 let mainWindow;
 
 var drBackupAutoLauncher = new AutoLaunch({
@@ -92,7 +91,7 @@ function createWindow() {
      }
    ]);
  
-   tray.setToolTip('안심백업 v3.2.4');
+   tray.setToolTip('안심백업 v3.3.0');
    tray.setContextMenu(contextMenu);
  
    tray.on('click', function (e) {
@@ -221,60 +220,6 @@ function createWindow() {
         if(returnValue === 0) autoUpdater.quitAndInstall();  
       });
     });
-
-  //  try {
-  //    updater.init({
-  //      url: 'http://version.doctorkeeper.com/safe4.json',
-  //      autoDownload: false,
-  //      checkUpdateOnStart: true,
-  //      logger: {
-  //        info(text) {
-  //          logger('info', text);
-  //        },
-  //        warn(text) {
-  //          logger('warn', text);
-  //        }
-  //      }
-  //    });
- 
- 
-  //    log.warn('AUTOUPDATE initialized');
-  //    updater.on('update-available', meta => {
-  //      log.warn('[updater] update available', meta.version);
-  //      updater.downloadUpdate()
-  //    });
- 
- 
-  //    updater.on('update-downloading', (e) => {
-  //      log.warn('downloading', e)
-  //    });
- 
-  //    updater.on('update-downloaded', () => {
-  //      isQuiting = true;
-  //      updater.quitAndInstall();
-  //      setTimeout(() => {
-  //        app.relaunch();
-  //        app.exit(0);
-  //      }, 3 * 60 * 1000);
-  //    });
- 
-  //    updater.on('update-not-available', (e) => {
-  //      log.warn('there is no available update', e)
-  //    });
-  //    updater.on('error', err => {
-  //      log.warn(err)
-  //    });
- 
- 
-  //    setInterval(function () {
-  //      updater.checkForUpdates();
-  //      log.warn('CHECKED VERSION');
-  //    }, 60 * 60 * 1000);
- 
-  //    updater.checkForUpdates();
-  //  } catch (e) {
-  //    log.warn(e);
-  //  }
 
 }
 
@@ -430,7 +375,7 @@ if (!gotTheLock) {
  function initDataBackup(){
   localStorage.getItem('data_backup').then((value) => {
     log.info('initDataBackup => ', value);
-    log.info('initDataBackup => ', typeof value);
+    //log.info('initDataBackup => ', typeof value);
     if(value == undefined){
       localStorage.setItem('data_backup',"undefined").then(()=>{
         log.info('undefine 저장');
@@ -902,10 +847,69 @@ if (!gotTheLock) {
  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 ipcMain.on("ALERT", (event, arg) => {
   //console.log(arg);
-  mainWindow.show();
+  //mainWindow.show();
   const response = dialog.showMessageBox(arg);
 });
 
+ipcMain.on("ALERT-URGENT", (event, arg) => {
+  log.info("arg =>  ",arg);
+  //mainWindow.show();
+  const dialogOpts = {
+    title: arg.title,
+    message: arg.message,
+    type: "info"
+  }
+
+  const response = dialog.showMessageBox(dialogOpts, (result)=>{
+    if(result === 0){
+      localStorage.getItem('urgent').then((value)=>{
+        var urgent = JSON.parse(value);
+       // log.info('urgent => value = ',urgent.url);
+        require('electron').shell.openExternal(urgent.url);
+
+        localStorage.getItem('member').then((value) => {
+          member = JSON.parse(value);
+          urgentRead(member);
+        });
+        
+      });
+      
+    }
+  });
+});
+
+ipcMain.on("ALERT-BACKUP", (event, arg) => {
+  //console.log(arg);
+  //mainWindow.show();
+  const response = dialog.showMessageBox(arg);
+});
+
+/*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+ *  Urgent-Read
+ -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
+ const apiRead = "http://211.252.85.59:3000/api/v1/notice/urgent/read"
+ var urgentRead = function(member){
+
+  function urgentReadCb(error, response, body){
+    if (!error && response.statusCode == 200){
+      log.info('urgentRead => success');
+    } else{
+      log.info('urgentRead => fail');
+    }
+  }
+  var options = {  
+    method: 'PUT',
+    uri: apiRead, 
+    headers:{
+        'Content-Type': 'application/json',
+        'X-Auth-Token': member.token
+    },
+    
+    json: true    
+  };
+
+  reqestProm(options, urgentReadCb)
+ }
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  *  IPC : PC RESOURCE
@@ -1171,7 +1175,6 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
   var options = {  
     method: 'PUT',
     uri: STORAGE_URL+'/'+arg.container+'/'+ encodeURI(arg.filename), 
-    //uri: env.STORAGE_URL+'/'+arg.container+'/'+ encodeURIComponent(arg.filename), 
     headers:{
         'X-Auth-Token': arg.token,
         'X-Object-Meta-ctime': startTime

@@ -311,30 +311,30 @@ checkDay(day){
       this.storageService.set('maxfolder', this.maxFolder); 
     }
 
-    //30일 점검
-    if(!this.memberPrivate && this.checkDay(30)){
-      var top = '[팜베이스] 안심백업'
-      var msg = '[위험]최근 30일간 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
-      this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
-    }
+    // //30일 점검
+    // if(!this.memberPrivate && this.checkDay(30)){
+    //   var top = '[팜베이스] 안심백업'
+    //   var msg = '[위험]최근 30일간 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
+    //   this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
+    // }
     
-    else if(!this.memberPrivate && this.checkDay(15)){
-      var top = '[팜베이스] 안심백업'
-      var msg = '[경고]최근 15일간 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
-      this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
-    }
+    // else if(!this.memberPrivate && this.checkDay(15)){
+    //   var top = '[팜베이스] 안심백업'
+    //   var msg = '[경고]최근 15일간 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
+    //   this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
+    // }
     
-    else if(!this.memberPrivate && this.checkDay(7)){
-      var top = '[팜베이스] 안심백업'
-      var msg = '[주의]최근 7일간 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
-      this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
-    }
-    //긴급점검 체크
-    else if(!this.memberPrivate && this.checkEmergency()){
-      var top = '[팜베이스] 안심백업'
-      var msg = '긴급점검! 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
-      this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
-    }
+    // else if(!this.memberPrivate && this.checkDay(7)){
+    //   var top = '[팜베이스] 안심백업'
+    //   var msg = '[주의]최근 7일간 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
+    //   this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
+    // }
+    // //긴급점검 체크
+    // else if(!this.memberPrivate && this.checkEmergency()){
+    //   var top = '[팜베이스] 안심백업'
+    //   var msg = '긴급점검! 백업된 파일이 없습니다.\nPIT3000 백업후 종료해 주세요.';
+    //   this.electronService.ipcRenderer.send('ALERT', {message: msg, title: top});
+    // }
     
 
     function getRandomInt(min, max) {
@@ -408,8 +408,44 @@ checkDay(day){
             });
           }
 
-          this.memberAPI.getLoginToken(this.member,this.storageService); //업로드 완료 후 토큰 갱신
+          this.memberAPI.getLoginToken(this.member,this.storageService, (res) =>{
+            if(res){
+              this.member = this.storageService.get('member');
+              log.info('업로드 완료 후 this.member = > ', this.member);
+
+              if(this.member.noticeurgent){
+                log.info('call => getUrgentNotice');
+                this.memberAPI.getUrgentNotice(this.member,this.storageService, (response) =>{
+                  
+                  if(response){
+                    var urgent = this.storageService.get('urgent');
+                    log.info('urgent = ',urgent);
+                    this.electronService.ipcRenderer.send('ALERT-URGENT', {message: urgent.message, title: urgent.title});
+                  }
+                });
+                
+              } else if(this.member.nobackupdays > 0){
+    
+              }
+            }
+          }); //업로드 완료 후 토큰 갱신
           
+          //this.member = this.storageService.get('member');
+          //log.info('업로드 완료 후 this.member = > ', this.member);
+          // if(this.member.noticeurgent){
+          //   log.info('call => getUrgentNotice');
+          //   this.memberAPI.getUrgentNotice(this.member,this.storageService, (response) =>{
+              
+          //     if(response){
+          //       var urgent = this.storageService.get('urgent');
+          //       log.info('urgent = ',urgent);
+          //       this.electronService.ipcRenderer.send('ALERT-URGENT', {message: urgent.message, title: urgent.title});
+          //     }
+          //   });
+            
+          // } else if(this.member.nobackupdays > 0){
+
+          // }
           // //30일 점검
           // if(!this.memberPrivate && this.checkDay(30)){
           //   var top = '[팜베이스] 안심백업'

@@ -25,8 +25,8 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "bsquarelab",
-        "repo": "SafeBackUp",
+        "owner": "bcnc1",
+        "repo": "SafeBackUp.Update",
         "releaseType": "release"
       }
     ],

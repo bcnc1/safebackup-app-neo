@@ -2,13 +2,15 @@ import {HttpClient, HttpEvent, HttpHeaders, HttpResponse} from '@angular/common/
 import {Inject, Injectable} from '@angular/core';
 import {Observable, of, throwError} from 'rxjs';
 import {M5Service} from './m5.service';
-
-import {Member, M5Result, M5ResultMember} from '../../models';
+import {ElectronService} from 'ngx-electron';
+import {Member, M5Result, M5ResultMember, Urgent} from '../../models';
 import {catchError, map, tap} from 'rxjs/operators';
 import {LOCAL_STORAGE, StorageService} from 'ngx-webstorage-service';
 import {ObjectUtils} from '../../utils/ObjectUtils';
 import * as moment from 'moment';
 import {environment} from '../../../environments/environment';
+
+
 const request = require('request');
 const log = require('electron-log');
 
@@ -22,6 +24,7 @@ export class M5MemberService extends M5Service {
 
   constructor(
     protected http: HttpClient,
+    public electronService: ElectronService,
     @Inject(LOCAL_STORAGE) private storage: StorageService) {
     super();
   }
@@ -72,7 +75,8 @@ export class M5MemberService extends M5Service {
         },
         body:{
           id:username,
-          pwd:password
+          pwd:password,
+          client: M5MemberService.safebackupVersion
         },
         json : true
     };
@@ -84,7 +88,13 @@ export class M5MemberService extends M5Service {
                 reject(err);
             } else {
                 if(resp.statusCode == 200){
-                 resolve(body.token);
+                 //resolve(body.token);
+                 var result = [];
+                 result.push(body.token);
+                 result.push(body.private);
+                 result.push(body.noticeurgent);
+                 result.push(body.nobackupdays);
+                 resolve(result);
                 }else{
                   console.log('m5.member..22..로그인실패');
                   reject(resp.headers);
@@ -95,129 +105,78 @@ export class M5MemberService extends M5Service {
 
 }
 
-   public getLoginToken(member,storage) {
-    var initializePromise = this.initialize(member.username, member.password);
+public getLoginToken(member,storage , callback) {
+  var initializePromise = this.initialize(member.username, member.password);
 
-      initializePromise.then(function(result) {
-          var userToken = result;
-          console.log("userToken :",userToken);
-          member.token = userToken;
-          storage.set('member',member);
-          console.log("로그인 토큰,,member :",storage.get('member'));
-      }, function(err) {
-          log.error('토큰을 못 가지고 옴, => ',err);
-          //kimcy: 다 지우는게 맞나?
-          //storage.remove(member);
-      })
-  }
+    initializePromise.then(function(result) {
+       log.info('getLoginToken => result : ',result);
+        var userToken = result[0];
+        member.token = userToken;
+        member.private = result[1];
+        member.noticeurgent = result[2];
+        member.nobackupdays = result[3];
 
-  /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-   *  proof-create
-   *
-   *  username
-   *  password
-   -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-//    initProof(username, token, path) {
-//     // Setting URL and headers for request
-//     var options = {
-//         uri: M5MemberService.create,
-//         method: 'POST',
-//          headers: {
-//           'Content-Type': 'application/json',
-//           'X-Auth-Token': token
-//         },
-//         body:{
-//           id:username,
-//           file:decodeURI(path)
-//         },
-//         json : true
-//     };
-//     // Return new promise 
-//     return new Promise(function(resolve, reject) {
-//         request.post(options, function(err, resp, body) {
-//             if (err) {
-//               console.log('11. proof create. 실패');
-//                 reject(err);
-//             } else {
-//                 console.log(resp);
-//                 //if(resp.statusCode == 200){
-//                   if(body.key.code == 10000){
-//                   console.log('proof create.성공');
-//                  resolve(body.key.code);
-//                 }else{
-//                   console.log('22.. proof create.실패');
-//                   reject(body);
-//                 }
-//             }
-//         });
-//     });
+        storage.set('member',member);
+        callback(true);
+    }, function(err) {
+        log.error('토큰을 못 가지고 옴, => ',err);
+        callback(false);
+        //kimcy: 다 지우는게 맞나?
+        //storage.remove(member);
+    })
+}
 
-// }
+private initUrgentNotice(member){
+  var options = { 
+    uri: M5MemberService.urgentGet,
+    method: 'GET',
+     headers: {
+      'Content-Type': 'application/json',
+      'X-Auth-Token': member.token
+    },
+    json : true
+  };
 
-//    public createProof(member,filepath,storage) {
-//     //var path = decodeURI(response.uploadPath);
-//     //console.log('filepath = ',decodeURI(filepath));
-//     var initializePromise = this.initProof(member.username, member.token, filepath);
+  return new Promise(function (resolve, reject){
+    request.get(options, function(err, resp, body){
+        if(err){
+          reject(err);
+        } else{
+          if(resp.statusCode == 200){
+            var result = [];
+            result.push(body.title);
+            result.push(body.message);
+            result.push(body.url);
+            log.info('initUrgentNotice => ', result);
+            resolve(result);
+          }else{
+            reject(resp.headers);
+          }
+        }
+    });
+  });
+}
 
-//       initializePromise.then(function(result) {
-//           //var userToken = result;
-//           console.log("createProof => result :",result);
-//           var chainArray=[];
-//           var str = {'name' : filepath, 'status': true};
-//           var jsonStr = JSON.stringify(str);
-//           chainArray = storage.get('chain');
-//           console.log('chainArray = ',chainArray);
-//           if(chainArray == undefined){
-//             storage.set('chain', jsonStr); 
-//           }else{
-//             chainArray.push(jsonStr); 
-//             storage.set('chain', chainArray); 
-//           }
+public getUrgentNotice(member,storage, callback) {
+  let urgent = this.initUrgentNotice(member);
+
+    urgent.then(function(result) {
+       var urgent = new Urgent();
+        urgent.title = result[0];
+        urgent.message = result[1];
+        urgent.url = result[2];
 
 
+        log.info('urgent success ',urgent);
+        storage.set('urgent',urgent);
+        callback(true);
 
-//       }, function(err) {
-//           console.log(err);
-//         //  storage.set(filepath,false);
-//       })
-//   }
-
-  // private handleLoginResponse(response: any) {
-  //   console.log('로그인 : ',response);
-  //   this.handleData(response);
-  //   this.storage.set('member', response.member);
-  //   this.storage.set('accessToken', decodeURIComponent(response.accessToken));
-  //   if (response.orgBoards != null) {
-  //     response.orgBoards.forEach(board => {
-  //       console.log(board);
-  //       if (board.type === 'board') {
-  //         this.storage.set('board', board);
-  //       }
-  //     });
-  //   } else {
-  //     this.storage.set('board', {
-  //       id: 'SVCBoard_481477478793500'
-  //     });
-  //   }
-
-  //   return response || {};
-
-  // }
-
-  
-  //자체 서버가 필요없음으로 삭제해야 될 부분
-  // public login(member: Member): Observable<M5ResultMember> {
-
-  //   console.log('LOGIN : ', member);
-  //   const body = ObjectUtils.copy(member);
-  //   body.fetchOrgBoards = true;
-  //   return this.http.post(this.url.login(), body)
-  //     .pipe(
-  //       map(res => this.handleLoginResponse(res)),
-  //       catchError(this.handleError)
-  //     );
-  // }
-
+    }, function(err) {
+        log.error('urgent fail ',err);
+        //return 1;
+        callback(false);
+    })
+}
 
   private handleMemberDetailResponse(response: any) {
     console.log('>>> handleMemberDetailResponse', response);
