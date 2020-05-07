@@ -36,6 +36,7 @@ var AutoLaunch = require('auto-launch');
 const chokidar = require('chokidar');
 
 let isQuiting = false;
+var isOpenDialog = false;
 
 var knex = require('knex')({
   client: 'sqlite3',
@@ -211,13 +212,18 @@ function createWindow() {
     autoUpdater.on('update-downloaded', (info) => {
       log.info("update-downloaded = ",info);
       
+      isOpenDialog = true;
+
       const dialogOpts = {
         title:'Application Update',
         message: '새 버전이 업데이트 되었습니다!',
         type: "info"
       }
       dialog.showMessageBox(dialogOpts,(returnValue)=>{
-        if(returnValue === 0) autoUpdater.quitAndInstall();  
+        if(returnValue === 0) {
+          isOpenDialog = false;
+          autoUpdater.quitAndInstall();  
+        }
       });
     });
 
@@ -790,9 +796,6 @@ if (!gotTheLock) {
       }
     });
 
-    // localStorage.setItem('fscan','end').then(()=>{
-    //   log.info('폴더스캔완료');
-    // })
 
     if(mainWindow && !mainWindow.isDestroyed()){
       log.info('GETFOLDERTREE => 전송 ');
@@ -853,41 +856,48 @@ ipcMain.on("ALERT", (event, arg) => {
 
 ipcMain.on("ALERT-URGENT", (event, arg) => {
   log.info("arg =>  ",arg);
-  //mainWindow.show();
-  const dialogOpts = {
-    title: arg.title,
-    message: arg.message,
-    type: "info"
-  }
 
-  const response = dialog.showMessageBox(dialogOpts, (result)=>{
-    if(result === 0){
-      localStorage.getItem('urgent').then((value)=>{
-        var urgent = JSON.parse(value);
-       // log.info('urgent => value = ',urgent.url);
-        require('electron').shell.openExternal(urgent.url);
-
-        localStorage.getItem('member').then((value) => {
-          member = JSON.parse(value);
-          urgentRead(member);
+  if(isOpenDialog == false){
+    const dialogOpts = {
+      title: arg.title,
+      message: arg.message,
+      type: "info"
+    }
+  
+    const response = dialog.showMessageBox(dialogOpts, (result)=>{
+      if(result === 0){
+        localStorage.getItem('urgent').then((value)=>{
+          var urgent = JSON.parse(value);
+         // log.info('urgent => value = ',urgent.url);
+          require('electron').shell.openExternal(urgent.url);
+  
+          localStorage.getItem('member').then((value) => {
+            member = JSON.parse(value);
+            urgentRead(member);
+          });
+          
         });
         
-      });
-      
-    }
-  });
+      }
+    });
+  }
+  //mainWindow.show();
+ 
 });
 
 ipcMain.on("ALERT-BACKUP", (event, arg) => {
-  const response = dialog.showMessageBox(arg, (result)=>{
-    if(result === 0 ){
-      localStorage.getItem('member').then((value) => {
-        member = JSON.parse(value);
-        noBackupRead(member);
-      });
-      
-    }
-  });
+  if(isOpenDialog == false){
+    const response = dialog.showMessageBox(arg, (result)=>{
+      if(result === 0 ){
+        localStorage.getItem('member').then((value) => {
+          member = JSON.parse(value);
+          noBackupRead(member);
+        });
+        
+      }
+    });
+  }
+  
 });
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
