@@ -15,6 +15,7 @@ export class M5Service {
   static update = M5Service.apiServer +'/v1/proof/update';
   static again =  M5Service.apiServer +'/v1/user/update';
   static urgentGet =  M5Service.apiServer +'/v1/notice/urgent/get';
+  static noBackupDays =  M5Service.apiServer +'/v1/notice/nobackupdays/get';
   static safebackupVersion = '3.3.0';
 
   url = {

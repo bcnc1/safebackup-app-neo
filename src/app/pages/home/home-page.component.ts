@@ -425,7 +425,13 @@ checkDay(day){
                 });
                 
               } else if(this.member.nobackupdays > 0){
-    
+                this.memberAPI.getBackupDays(this.member,this.storageService, (response) =>{
+                  
+                  if(response){
+                    var backupdays = this.storageService.get('backupday');
+                    this.electronService.ipcRenderer.send('ALERT-BACKUP', {message: backupdays.message, title: backupdays.title});
+                  }
+                });
               }
             }
           }); //업로드 완료 후 토큰 갱신

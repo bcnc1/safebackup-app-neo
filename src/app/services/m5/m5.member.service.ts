@@ -3,7 +3,7 @@ import {Inject, Injectable} from '@angular/core';
 import {Observable, of, throwError} from 'rxjs';
 import {M5Service} from './m5.service';
 import {ElectronService} from 'ngx-electron';
-import {Member, M5Result, M5ResultMember, Urgent} from '../../models';
+import {Member, M5Result, M5ResultMember, Urgent, Backup} from '../../models';
 import {catchError, map, tap} from 'rxjs/operators';
 import {LOCAL_STORAGE, StorageService} from 'ngx-webstorage-service';
 import {ObjectUtils} from '../../utils/ObjectUtils';
@@ -173,9 +173,57 @@ public getUrgentNotice(member,storage, callback) {
 
     }, function(err) {
         log.error('urgent fail ',err);
-        //return 1;
         callback(false);
-    })
+    });
+}
+
+private initNoDaysNotice(member){
+  var options = { 
+    uri: M5MemberService.noBackupDays,
+    method: 'GET',
+     headers: {
+      'Content-Type': 'application/json',
+      'X-Auth-Token': member.token
+    },
+    json : true
+  };
+
+  return new Promise(function (resolve, reject){
+    request.get(options, function(err, resp, body){
+        if(err){
+          reject(err);
+        } else{
+          if(resp.statusCode == 200){
+            var result = [];
+            result.push(body.title);
+            result.push(body.message);
+            result.push(body.url);
+            log.info('initNoDaysNotice => ', result);
+            resolve(result);
+          }else{
+            reject(resp.headers);
+          }
+        }
+    });
+  });
+}
+
+public getBackupDays(member,storage, callback){
+  let noDays = this.initNoDaysNotice(member);
+
+  noDays.then( function(result){
+    var backupDays = new Backup();
+    backupDays.title = result[0];
+    backupDays.message = result[1];
+    backupDays.url = result[2];
+    log.info('BackupDay success ');
+    storage.set('backupday',backupDays);
+    callback(true);
+
+  }, function(err){
+    log.error('BackupDays fail ',err);
+    callback(false);
+  });
 }
 
   private handleMemberDetailResponse(response: any) {

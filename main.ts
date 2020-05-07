@@ -879,9 +879,15 @@ ipcMain.on("ALERT-URGENT", (event, arg) => {
 });
 
 ipcMain.on("ALERT-BACKUP", (event, arg) => {
-  //console.log(arg);
-  //mainWindow.show();
-  const response = dialog.showMessageBox(arg);
+  const response = dialog.showMessageBox(arg, (result)=>{
+    if(result === 0 ){
+      localStorage.getItem('member').then((value) => {
+        member = JSON.parse(value);
+        noBackupRead(member);
+      });
+      
+    }
+  });
 });
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -909,6 +915,33 @@ ipcMain.on("ALERT-BACKUP", (event, arg) => {
   };
 
   reqestProm(options, urgentReadCb)
+ }
+
+ /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+ *  noBackupDays-Read
+ -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
+ const apiBackupRead = "http://211.252.85.59:3000/api/v1/notice/nobackupdays/read"
+ var noBackupRead = function(member){
+
+  function noBackupReadCb(error, response, body){
+    if (!error && response.statusCode == 200){
+      log.info('noBackupRead => success');
+    } else{
+      log.info('noBackupRead => fail');
+    }
+  }
+  var options = {  
+    method: 'PUT',
+    uri: apiBackupRead, 
+    headers:{
+        'Content-Type': 'application/json',
+        'X-Auth-Token': member.token
+    },
+    
+    json: true    
+  };
+
+  reqestProm(options, noBackupReadCb)
  }
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
