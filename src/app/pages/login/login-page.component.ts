@@ -68,8 +68,8 @@ export class LoginPageComponent implements OnInit {
            // request.get(options, function(err, resp, body) {
             request.post(options, function(err, resp, body) {
                 if (err) {
-                  console.log('11..로그인실패');
-                    reject(err);
+                  log.error('11..로그인실패');
+                  reject(err);
                 } else {
                     if(resp.statusCode == 200){
                       log.info('login body = ',body);
@@ -81,7 +81,7 @@ export class LoginPageComponent implements OnInit {
                       log.info('login result = ',result);
                       resolve(result);
                     }else{
-                      console.log('22..로그인실패');
+                      log.error('22..로그인실패');
                       reject(resp.headers);
                     }
                 }
@@ -91,6 +91,7 @@ export class LoginPageComponent implements OnInit {
     }
     
     onLoginB(member, popup, storage, router){
+      log.info("onLoginB, member = ", member);
       var initializePromise = this.initialize(member.username, member.password);
 
       initializePromise.then(function(result) {
@@ -110,10 +111,8 @@ export class LoginPageComponent implements OnInit {
 
 
       }, function(err) {
-          console.log(err);
+          log.error(err);
           storage.remove(member);
-          //kimcy:windows 릴리즈 모드에서 팝업뜬다음 에디트텍스트가 입력안되는 현상이 발생
-          //alert('ID/패스워드를 확인하세요.');
           let options = {
             message: 'ID/패스워드를 확인하세요'
           }
@@ -131,20 +130,19 @@ export class LoginPageComponent implements OnInit {
     //로그인하고 토큰 재활용은 추후에..kimcy
     const member = new Member();
 
+
     if (username == null && password == null) {
       member.username = this.username;
       member.password = this.password;
       popup = true;
-
+      log.info("111");
     } else {
       popup = false;
       member.username = username;
       member.password = password;
-
+      log.info("222");
     }
 
-    //this.storageService.set('fscan','end'); 
-    //kimcy: 토큰은 여기서 넣어준다..
     this.onLoginB(member, false, this.storageService, this.router);
     
   }
@@ -181,14 +179,10 @@ export class LoginPageComponent implements OnInit {
 
         console.log("11..oninit =>username :",username);
         console.log("11..oninit =>password :",password);
-        // 이전버전은 삭제
-        //this.migrating = true;
-        //kimcy
+
         this.migrating = false;
         this.migrateFromV1 = true;
         this.username = username;
-        // this.oldPaths[0] = localStorage.getItem('uploadPath[0]:' + username);
-        // this.oldPaths[1] = localStorage.getItem('uploadPath[1]:' + username);
 
         this.onLogin(username, password, false);
 
@@ -196,8 +190,6 @@ export class LoginPageComponent implements OnInit {
         const member = this.storageService.get('member');
         password = password.replace(/"/g, '').replace(/"/g, '');
 
-        // console.log("22..oninit =>username :",username);
-        // console.log("22..oninit =>password :",password);
         if (member != null && password != null) {
           this.username = member.username;
           this.onLogin(member.username, password, false);
