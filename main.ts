@@ -92,7 +92,7 @@ function createWindow() {
      }
    ]);
  
-   tray.setToolTip('안심백업 v3.3.0');
+   tray.setToolTip('안심백업 v3.3.1');
    tray.setContextMenu(contextMenu);
  
    tray.on('click', function (e) {
@@ -130,7 +130,7 @@ function createWindow() {
  
    //kimcy: release 할때는 해당 부부을 false, 개발할때는 true
    function isDev() {
-     return true;
+     return false;
    };
  
    // The following is optional and will open the DevTools:
@@ -216,7 +216,7 @@ function createWindow() {
 
       const dialogOpts = {
         title:'Application Update',
-        message: '새 버전이 업데이트 되었습니다!',
+        message: '새 업데이트 버전이 있습니다.',
         type: "info"
       }
       dialog.showMessageBox(dialogOpts,(returnValue)=>{
