@@ -402,7 +402,7 @@ if (!gotTheLock) {
             t.text('filename');
             t.integer('filesize');
             t.time('fileupdate',{useTz: true}); //2019-07-25T07:02:31.587Z 저장이되어야 하느데
-            t.integer('uploadstatus'); //0: 초기값(업로드해야), 1: 업로드완료 2:업데이트(아직업로드안됨, 업로드되면 1)
+            t.integer('uploadstatus'); //0: 초기값(업로드해야), 1: 업로드완료 2: 업데이트(아직업로드안됨, 업로드되면 1)
             t.integer('chainstatus'); //0: 초기값(업로드해야), 1: 업로드 완료, 2: 업로드에러 
            // t.string('time');
           }).then(()=>{
@@ -517,9 +517,9 @@ if (!gotTheLock) {
                 var chainstatus = results[i]['chainstatus'];
 
                 log.info('변경 fsize = ', fsize , '현재 item = ',item);
-
                 if(fsize != item.size){
                   if(uploadstatus == 0){
+                    log.info('results1 =', results );
                     log.info('업로드 전/실패, 파일변경 = ', item.fullpath);
                     knex(tableName)
                     .where({id: id})
@@ -528,11 +528,14 @@ if (!gotTheLock) {
                       });
                   }else if(uploadstatus == 1 && (chainstatus == 2 || chainstatus == 0)){
                     log.info('업로드 완료, 블록체인 실패, 파일변경 = ', item.fullpath, '체인은 = ',chainstatus);
+                    if(item.size < MaxByte){
                     knex(tableName)
                     .where({id: id})
-                    .update({filesize: item.size}).then((result)=>{
+                    .update({filesize: item.size, fileupdate: item.update
+                      , uploadstatus: 2, chainstatus: 0}).then((result)=>{
                         log.info('결과 = ',result);
                       });
+                    }
                   } else if(uploadstatus == 1 && chainstatus == 1){
                     log.info('업데이트목록으로, 파일변경 = ', item.fullpath);
                     if(item.size < MaxByte){
@@ -551,7 +554,6 @@ if (!gotTheLock) {
                 }
 
              }
-             
              //변경사항 체크 완료 
              localStorage.getItem('member').then((value) => {
               if(value != null){
