@@ -269,7 +269,7 @@ export class UploadFiletreeService {
           if(this.addfilesToSend.length > this.sendIndex){
             this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
           }else{
-            log.info('개인계정, 업로드완료, 업데이트 목록 요청');
+            log.info('private계정 업로드완료, 업데이트 목록 요청');
 
             this.addfilesToSend = null;
             this.sendIndex = 0;
@@ -281,16 +281,31 @@ export class UploadFiletreeService {
           }
   
         }else{
-          log.error('11..업로드 에러 = ', response.error);
+          log.error('private계정 업로드 에러 = ', response.error);
           if(response.error == '403' || response.error == 403 
              || response.error == '401' || response.error == 401){
             this.getNewToken();
-          } 
+          }else if(response.error == '500' || response.error == 500){
+            this.sendIndex++;
+            console.log('private계정 500에러 다음파일 = ',this.sendIndex);
+            if(this.addfilesToSend.length > this.sendIndex){
+              this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
+            }else{
+              log.info('private계정 업로드완료, 업데이트 목록 요청');
+  
+              this.addfilesToSend = null;
+              this.sendIndex = 0;
+  
+              this.electronService.ipcRenderer.send('REQ-UPDATETREE', {
+                folderIndex: this.folderIndex,
+                username: this.member.username
+              });
+            }
+          }
         }
       }else{
         if(response.error === null ){ //파일업로드 완료
-          log.info('파일업로드완료 , 블록체인으로 이동')
-          //main
+          log.info('public계정 업로드완료 , 블록체인으로 이동');
           this.uploadManager(this.addfilesToSend[this.sendIndex], "chain-create");
         }else if(response.error === "1010" ){
           this.notification.next({
@@ -308,10 +323,18 @@ export class UploadFiletreeService {
         }
         
         else{
-          log.error('22..업로드 에러 = ', response.error);
+          log.error('public계정 업로드 에러 = ', response.error);
           if(response.error == '403' || response.error == 403 
              || response.error == '401' || response.error == 401){
             this.getNewToken();
+          }else if(response.error == '500' || response.error == 500){
+            this.sendIndex++;
+            console.log('public계정 500에러 다음파일 = ',this.sendIndex);
+            if(this.addfilesToSend.length > this.sendIndex){
+              this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
+            }else{
+              this.gotoNext();
+            }
           } 
         }
       }
