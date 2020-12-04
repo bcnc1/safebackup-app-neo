@@ -62,6 +62,9 @@ var drBackupAutoLauncher = new AutoLaunch({
   name: 'safebackup'
 });
 drBackupAutoLauncher.enable();
+// drBackupAutoLauncher.isEnabled().then((isEnabled) => {
+//   if (!isEnabled) drBackupAutoLauncher.enable();
+// });
 
 
 /* 글로벌로 해야  garbage colllection이 안된다고함 */
@@ -1160,15 +1163,15 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
 
   //kimcy error kt에서 응답이 null이 나와서 수정
   function fileuploadCb(error, response, body) {
-    //log.debug('fileuploadCb => error : ',error);
-    //log.debug('fileuploadCb => response : ',response);
+    log.debug('fileuploadCb => error : ',error);
+    log.debug('fileuploadCb => response : ',response);
+    log.debug('fileuploadCb => body : ',body);
 
     if(!error && (response != null || response != undefined)){
      if(response.statusCode == 201){
         console.log('업로드 성공');
         upload = null;
         r = null;
-
         
         var bkzip = arg.data_backup;
         console.log('bkzip = ', bkzip);
@@ -1177,7 +1180,6 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
             console.log('zip저장');
           });
         }
-
 
         knex(tableName)
         .where({id: arg.fileid})
@@ -1229,6 +1231,7 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
    try{
     if(fs.existsSync(arg.filepath)){
       //파일이 존재함으로 업로드..
+      log.info('fileupload, option = ',options);
       upload = fs.createReadStream(arg.filepath,{highWaterMark : 256*1024});
       r = reqestProm(options, fileuploadCb);
       upload.pipe(r);
