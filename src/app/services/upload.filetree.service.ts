@@ -282,6 +282,7 @@ export class UploadFiletreeService {
   
         }else{
           log.error('private계정 업로드 에러 = ', response.error);
+          log.error(response);
           if(response.error == '403' || response.error == 403 
              || response.error == '401' || response.error == 401){
             this.getNewToken();
@@ -324,6 +325,7 @@ export class UploadFiletreeService {
         
         else{
           log.error('public계정 업로드 에러 = ', response.error);
+          log.error(response);
           if(response.error == '403' || response.error == 403 
              || response.error == '401' || response.error == 401){
             this.getNewToken();

@@ -1238,16 +1238,18 @@ ipcMain.on('SELECTFOLDER', (event, arg) => {
     }else{
       //db목록에서 삭제
       // log.info('파일없음으로 db목록에서 삭제: ',arg.filepath);
-      log.warn('파일없음');
-      // log.info('tableName: ',tableName);
+      log.warn('파일없음 -> DB목록에서 삭제');
+      log.info('tableName: ',tableName);
+      log.info('arg.fileid : ' + arg.fileid);
       // var delId = arg.fileid;
-      // knex(tableName)
-      //   .where({id: arg.fileid})
-      //   .del().then(()=>{
+      knex(tableName)
+        // .where({id: arg.fileid})
+        .where('id', arg.fileid)
+        .del().then(()=>{
           if (mainWindow && !mainWindow.isDestroyed()){
             mainWindow.webContents.send(arg.uploadtype, {error: "1010"}); 
           }
-      //   });
+        });
     }
    } catch(err){
     log.error('업로드 에러 : ',err);
