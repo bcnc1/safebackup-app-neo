@@ -285,9 +285,9 @@ export class UploadFiletreeService {
           if(response.error == '403' || response.error == 403 
              || response.error == '401' || response.error == 401){
             this.getNewToken();
-          }else if(response.error == '500' || response.error == 500){
+          }else{
             this.sendIndex++;
-            console.log('private계정 500에러 다음파일 = ',this.sendIndex);
+            log.info('private계정 에러 다음파일 = ',this.sendIndex);
             if(this.addfilesToSend.length > this.sendIndex){
               this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
             }else{
@@ -327,9 +327,9 @@ export class UploadFiletreeService {
           if(response.error == '403' || response.error == 403 
              || response.error == '401' || response.error == 401){
             this.getNewToken();
-          }else if(response.error == '500' || response.error == 500){
+          }else{
             this.sendIndex++;
-            console.log('public계정 500에러 다음파일 = ',this.sendIndex);
+            log.info('public계정 에러 다음파일 = ',this.sendIndex);
             if(this.addfilesToSend.length > this.sendIndex){
               this.uploadManager(this.addfilesToSend[this.sendIndex], "add-file");
             }else{
