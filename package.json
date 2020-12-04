@@ -3,10 +3,10 @@
   "productName": "SafeBackup",
   "publishedName": "BCNC",
   "version": "3.3.1",
-  "description": "with KT Cloud Storage",
+  "description": "SafeBackup with KT Cloud",
   "author": {
     "name": "BC&Company",
-    "email": "admin@bccompany.co.kr"
+    "email": "bcncompany1@gmail.com"
   },
   "keywords": [
     "angular",
@@ -57,7 +57,7 @@
     "chai": "4.2.0",
     "codelyzer": "5.0.1",
     "conventional-changelog-cli": "2.0.11",
-    "electron": "^11.0.3",
+    "electron": "5.0.13",
     "electron-builder": "20.41.0",
     "electron-packager": "^14.0.1",
     "electron-rebuild": "^1.8.5",
@@ -121,7 +121,7 @@
     "jquery": "^3.4.1",
     "knex": "^0.19.4",
     "moment": "^2.24.0",
-    "ngx-bootstrap": "^5.0.0",
+    "ngx-bootstrap": "5.0.0",
     "ngx-electron": "^2.1.1",
     "ngx-logger": "^3.3.12",
     "ngx-webstorage-service": "^4.0.1",
