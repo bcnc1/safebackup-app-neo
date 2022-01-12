@@ -388,7 +388,8 @@ checkDay(day){
           //kimcy: test code
           const minutes =  60 * getRandomInt(1, 4); 
           const interval = 1000 * 60 * minutes;
-          const next = moment().add(interval);
+          const intervalSix = 1000 * 60 * 6;
+          const next = moment().add(intervalSix);
           
           //서버에서 배치타임 (delete)되는 시간을 벌어주기 위해
           if(moment().endOf('day').diff(next) < 0 ){

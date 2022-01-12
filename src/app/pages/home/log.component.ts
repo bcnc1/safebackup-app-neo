@@ -78,7 +78,7 @@ export class LogComponent implements OnInit, OnDestroy {
 
       });
     });
-    this.logs.unshift({created: new Date(), message: '안심백업이 시작됩니다...'});
+    this.logs.unshift({created: new Date(), message: 'START DATA KEEPER...'});
 
   }
 

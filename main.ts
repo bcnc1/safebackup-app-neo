@@ -59,7 +59,7 @@ const STORAGE_URL = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4
 let mainWindow;
 
 var drBackupAutoLauncher = new AutoLaunch({
-  name: 'safebackup'
+  name: 'datakeeper'
 });
 drBackupAutoLauncher.enable();
 // drBackupAutoLauncher.isEnabled().then((isEnabled) => {
@@ -77,7 +77,7 @@ function createWindow() {
   /*---------------------------------------------------------------
                TRAY
    ----------------------------------------------------------------*/
-   tray = new Tray(path.join(__dirname, '/dist/assets/icons/tray-icon.png'));
+   tray = new Tray(path.join(__dirname, '/dist/assets/icons/tray-icon2.png'));
    contextMenu = Menu.buildFromTemplate([
      {
        label: '보기',
@@ -95,7 +95,7 @@ function createWindow() {
      }
    ]);
  
-   tray.setToolTip('안심백업 v3.3.1');
+   tray.setToolTip('DATA KEEPER');
    tray.setContextMenu(contextMenu);
  
    tray.on('click', function (e) {

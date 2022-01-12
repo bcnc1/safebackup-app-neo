@@ -1,9 +1,9 @@
 {
-  "name": "SafeBackup",
-  "productName": "SafeBackup",
+  "name": "datakeeper",
+  "productName": "DATAKEEPER",
   "publishedName": "BCNC",
   "version": "3.3.1",
-  "description": "SafeBackup with KT Cloud",
+  "description": "DATAKEEPER with KT Cloud",
   "author": {
     "name": "BC&Company",
     "email": "bcncompany1@gmail.com"

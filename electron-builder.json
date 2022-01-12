@@ -1,6 +1,6 @@
 {
- "productName": "SafeBackup",
- "appId": "com.blab.safebackup",
+ "productName": "DATAKEEPER",
+ "appId": "com.bcnc.datakeeper",
   "directories": {
     "output": "release/"
   },
@@ -21,7 +21,7 @@
         "!tslint.json"
     ],
   "win": {
-    "icon": "dist",
+    "icon": "src/favicon2.png",
     "publish": [
       {
         "provider": "github",
