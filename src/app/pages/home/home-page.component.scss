@@ -20,3 +20,65 @@
   font-weight: bold;
   color: white;
 }
+
+/* 탭 전체 스타일 */
+.tabs {
+  margin-top: 50px;
+  padding-bottom: 40px;
+  background-color: #ffffff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  width: 700px;
+  height: 150px;
+  margin: 0 auto;}
+
+/* 탭 스타일 */
+.tab_item {
+  width: 100px;
+  // height: 50px;
+  border-bottom: 3px solid #333333;
+  background-color: #f8f8f8;
+  line-height: 50px;
+  font-size: 15px;
+  text-align: center;
+  color: #333333;
+  display: block;
+  // float: left;
+  padding-left: 10px;
+  padding-right: 10px;
+  text-align: center;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+.tab_item:hover {
+  color: #ff40b4;
+  opacity: 0.75;
+}
+
+/* 라디오 버튼 UI삭제*/
+input[name="tab_item"] {
+  display: none;
+}
+
+/* 탭 컨텐츠 스타일 */
+.tab_content {
+  display: none;
+  padding: 40px 40px 0;
+  clear: both;
+  overflow: hidden;
+}
+
+input:active {color:white;background-color:blue;}
+// /* 선택 된 탭 콘텐츠를 표시 */
+// #all:checked ~ #all_content,
+// #programming:checked ~ #programming_content,
+// #design:checked ~ #design_content {
+//   display: block;
+// }
+
+// /* 선택된 탭 스타일 */
+// .tabs input:checked + .tab_item {
+//   color: #ff40b4;
+// }
+label:focus-within {
+  background: #e994e2;
+}

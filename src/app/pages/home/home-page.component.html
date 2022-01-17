@@ -1,85 +1,65 @@
-<!-- <div class="version fixed-bottom">
-  v{{version}}
-</div> -->
+<div class="version fixed-bottom" (click)="onLogout()" style="margin-right: 10px;">
+  data keeper
+</div>
 
 <div class="container mt-2">
 
   <div class="row">
     <div class="col-sm">
-      아이디 : {{member.username}}
+      {{member.username}}
+      <p (click)="onLogout()" style="display: none;">v{{version}}</p>
     </div>
-
+    
     <div class="col-sm pull-right  text-right">
-      <button type="submit" class="btn btn-info btn-sm" style="margin-right:5px;" (click)="onStartBrowser()"
-        *ngIf="memberPrivate">
+
+      <img src="assets/images/backup_start.png" (click)="onRetryUpload()" style="cursor: pointer;"/>
+
+      <button type="submit" class="btn btn-info btn-sm" style="margin-right:5px;" (click)="onStartBrowser()" *ngIf="memberPrivate" style="display: none;">
         백업관리
       </button>
-      <button type="submit" class="btn btn-danger btn-sm" style="margin-right:5px;" (click)="onRetryUpload()">
+
+      <button type="submit" class="btn btn-danger btn-sm" style="margin-right:5px;" (click)="onRetryUpload()" style="display: none;">
         백업시작
       </button>
+
       <button type="submit" class="btn btn-primary btn-sm" (click)="onLogout()" style="display: none;">
         로그아웃
       </button>
+
     </div>
   </div>
 </div>
 
 
-<div class="container">
+<div class="tabs" style="margin-top: 20px;">
+
 
   <div>
     <tabset>
-      <tab (selectTab)="onTab(0)" *ngIf="!memberPrivate">
+      <tab (selectTab)="onTab(0)">
         <ng-template tabHeading>
-          폴더1
-          <span class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[0] != undefined">
-            {{foldersSize[0] | bytes}}
-          </span>
+          <!-- <a class="folder-number" for="all">FOLDER 1</a> -->
+          <input id="all" type="radio"name="tab_item" checked>
+          <label class="tab_item" for="all">FOLDER 1</label>
         </ng-template>
       </tab>
 
-      <tab (selectTab)="onTab(1)" *ngIf="!memberPrivate">
+      <tab (selectTab)="onTab(1)">
         <ng-template tabHeading>
-          폴더2
-          <span class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[1] != undefined">
-            {{foldersSize[1] | bytes}}
-          </span>
+          <!-- <a class="folder-number" for="programming">FOLDER 2</a> -->
+          <input id="programming" type="radio"name="tab_item">
+          <label class="tab_item" for="programming">FOLDER 2</label>
         </ng-template>
       </tab>
-      <tab (selectTab)="onTab(2)" *ngIf="!memberPrivate">
+
+      <tab (selectTab)="onTab(2)">
         <ng-template tabHeading>
-          폴더3
-          <span class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[2] != undefined">
-            {{foldersSize[2] | bytes}}
-          </span>
-        </ng-template>
-      </tab>
-      <tab (selectTab)="onTab(0)" *ngIf="memberPrivate">
-        <ng-template tabHeading>
-          개인폴더1
-          <span class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[0] != undefined">
-            {{foldersSize[0] | bytes}}
-          </span>
-        </ng-template>
-      </tab>
-      <tab (selectTab)="onTab(1)" *ngIf="memberPrivate">
-        <ng-template tabHeading>
-          개인폴더2
-          <span class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[1] != undefined">
-            {{foldersSize[1] | bytes}}
-          </span>
-        </ng-template>
-      </tab>
-      <tab (selectTab)="onTab(2)" *ngIf="memberPrivate">
-        <ng-template tabHeading>
-          개인폴더3
-          <span class="badge badge-info badge-pill" style="font-size:10px" *ngIf="foldersSize[2] != undefined">
-            {{foldersSize[2] | bytes}}
-          </span>
+          <!-- <a class="folder-number" for="design">FOLDER 3</a> -->
+          <input id="design" type="radio"name="tab_item">
+          <label class="tab_item" for="design">FOLDER 3</label>
         </ng-template>
       </tab>
     </tabset>
-
 
     <div class="container mt-2" style="margin-bottom:100px">
       <div class="alert alert-dark  d-flex justify-content-between align-items-center" role="alert"
@@ -109,12 +89,12 @@
       </div>
 
 
-      <ul class="list-group" *ngIf="showingFolderName!=null">
-        <!--<li class="list-group-item d-flex justify-content-between align-items-center kk-folder-item"-->
-        <!--(click)="onRequestFolderPosts(selectedFolderIndex, parentFolder)"-->
-        <!--*ngIf="rootFolderName.length<showingFolderName.length">-->
-        <!--<div><img src="assets/images/back-icon.png"/>&nbsp;뒤로</div>-->
-        <!--</li>-->
+      <!-- <ul class="list-group" *ngIf="showingFolderName!=null">
+        <li class="list-group-item d-flex justify-content-between align-items-center kk-folder-item"
+        (click)="onRequestFolderPosts(selectedFolderIndex, parentFolder)"
+        *ngIf="rootFolderName.length<showingFolderName.length">
+        <div><img src="assets/images/back-icon.png"/>&nbsp;뒤로</div>
+        </li>
         <li class="list-group-item d-flex justify-content-between align-items-center kk-folder-item"
           (click)="onRequestFolderPosts(selectedFolderIndex, folder.code, folder.files)"
           *ngFor="let folder of showingFolderList">
@@ -134,12 +114,35 @@
           </div>
 
         </li>
-      </ul>
+      </ul> -->
 
     </div>
   </div>
 
 </div>
+
+<!-- <div class="tabs">
+  <input id="all" type="radio" name="tab_item" checked>
+  <label class="tab_item" for="all">Folder 1</label>
+
+  <input id="programming" type="radio" name="tab_item">
+  <label class="tab_item" for="programming">Folder 2</label>
+
+  <input id="design" type="radio" name="tab_item">
+  <label class="tab_item" for="design">Folder 3</label>
+
+  <div class="tab_content" id="all_content">
+      one
+  </div>
+
+  <div class="tab_content" id="programming_content">
+      two
+  </div>
+
+  <div class="tab_content" id="design_content">
+      three
+  </div>
+</div> -->
 
 
 <app-log></app-log>

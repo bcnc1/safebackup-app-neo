@@ -78,7 +78,7 @@ export class LogComponent implements OnInit, OnDestroy {
 
       });
     });
-    this.logs.unshift({created: new Date(), message: 'START DATA KEEPER...'});
+    this.logs.unshift({created: new Date(), message: 'START...'});
 
   }
 

@@ -95,7 +95,7 @@ function createWindow() {
      }
    ]);
  
-   tray.setToolTip('DATA KEEPER');
+   tray.setToolTip('DataKeeper');
    tray.setContextMenu(contextMenu);
  
    tray.on('click', function (e) {
@@ -114,8 +114,8 @@ function createWindow() {
     ----------------------------------------------------------------*/
 
    mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 600,
+    width: 800,
+    height: 550,
     webPreferences: {
       nodeIntegration: true,
       webSecurity: false
