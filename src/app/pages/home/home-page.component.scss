@@ -1,56 +1,30 @@
-.kk-folder-item {
-  font-size: 12px;
-  font-weight: bold;
-
-  img {
-    width: 12px;
-  }
-}
-
-.kk-file-item {
-  font-size: 12px;
-}
-
-
-.version {
-  margin-right: 10px;
-  z-index: 1500;
-  text-align: right;
-  font-size: 10px;
-  font-weight: bold;
-  color: white;
-}
-
 /* 탭 전체 스타일 */
 .tabs {
   margin-top: 50px;
   padding-bottom: 40px;
   background-color: #ffffff;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-  width: 700px;
-  height: 150px;
+  width: 500px;
+  height: 200px;
   margin: 0 auto;}
 
 /* 탭 스타일 */
 .tab_item {
-  width: 100px;
-  // height: 50px;
+  width: calc(100%/3);
+  height: 50px;
   border-bottom: 3px solid #333333;
   background-color: #f8f8f8;
   line-height: 50px;
-  font-size: 15px;
+  font-size: 16px;
   text-align: center;
   color: #333333;
   display: block;
-  // float: left;
-  padding-left: 10px;
-  padding-right: 10px;
+  float: left;
   text-align: center;
-  font-weight: bold;
+  // font-weight: bold;
   transition: all 0.2s ease;
 }
 .tab_item:hover {
-  color: #ff40b4;
   opacity: 0.75;
 }
 
@@ -67,18 +41,50 @@ input[name="tab_item"] {
   overflow: hidden;
 }
 
-input:active {color:white;background-color:blue;}
-// /* 선택 된 탭 콘텐츠를 표시 */
-// #all:checked ~ #all_content,
-// #programming:checked ~ #programming_content,
-// #design:checked ~ #design_content {
-//   display: block;
-// }
 
-// /* 선택된 탭 스타일 */
-// .tabs input:checked + .tab_item {
-//   color: #ff40b4;
-// }
-label:focus-within {
-  background: #e994e2;
+/* 선택 된 탭 콘텐츠를 표시 */
+#all:checked ~ #all_content,
+#programming:checked ~ #programming_content,
+#design:checked ~ #design_content {
+  display: block;
+}
+
+/* 선택된 탭 스타일 */
+.tabs input:checked + .tab_item {
+  background-color: #333333;
+  color: #fff;
+}
+
+.userLabel {
+  pointer-events: none;
+  background: none;
+  border: 2px solid;
+  font: inherit;
+  letter-spacing: inherit;
+  margin-left: 20px;
+  padding: 1em 2em;
+  text-transform: inherit;
+  transition: color 1s;
+  $color: #ff40b4;
+  height: 30px;
+  line-height: 0px;
+  text-align: center;
+  // $color: #f9879b;
+  color: $color;
+
+}
+
+.btn_start_bakcup {
+  cursor: pointer;
+  border-radius: 30px;
+  background: #ff40b4;
+  height: 35px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  transition-duration: 0.3s;
+}
+
+.btn_start_bakcup:active {
+  margin-left: 5px;
+  margin-top: 5px;
+  box-shadow: none;
 }

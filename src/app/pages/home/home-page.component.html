@@ -1,18 +1,14 @@
-<div class="version fixed-bottom" (click)="onLogout()" style="margin-right: 10px;">
-  data keeper
-</div>
-
 <div class="container mt-2">
 
   <div class="row">
-    <div class="col-sm">
+    <!-- <div class="col-sm" style="font-size: 13px; margin-left: 9px; background-color: #f5d682; border: 1px solid orange; border-radius: 2em;">
       {{member.username}}
-      <p (click)="onLogout()" style="display: none;">v{{version}}</p>
-    </div>
+    </div> -->
+    <p><button class="btn userLabel"> {{member.username}} </button></p>
+      
     
     <div class="col-sm pull-right  text-right">
-
-      <img src="assets/images/backup_start.png" (click)="onRetryUpload()" style="cursor: pointer;"/>
+      <img src="assets/images/backup_start.png" (click)="onRetryUpload()" class="btn_start_bakcup"/>
 
       <button type="submit" class="btn btn-info btn-sm" style="margin-right:5px;" (click)="onStartBrowser()" *ngIf="memberPrivate" style="display: none;">
         백업관리
@@ -32,13 +28,119 @@
 
 
 <div class="tabs" style="margin-top: 20px;">
+  <input (click)="onTab(0)" id="all" type="radio" name="tab_item" checked>
+  <label class="tab_item" for="all">Folder 1</label>
 
+  <input (click)="onTab(1)" id="programming" type="radio" name="tab_item">
+  <label class="tab_item" for="programming">Folder 2</label>
+
+  <input (click)="onTab(2)" id="design" type="radio" name="tab_item">
+  <label class="tab_item" for="design">Folder 3</label>
+
+  <div class="tab_content" id="all_content">
+    <div class="container mt-2" style="margin-bottom:100px">
+      <div class="alert alert-dark  d-flex justify-content-between align-items-center" role="alert"
+        style="height:50px;font-size:12px;">
+        <div>
+          <span *ngIf="showingFolderName!==undefined && showingFolderName.length!=0">
+            <span *ngIf="rootFolderData!=null && rootFolderData.userData.errorMessage!=null"
+              class="badge badge-danger badge-pill">
+              {{rootFolderData.userData.errorMessage}}
+            </span>
+            {{showingFolderName}}
+          </span>
+          <span *ngIf="showingFolderName.length==0">백업할 폴더를 선택하세요</span>
+        </div>
+        <div class="float-right">
+
+          <button type="button" class="btn btn-secondary btn-sm" (click)="onChangeFolder(0)"
+            *ngIf="selectedFolderIndex==0">폴더선택
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="onChangeFolder(1)"
+            *ngIf="selectedFolderIndex==1">폴더선택
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="onChangeFolder(2)"
+            *ngIf="selectedFolderIndex==2">폴더선택
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab_content" id="programming_content">
+    <div class="container mt-2" style="margin-bottom:100px">
+      <div class="alert alert-dark  d-flex justify-content-between align-items-center" role="alert"
+        style="height:50px;font-size:12px;">
+        <div>
+          <span *ngIf="showingFolderName!==undefined && showingFolderName.length!=0">
+            <span *ngIf="rootFolderData!=null && rootFolderData.userData.errorMessage!=null"
+              class="badge badge-danger badge-pill">
+              {{rootFolderData.userData.errorMessage}}
+            </span>
+            {{showingFolderName}}
+          </span>
+          <span *ngIf="showingFolderName.length==0">백업할 폴더를 선택하세요</span>
+        </div>
+        <div class="float-right">
+
+          <button type="button" class="btn btn-secondary btn-sm" (click)="onChangeFolder(0)"
+            *ngIf="selectedFolderIndex==0">폴더선택
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="onChangeFolder(1)"
+            *ngIf="selectedFolderIndex==1">폴더선택
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="onChangeFolder(2)"
+            *ngIf="selectedFolderIndex==2">폴더선택
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab_content" id="design_content">
+    <div class="container mt-2" style="margin-bottom:100px">
+      <div class="alert alert-dark  d-flex justify-content-between align-items-center" role="alert"
+        style="height:50px;font-size:12px;">
+        <div>
+          <span *ngIf="showingFolderName!==undefined && showingFolderName.length!=0">
+            <span *ngIf="rootFolderData!=null && rootFolderData.userData.errorMessage!=null"
+              class="badge badge-danger badge-pill">
+              {{rootFolderData.userData.errorMessage}}
+            </span>
+            {{showingFolderName}}
+          </span>
+          <span *ngIf="showingFolderName.length==0">백업할 폴더를 선택하세요</span>
+        </div>
+        <div class="float-right">
+
+          <button type="button" class="btn btn-secondary btn-sm" (click)="onChangeFolder(0)"
+            *ngIf="selectedFolderIndex==0">폴더선택
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="onChangeFolder(1)"
+            *ngIf="selectedFolderIndex==1">폴더선택
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="onChangeFolder(2)"
+            *ngIf="selectedFolderIndex==2">폴더선택
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class=".small" style="font-size:75%; margin-top:10px; margin-left: 60px; color: lightgray;">&copy; <span (click)="onLogout()">Data</span>Keeper</div>
+
+
+
+
+
+
+<!-- <div class="tabs" style="margin-top: 20px;">
 
   <div>
     <tabset>
       <tab (selectTab)="onTab(0)">
         <ng-template tabHeading>
-          <!-- <a class="folder-number" for="all">FOLDER 1</a> -->
           <input id="all" type="radio"name="tab_item" checked>
           <label class="tab_item" for="all">FOLDER 1</label>
         </ng-template>
@@ -46,7 +148,6 @@
 
       <tab (selectTab)="onTab(1)">
         <ng-template tabHeading>
-          <!-- <a class="folder-number" for="programming">FOLDER 2</a> -->
           <input id="programming" type="radio"name="tab_item">
           <label class="tab_item" for="programming">FOLDER 2</label>
         </ng-template>
@@ -54,7 +155,6 @@
 
       <tab (selectTab)="onTab(2)">
         <ng-template tabHeading>
-          <!-- <a class="folder-number" for="design">FOLDER 3</a> -->
           <input id="design" type="radio"name="tab_item">
           <label class="tab_item" for="design">FOLDER 3</label>
         </ng-template>
@@ -89,60 +189,11 @@
       </div>
 
 
-      <!-- <ul class="list-group" *ngIf="showingFolderName!=null">
-        <li class="list-group-item d-flex justify-content-between align-items-center kk-folder-item"
-        (click)="onRequestFolderPosts(selectedFolderIndex, parentFolder)"
-        *ngIf="rootFolderName.length<showingFolderName.length">
-        <div><img src="assets/images/back-icon.png"/>&nbsp;뒤로</div>
-        </li>
-        <li class="list-group-item d-flex justify-content-between align-items-center kk-folder-item"
-          (click)="onRequestFolderPosts(selectedFolderIndex, folder.code, folder.files)"
-          *ngFor="let folder of showingFolderList">
-          <div>
-            <img src="assets/images/folder-icon.png" /> &nbsp; {{folder.title}}
-          </div>
-          <div>
-            {{folder.userData.updated | date :  'yyyy/MM/dd HH:mm:ss'}}
-            <span class="badge badge-info badge-pill">{{folder.userData.totalSize | bytes}}</span>
-          </div>
-        </li>
-        <li class="list-group-item d-flex justify-content-between align-items-center kk-file-item"
-          *ngFor="let file of showingFileList">
-          <div>{{file.title}}</div>
-          <div>{{file.userData.updated | date:'yyyy/MM/dd HH:mm:ss'}}
-            <span class="badge badge-light badge-pill">{{file.userData.totalSize | bytes}}</span>
-          </div>
-
-        </li>
-      </ul> -->
-
     </div>
   </div>
 
-</div>
-
-<!-- <div class="tabs">
-  <input id="all" type="radio" name="tab_item" checked>
-  <label class="tab_item" for="all">Folder 1</label>
-
-  <input id="programming" type="radio" name="tab_item">
-  <label class="tab_item" for="programming">Folder 2</label>
-
-  <input id="design" type="radio" name="tab_item">
-  <label class="tab_item" for="design">Folder 3</label>
-
-  <div class="tab_content" id="all_content">
-      one
-  </div>
-
-  <div class="tab_content" id="programming_content">
-      two
-  </div>
-
-  <div class="tab_content" id="design_content">
-      three
-  </div>
 </div> -->
+
 
 
 <app-log></app-log>

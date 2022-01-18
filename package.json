@@ -1,9 +1,9 @@
 {
   "name": "datakeeper",
-  "productName": "DATAKEEPER",
+  "productName": "DataKeeper",
   "publishedName": "BCNC",
   "version": "3.3.1",
-  "description": "DATAKEEPER with KT Cloud",
+  "description": "DataKeeper with KT Cloud",
   "author": {
     "name": "BC&Company",
     "email": "bcncompany1@gmail.com"

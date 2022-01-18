@@ -386,16 +386,16 @@ checkDay(day){
 
           this.uploading = false;
           //kimcy: test code
-          const minutes =  60 * getRandomInt(1, 4); 
+          const minutes =  60 * getRandomInt(5, 7); 
           const interval = 1000 * 60 * minutes;
-          const intervalSix = 1000 * 60 * 6;
-          const next = moment().add(intervalSix);
+          const intervalSix = 1000 * 60 *  60 * 6;
+          const next = moment().add(interval);
           
           //서버에서 배치타임 (delete)되는 시간을 벌어주기 위해
           if(moment().endOf('day').diff(next) < 0 ){
             //다음날임으로 6시간 후 시작
-            log.info('다음날임으로 6시간 후 시작');
-            var nextTime = next.add(6,'hour');
+            log.info('다음날임으로 7시간 후 시작');
+            var nextTime = next.add(7,'hour');
             const str = nextTime.format('MM월DD일 HH시 mm분');
             this.konsoleService.sendMessage({
               cmd: 'LOG',

@@ -1,6 +1,6 @@
-<div class="mt-5" style="margin:auto;width: 600px;">
+<div class="mt-5" style="margin: auto; width: 600px; text-align: center;">
   <a href="http://www.doctorkeeper.com" target="_blank" class="menu-branding">
-    <img src="assets/images/datakeeper_logo.png" style="width: 90%;">
+    <img src="assets/images/datakeeper_logo3.png" style="width: 90%;">
   </a>
 </div>
 <div class="card mt-5" style="margin:auto;width:60%;">
@@ -12,9 +12,10 @@
     <div class="form-group">
       <input type="password" class="form-control" id="password" placeholder="비밀번호를 입력하세요" [(ngModel)]="password">
     </div>
-    <div *ngIf="migrating==false">
+    <div *ngIf="migrating==false" style="text-align: center;">
       <!--<button type="button" class="btn btn-primary" *ngIf="loggingin==true">로그인중입니다.</button>&nbsp;-->
-      <button type="button" class="btn btn-primary"  (click)="onLogin()">로그인</button>&nbsp;
+      <img src="assets/images/login.png" (click)="onLogin()" class="btn_login"/>
+      <!-- <button type="button" class="btn btn-primary"  (click)="onLogin()">로그인</button>&nbsp; -->
       <!--<button type="button" class="btn btn-primary btn-secondary" (click)="onSignup()">회원가입</button>-->
     </div>
     <div *ngIf="migrating==true">

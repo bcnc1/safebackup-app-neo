@@ -42,7 +42,7 @@ var knex = require('knex')({
   client: 'sqlite3',
   connection: {
     filename: app.getPath('userData')+'/'+ 'sb.db',
-    timezone     : 'utc',   //time존 적용을 연구해야..
+    timezone: 'utc',   //time존 적용을 연구해야..
   }
 });
 var member;
@@ -114,8 +114,9 @@ function createWindow() {
     ----------------------------------------------------------------*/
 
    mainWindow = new BrowserWindow({
-    width: 800,
-    height: 550,
+    width: 630,
+    height: 490,
+    resizable: true,
     webPreferences: {
       nodeIntegration: true,
       webSecurity: false
@@ -488,7 +489,7 @@ if (!gotTheLock) {
                 .insert({filename: item.fullpath, filesize : item.size, 
                   fileupdate: item.updated, uploadstatus: 1, chainstatus: 1})
                 .then(()=>{
-                  localStorage.getItem('member').then((value) => {
+                  localStorage.getItem('member').then((value: any) => {
                     if(value != null){
                     next();
                     }

@@ -1,0 +1,11 @@
+.btn_login {
+    transition-duration: 0.3s;
+    cursor: pointer;
+  }
+  
+  .btn_login:active {
+    margin-left: 5px;
+    margin-top: 5px;
+    box-shadow: none;
+  }
+

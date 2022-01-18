@@ -1,5 +1,5 @@
 {
- "productName": "DATAKEEPER",
+ "productName": "DataKeeper",
  "appId": "com.bcnc.datakeeper",
   "directories": {
     "output": "release/"
