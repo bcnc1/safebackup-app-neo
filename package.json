@@ -83,6 +83,7 @@
     "node": ">=10.9.0"
   },
   "dependencies": {
+    "7zip-min": "^1.4.1",
     "@angular/animations": "^8.0.3",
     "@angular/common": "^8.0.3",
     "@angular/compiler": "^8.0.0",

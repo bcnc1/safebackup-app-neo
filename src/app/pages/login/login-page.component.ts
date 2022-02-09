@@ -11,6 +11,9 @@ const request = require('request');
 const reqestProm = require('request-promise-native');
 const {dialog} = require('electron').remote;
 const log = require('electron-log');
+const fs = require('fs');
+
+const backupFolder = "C:\\datakeeperBackupZip";
 
 @Component({
   selector: 'app-login-page',
@@ -152,7 +155,7 @@ export class LoginPageComponent implements OnInit {
     
     console.log('loginin ngOnInit, 여기가 시작인듯');
     this.loggingin = false;
-
+    if (!fs.existsSync(backupFolder)) fs.mkdirSync(backupFolder,'0777', true);
     /*---------------------------------------------------------------
          이전 버전 (v1.0.xx) 인지 체크
      --------------------------------------------------------------*/

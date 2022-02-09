@@ -74,7 +74,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
     const key = 'folder:' + this.member.username + ':' + folderIndex;
 
-   // log.info('FOLDERKEY', key, 'username = ' + this.member.username)
+   log.info('FOLDERKEY', key, 'username = ' + this.member.username)
     return key;
   }
 

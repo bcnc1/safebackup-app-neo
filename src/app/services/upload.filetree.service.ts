@@ -22,7 +22,8 @@ const PAGE_COUNT = 1000;
 const {app} = require("electron");
 const zipper = require('zip-local');
 const reqestProm = require('request-promise-native')
-
+const backupFolder7z = "C:\\datakeeperBackupZip";
+const { execSync } = require("child_process");
 @Injectable()
 export class UploadFiletreeService {
 
@@ -734,6 +735,7 @@ public setUploadMember(set){
     log.info('getFolderTree, fullpath = ',fullpath);
 
     if(fullpath == undefined){
+      log.info('folderIndex : ' + folderIndex);
       this.uploading = false;
 
       if (this.electronService.isElectronApp){
@@ -743,17 +745,56 @@ public setUploadMember(set){
           folderIndex:  folderIndex +1
         });
       }
-    } else{
-
+    } else {
       if (this.electronService.isElectronApp) { //앱이 실행중이라면..
-        console.log('11..upload ->앱이실행중이라 업로드');
-        this.notification.next({cmd: 'LOG', message: '['+ (folderIndex + 1)+']'+fullpath + ' 업로드를 시작합니다.'});
-        log.info('보냄, GETFOLDERTREE, upload-filetree');
-        this.electronService.ipcRenderer.send('GETFOLDERTREE', {
-          folderIndex: folderIndex,
-          username: member.username,
-          path: fullpath
-        });
+
+        
+        if (folderIndex==0) { //7zip forder 0
+          let base7z = backupFolder7z + "\\" + "base" + ".7z";
+          let diff7z = backupFolder7z + "\\" + "diff" + yyyymmdd() + ".7z";
+
+          // make diff 7z
+          if (!fs.existsSync(diff7z) && fs.existsSync(base7z)) {
+            create7zDiff(fullpath, member.username, diff7z, base7z);
+          }
+
+          // make base 7z
+          if (!fs.existsSync(base7z)) {
+            create7zBase(fullpath, member.username, base7z);
+          } 
+
+
+          console.log('7z..upload ->앱이실행중이라 업로드');
+          this.notification.next({cmd: 'LOG', message: '['+ (folderIndex + 1)+']'+ backupFolder7z + ' 업로드를 시작합니다.'});
+          log.info('보냄, GETFOLDERTREE, upload-filetree');
+          log.info('folderIndex, username, fullpath : ' + folderIndex, member.username, backupFolder7z);
+
+
+          this.electronService.ipcRenderer.send('GETFOLDERTREE', {
+            folderIndex: folderIndex,
+            username: member.username,
+            path: backupFolder7z
+          });
+        } 
+        
+        
+        
+        
+        
+        else {
+          console.log('11..upload ->앱이실행중이라 업로드');
+          this.notification.next({cmd: 'LOG', message: '['+ (folderIndex + 1)+']'+ fullpath + ' 업로드를 시작합니다.'});
+          log.info('보냄, GETFOLDERTREE, upload-filetree');
+          log.info('folderIndex, username, fullpath : ' + folderIndex, member.username, fullpath);
+          this.electronService.ipcRenderer.send('GETFOLDERTREE', {
+            folderIndex: folderIndex,
+            username: member.username,
+            path: fullpath
+          });
+        }
+
+
+        
 
       }
      // this.storageService.set('fscan','start');
@@ -779,3 +820,57 @@ public setUploadMember(set){
   }
 
 }
+
+function yyyymmdd(){
+  var date = new Date();
+  var year = date.getFullYear();
+  var month = ("0" + (1 + date.getMonth())).slice(-2);
+  var day = ("0" + date.getDate()).slice(-2);
+
+  return year + month + day;
+}
+
+
+function create7zBase(path, name, basename) {
+  let cmdPack = "7za a -t7z " + basename + " " + path;
+    execSync(cmdPack, (error) => {
+      if (error) {
+        console.log(`error: ${error.message}`);
+        return;
+      } 
+    });
+ }
+
+ function create7zDiff(path, name, diffname, basename) {
+  log.info("create7zDiff : " + backupFolder7z +'\\');
+
+  // delete old diff 7z
+  try{
+    let files = fs.readdirSync(backupFolder7z);
+    for(let i in files) {
+      if(files[i].toLowerCase().lastIndexOf('.7z')>0 && files[i].startsWith('diff')){
+        log.info(backupFolder7z +'\\'+files[i]);
+        let fileCtime = files[i].substr(4,8);
+        log.info("fileCtime", fileCtime);
+        log.info(yyyymmdd() > fileCtime);
+        if(yyyymmdd() > fileCtime) {
+            fs.unlinkSync(backupFolder7z +'/'+files[i]);
+        }
+      }
+    }
+  }catch(err){
+    log.error('실패', err);
+  }
+
+  // make diff 7z
+  let cmdDiffPack = "7za u " + basename + " " + path + " -ms=off -t7z -u- -up0q3r2x2y2z0w2!" + diffname;
+    execSync(cmdDiffPack, (error) => {
+      if (error) {
+        log.error(`error: ${error.message}`);
+        // return;
+      } 
+    });
+
+    
+
+ }

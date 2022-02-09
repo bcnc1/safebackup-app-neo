@@ -1,6 +1,6 @@
 {
- "productName": "DataKeeper",
- "appId": "com.bcnc.datakeeper",
+ "productName": "DataKeeper7z",
+ "appId": "com.bcnc.datakeeper7z",
   "directories": {
     "output": "release/"
   },

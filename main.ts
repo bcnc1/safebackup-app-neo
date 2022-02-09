@@ -7,8 +7,9 @@ import { createInjectable } from "@angular/compiler/src/core";
 import { userInfo } from "os";
 import { LoggerConfig } from "ngx-logger";
 import * as moment from 'moment';
-
-
+import { start } from "repl";
+const { execSync } = require("child_process");
+const backupFolder7z = "C:\\datakeeperBackupZip";
 const {app, BrowserWindow, ipcMain} = require("electron");
 const fs = require("fs");
 const url = require("url");
@@ -59,7 +60,7 @@ const STORAGE_URL = 'https://ssproxy.ucloudbiz.olleh.com/v1/AUTH_10b1107b-ce24-4
 let mainWindow;
 
 var drBackupAutoLauncher = new AutoLaunch({
-  name: 'datakeeper'
+  name: 'datakeeper7z'
 });
 drBackupAutoLauncher.enable();
 // drBackupAutoLauncher.isEnabled().then((isEnabled) => {
@@ -95,7 +96,7 @@ function createWindow() {
      }
    ]);
  
-   tray.setToolTip('DataKeeper');
+   tray.setToolTip('DataKeeper7z');
    tray.setContextMenu(contextMenu);
  
    tray.on('click', function (e) {
@@ -382,6 +383,16 @@ if (!gotTheLock) {
   
  }
 
+ function yyyymmdd(){
+  var date = new Date();
+  var year = date.getFullYear();
+  var month = ("0" + (1 + date.getMonth())).slice(-2);
+  var day = ("0" + date.getDate()).slice(-2);
+
+  return year + month + day;
+}
+
+
  function initDataBackup(){
   localStorage.getItem('data_backup').then((value) => {
     log.info('initDataBackup => ', value);
@@ -454,11 +465,12 @@ if (!gotTheLock) {
     { 
       log.info('Initial scan complete. Ready for changes.');
       console.log('result = ', result);
-      //log.info('tableName = ', tableName);
+      log.info('tableName = ', tableName);
       var  async = require("async");
       async.eachSeries(result, function(item, next) {
 
         if(item.fullpath.toLowerCase().lastIndexOf('npki') > 0 && item.fullpath.lastIndexOf('.zip') < 0 ){  //npki 내부 파일들은 zip으로 압축해서 올려야 하기때문
+          // log.info("item.fullpath : " + item.fullpath);
           // DB에 기록하지 않는다.
           // knex(tableName)
           // .insert({filename: item.fullpath, filesize : item.size, 
@@ -485,7 +497,7 @@ if (!gotTheLock) {
               //log.info('22..일치하는 값 없음 = results = ', results);
               //5g이상은 업로드로 처리
               if(item.size >= MaxByte){
-                  knex(tableName)
+                knex(tableName)
                 .insert({filename: item.fullpath, filesize : item.size, 
                   fileupdate: item.updated, uploadstatus: 1, chainstatus: 1})
                 .then(()=>{
@@ -780,20 +792,24 @@ if (!gotTheLock) {
 
  ipcMain.on("GETFOLDERTREE", (event, arg) => {
   
-  log.info('받음, GETFOLDERTREE, arg = ',arg);
-  if (arg.path == null) {  //이게 없으면 watcher동작 안함
-    console.log('arg.path == null');
-    return;
-  }
+    log.info('받음, GETFOLDERTREE, arg = ',arg);
+    if (arg.path == null) {  //이게 없으면 watcher동작 안함
+      console.log('arg.path == null');
+      return;
+    }
+    log.info('선택한 Index = ', arg.folderIndex);
+    log.info('선택한 폴더는 = ', arg.path);
 
-  //log.info('선택한 폴더는 = ', arg.path);
+    let base7z = backupFolder7z + "\\" + "base" + ".7z";
+    let diff7z = backupFolder7z + "\\" + "diff" + yyyymmdd() + ".7z";
+
   //zip파일 생성
   if(arg.path.toLowerCase().lastIndexOf('npki') > 0){
     log.info('zip파일생성');
     createNPKIzip(arg.path, arg.username);
   }
 
-  addFileFromDir(arg, mainWindow, (result)=>{
+  addFileFromDir(arg, mainWindow, (result)=>{+
     log.info('폴더 트리 결과 = ',result);
     localStorage.getItem('member').then((value) => {
       //log.info('로그아웃 => ', value);
