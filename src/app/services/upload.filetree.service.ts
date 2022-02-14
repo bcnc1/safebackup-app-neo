@@ -153,7 +153,7 @@ export class UploadFiletreeService {
           this.uploadManager(this.chainsToSend[this.sendIndex], "chain-error");
         } else{
           //2. 업로드 목록 요청 하고 업로드
-          //log.info('11..업로드 목록으로 이동 ');
+          log.info('11..업로드 목록으로 이동 ');
           this.chainsToSend = null;
           this.sendIndex = 0;
           this.electronService.ipcRenderer.send('REQ-UPLOADTREE', {
@@ -209,7 +209,7 @@ export class UploadFiletreeService {
        
       ----------------------------------------------------*/
     this.electronService.ipcRenderer.on('UPLOADTREE', (event: Electron.IpcMessageEvent, response: any) => {
-      log.info('받음 UPLOADTREE ');
+      log.info('받음 UPLOADTREE1 : ' + response.tree);
       const fileTree = response.tree; 
 
       this.addfilesToSend = [];
@@ -390,7 +390,7 @@ export class UploadFiletreeService {
   ----------------------------------------------------*/
     this.electronService.ipcRenderer.on('UPDATETREE', (event: Electron.IpcMessageEvent, response: any) => {
     //this.electronService.ipcRenderer.once('UPDATETREE', (event: Electron.IpcMessageEvent, response: any) => {
-      log.info('받음 UPDATETREE ');
+      log.info('받음 UPDATETREE2 : ' + response.tree);
       const fileTree = response.tree; 
 
       this.changefilesToSend = [];
@@ -430,14 +430,14 @@ export class UploadFiletreeService {
        
       ----------------------------------------------------*/
     this.electronService.ipcRenderer.on("change-file", (event: Electron.IpcMessageEvent, response: any) => {
-     // console.log('받음 업데이트, change-file ');
+     log.info('받음 업데이트, change-file ');
 
       if(this.member.private){
         if(response.error === null ){
 
           this.notification.next({
             cmd: 'LOG',
-            message: '[' + (this.folderIndex + 1) + '] ' + ' : 변경 파일 업로드 완료 (' + this.sendIndex+1 + '/' + this.changefilesToSend.length + ')'
+            message: '[' + (this.folderIndex + 1) + '] ' + ' : 변경 파일 업로드 완료. (' + this.sendIndex+1 + '/' + this.changefilesToSend.length + ')'
           });
 
           this.sendIndex++;
@@ -686,7 +686,7 @@ public setUploadMember(set){
        }
 
     }else{  //data_backup 폴더가 아닌경우..
-      console.log('DATA_BACKUP폴더아님 ');
+      log.info('DATA_BACKUP폴더아님 ');
       backupZip = 'not-store';
     }
 
@@ -728,12 +728,22 @@ public setUploadMember(set){
     this.uploading = true;
     this.folderIndex = folderIndex;
     //this.folders[folderIndex].path = fullpath;
-    //console.log('받은 member = ',member);
+    console.log('받은 member = ',member);
     this.member = member;
-    //console.log('this.member = ',this.member);
-
+    console.log('this.member = ',this.member);
+    
     log.info('getFolderTree, fullpath = ',fullpath);
-
+    // let filesize = ""
+    // fs.stat(fullpath, (err, stats) => {
+    //     if (err) {
+    //         console.log(err);
+    //     } else {
+    //         console.log(stats.size);
+    //         filesize = stats.size;
+    //     }
+    // });
+    // console.log(filesize)
+      // log.info("filesize : " + filesize)
     if(fullpath == undefined){
       log.info('folderIndex : ' + folderIndex);
       this.uploading = false;
@@ -742,30 +752,44 @@ public setUploadMember(set){
         this.notification.next({cmd: 'LOG', message: '폴더' + (folderIndex + 1) + '는 지정 되지 않았습니다.'});
         this.notification.next({
           cmd: 'FOLDER.SENT',
-          folderIndex:  folderIndex +1
+          folderIndex:  folderIndex + 1
         });
       }
     } else {
+
+      let targetSize = ""
+      fs.stat(fullpath, (err, stats) => {
+          if (err) {
+              console.log(err);
+          } else {
+              console.log(stats.size);
+              targetSize = stats.size;
+          }
+      });
+      log.info("targetSize : " + targetSize)
       if (this.electronService.isElectronApp) { //앱이 실행중이라면..
 
+        // log.info("filesize : " + filesize)
         
         if (folderIndex==0) { //7zip forder 0
-          let base7z = backupFolder7z + "\\" + "base" + ".7z";
-          let diff7z = backupFolder7z + "\\" + "diff" + yyyymmdd() + ".7z";
+          // let base7z = backupFolder7z + "\\" + "base.7z";
+          // let diff7z = backupFolder7z + "\\" + "diff" + yyyymmdd() + ".7z";
 
-          // make diff 7z
-          if (!fs.existsSync(diff7z) && fs.existsSync(base7z)) {
-            create7zDiff(fullpath, member.username, diff7z, base7z);
-          }
+          // // make diff 7z
+          // if (!fs.existsSync(diff7z) && fs.existsSync(base7z + ".seg.001")) {
+          //   this.notification.next({cmd: 'LOG', message: '['+ (folderIndex + 1)+'] '+ fullpath + ' 차등백업 압축...'});
+          //   create7zDiff(fullpath, member.username, diff7z, base7z);
+          // }
 
-          // make base 7z
-          if (!fs.existsSync(base7z)) {
-            create7zBase(fullpath, member.username, base7z);
-          } 
+          // // make base 7z
+          // if (!fs.existsSync(base7z + ".seg.001")) {
+          //   this.notification.next({cmd: 'LOG', message: '['+ (folderIndex + 1)+'] '+ fullpath + ' 원본 압축...'});
+          //   create7zBase(fullpath, member.username, base7z);
+          // } 
 
 
           console.log('7z..upload ->앱이실행중이라 업로드');
-          this.notification.next({cmd: 'LOG', message: '['+ (folderIndex + 1)+']'+ backupFolder7z + ' 업로드를 시작합니다.'});
+          this.notification.next({cmd: 'LOG', message: '['+ (folderIndex + 1)+'] '+ backupFolder7z + ' 업로드를 시작합니다.'});
           log.info('보냄, GETFOLDERTREE, upload-filetree');
           log.info('folderIndex, username, fullpath : ' + folderIndex, member.username, backupFolder7z);
 
@@ -773,7 +797,8 @@ public setUploadMember(set){
           this.electronService.ipcRenderer.send('GETFOLDERTREE', {
             folderIndex: folderIndex,
             username: member.username,
-            path: backupFolder7z
+            path: backupFolder7z,
+            basepath: fullpath
           });
         } 
         
@@ -783,7 +808,7 @@ public setUploadMember(set){
         
         else {
           console.log('11..upload ->앱이실행중이라 업로드');
-          this.notification.next({cmd: 'LOG', message: '['+ (folderIndex + 1)+']'+ fullpath + ' 업로드를 시작합니다.'});
+          this.notification.next({cmd: 'LOG', message: '['+ (folderIndex + 1)+'] '+ fullpath + ' 업로드를 시작합니다.'});
           log.info('보냄, GETFOLDERTREE, upload-filetree');
           log.info('folderIndex, username, fullpath : ' + folderIndex, member.username, fullpath);
           this.electronService.ipcRenderer.send('GETFOLDERTREE', {
@@ -832,7 +857,8 @@ function yyyymmdd(){
 
 
 function create7zBase(path, name, basename) {
-  let cmdPack = "7za a -t7z " + basename + " " + path;
+  // let cmdPack = "7za a -t7z " + basename + " " + path;
+  let cmdPack = " 7za a -t7z " + basename + ".seg " + path + " -v4g"
     execSync(cmdPack, (error) => {
       if (error) {
         console.log(`error: ${error.message}`);
@@ -840,7 +866,7 @@ function create7zBase(path, name, basename) {
       } 
     });
  }
-
+ 
  function create7zDiff(path, name, diffname, basename) {
   log.info("create7zDiff : " + backupFolder7z +'\\');
 
@@ -848,7 +874,7 @@ function create7zBase(path, name, basename) {
   try{
     let files = fs.readdirSync(backupFolder7z);
     for(let i in files) {
-      if(files[i].toLowerCase().lastIndexOf('.7z')>0 && files[i].startsWith('diff')){
+      if(files[i].indexOf('.7z')>0 && files[i].startsWith('diff')){
         log.info(backupFolder7z +'\\'+files[i]);
         let fileCtime = files[i].substr(4,8);
         log.info("fileCtime", fileCtime);
@@ -861,9 +887,10 @@ function create7zBase(path, name, basename) {
   }catch(err){
     log.error('실패', err);
   }
-
+  // let cmd = " 7za a -t7z " + basename + ".seg " + path + " -v4g"
   // make diff 7z
   let cmdDiffPack = "7za u " + basename + " " + path + " -ms=off -t7z -u- -up0q3r2x2y2z0w2!" + diffname;
+  // let cmdDiffPack = "7za u " + basename + ".seg.001 " + path + " -ms=off -t7z -u- -up0q3r2x2y2z0w2!" + diffname;
     execSync(cmdDiffPack, (error) => {
       if (error) {
         log.error(`error: ${error.message}`);

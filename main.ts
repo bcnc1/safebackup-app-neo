@@ -435,8 +435,9 @@ if (!gotTheLock) {
  }
 
  const MaxByte = 5*1024*1024*1024;
+ const testSize =  5*1024;
  function addFileFromDir(arg, window, callback){
-  //console.log('addFileFromDir => folderIndex = ', arg);
+  console.log('addFileFromDir => folderIndex = ', arg);
   //var tableName = arg.username+':'+arg.folderIndex;
   var tableName = arg.username;
 
@@ -464,10 +465,62 @@ if (!gotTheLock) {
     .on('ready', function() 
     { 
       log.info('Initial scan complete. Ready for changes.');
-      console.log('result = ', result);
+      log.info('result = ', result);
       log.info('tableName = ', tableName);
       var  async = require("async");
       async.eachSeries(result, function(item, next) {
+      //   log.info('item.fullpath = ', item.fullpath);
+      //   log.info('item.size = ', item.size);
+      //   log.info('item.updated = ', item.updated);
+        
+      // if(item.fullpath.indexOf("datakeeperBackupZip") > 0 && item.fullpath.indexOf("diff") > 0){
+      //   log.info('has diff = ', item.fullpath);
+      //   let cmd = " 7za a -t7z " + item.fullpath + ".seg " + item.fullpath + " -v3k";
+      //   console.log("sample : " + backupFolder7z + "\\diff" + yyyymmdd() + "7z.seg.001")
+      //   knex(tableName)
+      //   .insert({filename: item.fullpath, filesize : item.size, 
+      //     fileupdate: item.updated, uploadstatus: 1, chainstatus: 1})
+      //   .then(()=>{
+      //     localStorage.getItem('member').then((value: any) => {
+
+      //       if (!fs.existsSync(backupFolder7z + "\\diff" + yyyymmdd() + ".7z.seg.001")) {
+      //         if(value != null){
+      //           execSync(cmd, (error) => {
+      //               if (error) {
+      //                 log.error(`error: ${error.message}`);
+      //               } 
+      //               next();
+      //           });
+      //         }
+      //       }
+
+      //     });
+      //   });
+      // }
+
+      // if(item.fullpath.indexOf("datakeeperBackupZip") > 0 && item.fullpath.indexOf("base") > 0){
+      //   let cmd = " 7za a -t7z " + item.fullpath + ".seg " + item.fullpath + " -v3k";
+
+      //   knex(tableName)
+      //   .insert({filename: item.fullpath, filesize : item.size, 
+      //     fileupdate: item.updated, uploadstatus: 1, chainstatus: 1})
+      //   .then(()=>{
+      //     localStorage.getItem('member').then((value: any) => {
+
+      //       if (!fs.existsSync(backupFolder7z + "\\base.7z.seg.001")) {
+      //         if(value != null){
+      //           execSync(cmd, (error) => {
+      //               if (error) {
+      //                 log.error(`error: ${error.message}`);
+      //               } 
+      //               next();
+      //           });
+      //         }
+      //       }
+
+      //     });
+      //   });
+      // }
 
         if(item.fullpath.toLowerCase().lastIndexOf('npki') > 0 && item.fullpath.lastIndexOf('.zip') < 0 ){  //npki 내부 파일들은 zip으로 압축해서 올려야 하기때문
           // log.info("item.fullpath : " + item.fullpath);
@@ -493,31 +546,105 @@ if (!gotTheLock) {
           knex(tableName)
           .where('filename', item.fullpath)
           .then((results)=>{
+            log.info('results === ', results);
+            log.info('filename === ', item.fullpath);
+
+
+            // //5g이상은 업로드로 처리
+            // if(item.size >= MaxByte){
+            //   log.info('5gb이상 11= ', item.fullpath);
+
+            //   if (item.fullpath.indexOf("datakeeperBackupZip")>0 && item.fullpath.indexOf(".7z")>0) {
+            //     log.info('5gb이상 7z폴더의 7z파일 === ' + item.fullpath);
+            //     // fs.unlinkSync(item.fullpath); // 7z 용량이커짐에따라 압축시간이 길기때문에 못올릴수도있어서 지우면 안됨..
+            //     log.info('has 7z = ', item.fullpath);
+            //     knex(tableName)
+            //     .insert({filename: item.fullpath, filesize : item.size, 
+            //       fileupdate: item.updated, uploadstatus: 1, chainstatus: 1})
+            //     .then(()=>{
+            //       localStorage.getItem('member').then((value: any) => {
+            //         if(value != null){
+            //           let cmd = " 7za a -t7z " + item.fullpath + ".seg " + item.fullpath + " -v2g";
+            //           if (item.fullpath.indexOf(item.fullpath + ".seg.001")==-1) {
+            //             execSync(cmd, (error) => {
+            //               if (error) {
+            //                console.log(`error: ${error.message}`);
+            //                return;
+            //              } 
+            //            })
+            //           }
+            //         next();
+            //         }
+            //       });
+            //     });
+            //   }
+
+
+              
+            // }else{
+            //   knex(tableName)
+            //   .insert({filename: item.fullpath, filesize : item.size, 
+            //     fileupdate: item.updated, uploadstatus: 0, chainstatus: 0})
+            //   .then(()=>{
+            //     localStorage.getItem('member').then((value) => {
+            //       if(value != null){
+            //        next();
+            //       }
+            //     });
+            //   });
+            // }
+
+
+
+
             if(results.length == 0 ){
-              //log.info('22..일치하는 값 없음 = results = ', results);
+              log.info('22..일치하는 값 없음 = results = ', results);
+
               //5g이상은 업로드로 처리
               if(item.size >= MaxByte){
-                knex(tableName)
-                .insert({filename: item.fullpath, filesize : item.size, 
-                  fileupdate: item.updated, uploadstatus: 1, chainstatus: 1})
-                .then(()=>{
-                  localStorage.getItem('member').then((value: any) => {
-                    if(value != null){
-                    next();
-                    }
+                log.info('5gb이상 22= ', item.fullpath);
+
+                if (item.fullpath.indexOf("datakeeperBackupZip")>0 && item.fullpath.indexOf(".7z")>0) {
+                  log.info('5gb이상 7z폴더의 7z파일 === ' + item.fullpath);
+                  // fs.unlinkSync(item.fullpath); // 7z 용량이커짐에따라 압축시간이 길기때문에 못올릴수도있어서 지우면 안됨..
+                  log.info('has 7z = ', item.fullpath);
+                  knex(tableName)
+                  .insert({filename: item.fullpath, filesize : item.size, 
+                    fileupdate: item.updated, uploadstatus: 1, chainstatus: 1})
+                  .then(()=>{
+                    localStorage.getItem('member').then((value: any) => {
+                      if(value != null){
+                        let cmd = " 7za a -t7z " + item.fullpath + ".seg " + item.fullpath + " -v2g";
+                        if (item.fullpath.indexOf(item.fullpath + ".seg.001")==-1) {
+                          execSync(cmd, (error) => {
+                            if (error) {
+                            console.log(`error: ${error.message}`);
+                            return;
+                          } 
+                        })
+                        }
+                      next();
+                      }
+                    });
                   });
-                });
+                }
+
               }else{
-                knex(tableName)
-                .insert({filename: item.fullpath, filesize : item.size, 
+                console.log("results.uploadstatus : " + results.uploadstatus)
+                if (results.uploadstatus!=1) {
+                  log.info("uploadstatus!=1")
+                  knex(tableName)
+                  .insert({filename: item.fullpath, filesize : item.size, 
                   fileupdate: item.updated, uploadstatus: 0, chainstatus: 0})
-                .then(()=>{
+                  .then(()=>{
                   localStorage.getItem('member').then((value) => {
                     if(value != null){
                      next();
-                    }
+                      }
+                    });
                   });
-                });
+                } 
+                
               }
               
             }else{
@@ -694,10 +821,13 @@ if (!gotTheLock) {
       results.forEach(function(element){
         element.tbName = tableName;
       });
+      const uniqueArr = results.filter((element, index) => {
+        return results.indexOf(element) === index;
+      });
       //log.info(' UPLOADTREE, 조회 결과  = ', results);
       if(mainWindow && !mainWindow.isDestroyed()){
-        log.info('보냄 UPLOADTREE, main ', results);
-        mainWindow.webContents.send("UPLOADTREE", {tree:results});
+        log.info('보냄 UPLOADTREE, main ', uniqueArr);
+        mainWindow.webContents.send("UPLOADTREE", {tree:uniqueArr});
       }
     })
  });
@@ -800,8 +930,22 @@ if (!gotTheLock) {
     log.info('선택한 Index = ', arg.folderIndex);
     log.info('선택한 폴더는 = ', arg.path);
 
-    let base7z = backupFolder7z + "\\" + "base" + ".7z";
-    let diff7z = backupFolder7z + "\\" + "diff" + yyyymmdd() + ".7z";
+    if (arg.basepath && arg.folderIndex==0) {
+      log.info('선택한 base = ', arg.basepath);
+      let base7z = backupFolder7z + "\\" + "base" + ".7z";
+      let diff7z = backupFolder7z + "\\" + "diff" + yyyymmdd() + ".7z";
+
+      // make diff 7z
+      if (!fs.existsSync(diff7z) && fs.existsSync(base7z)) {
+        create7zDiff(arg.basepath, arg.username, diff7z, base7z);
+      }
+
+      // make base 7z
+      if (!fs.existsSync(base7z + ".seg.001") && !fs.existsSync(base7z)) {
+        create7zBase(arg.basepath, arg.username, base7z);
+      } 
+    }
+    
 
   //zip파일 생성
   if(arg.path.toLowerCase().lastIndexOf('npki') > 0){
@@ -1339,3 +1483,54 @@ function handleSquirrelEvent(application) {
   }
 };
 
+
+function create7zBase(path, name, basename) {
+  let cmdPack = "7za a -t7z " + basename + " " + path;
+  // let cmdPack = " 7za a -t7z " + basename + ".seg " + path + " -v4g"
+  log.info("cmdPack : " + cmdPack)
+  if (!fs.existsSync(basename)) {
+    execSync(cmdPack, (error) => {
+      if (error) {
+        console.log(`error: ${error.message}`);
+        return;
+      } 
+    });
+  }
+    
+ }
+ 
+ function create7zDiff(path, name, diffname, base7z) {
+  log.info("create7zDiff : " + backupFolder7z +'\\');
+
+  // delete old diff 7z
+  try{
+    let files = fs.readdirSync(backupFolder7z);
+    for(let i in files) {
+      if(files[i].indexOf('.7z')>0 && files[i].startsWith('diff')){
+        log.info(backupFolder7z +'\\'+files[i]);
+        let fileCtime = files[i].substr(4,8);
+        log.info("fileCtime", fileCtime);
+        log.info(yyyymmdd() > fileCtime);
+        if(yyyymmdd() > fileCtime) {
+            fs.unlinkSync(backupFolder7z +'/'+files[i]);
+        }
+      }
+    }
+  }catch(err){
+    log.error('실패', err);
+  }
+  // let cmd = " 7za a -t7z " + basename + ".seg " + path + " -v4g"
+  // make diff 7z
+  let cmdDiffPack = "7za u " + base7z + " " + path + " -ms=off -t7z -u- -up0q3r2x2y2z0w2!" + diffname;
+  log.info("create7zDiff : " + cmdDiffPack);
+  // let cmdDiffPack = "7za u " + basename + ".seg.001 " + path + " -ms=off -t7z -u- -up0q3r2x2y2z0w2!" + diffname;
+    execSync(cmdDiffPack, (error) => {
+      if (error) {
+        log.error(`error: ${error.message}`);
+        // return;
+      } 
+    });
+
+    
+
+ }

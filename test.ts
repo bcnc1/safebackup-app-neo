@@ -58,7 +58,7 @@ function baseBackup () {
     zipperSeven (cmdPack);
 }
 
-baseBackup();
+// baseBackup();
 // differentialBackup();
 
 
@@ -85,23 +85,24 @@ baseBackup();
 
 
 
-// // Read file stats
-// fs.stat(birdpath, (err, stats) => {
+// Read file stats
+// fs.stat(backupFolder + "\\base.7z", function(error, stats) {
+//     console.log("파일 크기: ", stats.size);
+// });
+// let filesize = ""
+// fs.stat(backupFolder + "\\base.7z", (err, stats) => {
 //     if (err) {
 //         console.log(err);
 //     } else {
-//         let zipSize = (stats.size / (1024 * 1024 * 1024)).toFixed(2);
-//         console.log(zipSize + "GB");
-//         console.log("testPath : " + testPath)
-//         console.log(stats)
+//         console.log(stats.size);
+//         filesize = stats.size;
 //     }
 // });
+// console.log("filesize : " + filesize)
 
-
-
-let str = 'base-jy20220208.7z'
-const buFolder = "C:\\datakeeperBackupZip";
-let checkBase = buFolder + "\\" + "base-"
+// let str = 'base-jy20220208.7z'
+// const buFolder = "C:\\datakeeperBackupZip";
+// let checkBase = buFolder + "\\" + "base-"
 
 
 // console.log(buFolder);
@@ -153,10 +154,58 @@ let checkBase = buFolder + "\\" + "base-"
 
 
 // 분할압축 : 7za a {압축파일만들 경로} {압축 대상 경로} 분할 사이즈
-// zipperSeven(" 7za a -t7z C:\\7zip-test\\packed\\diff" + getToday() + ".7z C:\\7zip-test\\packed\\ -v1g");
+// zipperSeven(" 7za a -t7z C:\\datakeeperBackupZip\\diff20220209.7z" + ".seg C:\\datakeeperBackupZip\\diff20220209.7z -v300m");
 
 
 // 분할 해제
 // zipperSeven("7z x C:\\7zip-test\\packed\\bi.7z.001");
 
+// if(item.size >= 1024 && item.fullpath.toLowerCase().indexOf(backupFolder7z) > 0){
+//     let cmd = " 7za a -t7z " + item.fullpath + ".seg " + item.fullpath + " -v300m";
+//     log.info(cmd);
+//     execSync(cmd, (error) => {
+//         if (error) {
+//           console.log(`error: ${error.message}`);
+//           return;
+//         } 
+//     });
 
+
+
+let fullpath = 'datakeeperBackupZip'
+
+// console.log((backupFolder).indexOf("datakeeperBackupZip")!== -1)
+
+
+
+// function regExp(str){  
+//     const reg = /[\{\}\[\]\/?.,;:|\)*~`!^\-_+<>@\#$%&\\\=\(\'\"]/gi
+//     //특수문자 검증
+//     if(reg.test(str)){
+//       //특수문자 제거후 리턴
+//       return str.replace(reg, "");    
+//     } else {
+//       //특수문자가 없으므로 본래 문자 리턴
+//       return str;
+//     }  
+// }
+  
+// //   console.log(regExp(backupFolder))
+// let baseTest = backupFolder + "\\base.7z.seg.001"
+// let diffTest = 'C:\\datakeeperBackupZip\\diff20220209.7z'
+// // console.log(!fs.existsSync(backupFolder + "\\diff" + getToday() + "7z.seg.001"))
+// // console.log(!fs.existsSync(backupFolder + "\\diff20220208.7z.seg.001"))
+// // console.log(baseTest.indexOf("datakeeperBackupZip") > 0 && baseTest.indexOf("base") > 0);
+// console.log(!fs.existsSync(backupFolder + "\\diff" + getToday() + ".7z.seg.001"));
+// console.log(backupFolder + "\\diff" + getToday() + ".7z.seg.001")
+
+// console.log(diffTest.indexOf("datakeeperBackupZip") > 0 && diffTest.indexOf("diff") > 0);
+// let base7z = backupFolder + "\\" + "base.7z";
+// console.log(base7z + "seg.001")
+// console.log(!fs.existsSync(base7z + ".seg.001"))
+
+
+// let jypath = 'C:\\datakeeperBackupZip\\base.7z'
+// console.log(jypath.indexOf("datakeeperBackupZip")>0 && jypath.indexOf(".7z")>0)
+// console.log(jypath.indexOf("datakeeperBackupZip")>0)
+// console.log(jypath.indexOf(".7z"))
