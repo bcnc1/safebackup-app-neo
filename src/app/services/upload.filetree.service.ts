@@ -209,7 +209,7 @@ export class UploadFiletreeService {
        
       ----------------------------------------------------*/
     this.electronService.ipcRenderer.on('UPLOADTREE', (event: Electron.IpcMessageEvent, response: any) => {
-      log.info('받음 UPLOADTREE1 : ' + response.tree);
+      log.info('받음 UPLOADTREE1 : ' + response.length);
       const fileTree = response.tree; 
 
       this.addfilesToSend = [];
@@ -856,48 +856,48 @@ function yyyymmdd(){
 }
 
 
-function create7zBase(path, name, basename) {
-  // let cmdPack = "7za a -t7z " + basename + " " + path;
-  let cmdPack = " 7za a -t7z " + basename + ".seg " + path + " -v4g"
-    execSync(cmdPack, (error) => {
-      if (error) {
-        console.log(`error: ${error.message}`);
-        return;
-      } 
-    });
- }
+// function create7zBase(path, name, basename) {
+//   // let cmdPack = "7za a -t7z " + basename + " " + path;
+//   let cmdPack = " 7za a -t7z " + basename + ".seg " + path + " -v4g"
+//     execSync(cmdPack, (error) => {
+//       if (error) {
+//         console.log(`error: ${error.message}`);
+//         return;
+//       } 
+//     });
+//  }
  
- function create7zDiff(path, name, diffname, basename) {
-  log.info("create7zDiff : " + backupFolder7z +'\\');
+//  function create7zDiff(path, name, diffname, basename) {
+//   log.info("create7zDiff : " + backupFolder7z +'\\');
 
-  // delete old diff 7z
-  try{
-    let files = fs.readdirSync(backupFolder7z);
-    for(let i in files) {
-      if(files[i].indexOf('.7z')>0 && files[i].startsWith('diff')){
-        log.info(backupFolder7z +'\\'+files[i]);
-        let fileCtime = files[i].substr(4,8);
-        log.info("fileCtime", fileCtime);
-        log.info(yyyymmdd() > fileCtime);
-        if(yyyymmdd() > fileCtime) {
-            fs.unlinkSync(backupFolder7z +'/'+files[i]);
-        }
-      }
-    }
-  }catch(err){
-    log.error('실패', err);
-  }
-  // let cmd = " 7za a -t7z " + basename + ".seg " + path + " -v4g"
-  // make diff 7z
-  let cmdDiffPack = "7za u " + basename + " " + path + " -ms=off -t7z -u- -up0q3r2x2y2z0w2!" + diffname;
-  // let cmdDiffPack = "7za u " + basename + ".seg.001 " + path + " -ms=off -t7z -u- -up0q3r2x2y2z0w2!" + diffname;
-    execSync(cmdDiffPack, (error) => {
-      if (error) {
-        log.error(`error: ${error.message}`);
-        // return;
-      } 
-    });
+//   // delete old diff 7z
+//   try{
+//     let files = fs.readdirSync(backupFolder7z);
+//     for(let i in files) {
+//       if(files[i].indexOf('.7z')>0 && files[i].startsWith('diff')){
+//         log.info(backupFolder7z +'\\'+files[i]);
+//         let fileCtime = files[i].substr(4,8);
+//         log.info("fileCtime", fileCtime);
+//         log.info(yyyymmdd() > fileCtime);
+//         if(yyyymmdd() > fileCtime) {
+//             fs.unlinkSync(backupFolder7z +'/'+files[i]);
+//         }
+//       }
+//     }
+//   }catch(err){
+//     log.error('실패', err);
+//   }
+//   // let cmd = " 7za a -t7z " + basename + ".seg " + path + " -v4g"
+//   // make diff 7z
+//   let cmdDiffPack = "7za u " + basename + " " + path + " -ms=off -t7z -u- -up0q3r2x2y2z0w2!" + diffname;
+//   // let cmdDiffPack = "7za u " + basename + ".seg.001 " + path + " -ms=off -t7z -u- -up0q3r2x2y2z0w2!" + diffname;
+//     execSync(cmdDiffPack, (error) => {
+//       if (error) {
+//         log.error(`error: ${error.message}`);
+//         // return;
+//       } 
+//     });
 
     
 
- }
+//  }

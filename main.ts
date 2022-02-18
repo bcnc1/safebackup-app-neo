@@ -550,53 +550,6 @@ if (!gotTheLock) {
             log.info('filename === ', item.fullpath);
 
 
-            // //5g이상은 업로드로 처리
-            // if(item.size >= MaxByte){
-            //   log.info('5gb이상 11= ', item.fullpath);
-
-            //   if (item.fullpath.indexOf("datakeeperBackupZip")>0 && item.fullpath.indexOf(".7z")>0) {
-            //     log.info('5gb이상 7z폴더의 7z파일 === ' + item.fullpath);
-            //     // fs.unlinkSync(item.fullpath); // 7z 용량이커짐에따라 압축시간이 길기때문에 못올릴수도있어서 지우면 안됨..
-            //     log.info('has 7z = ', item.fullpath);
-            //     knex(tableName)
-            //     .insert({filename: item.fullpath, filesize : item.size, 
-            //       fileupdate: item.updated, uploadstatus: 1, chainstatus: 1})
-            //     .then(()=>{
-            //       localStorage.getItem('member').then((value: any) => {
-            //         if(value != null){
-            //           let cmd = " 7za a -t7z " + item.fullpath + ".seg " + item.fullpath + " -v2g";
-            //           if (item.fullpath.indexOf(item.fullpath + ".seg.001")==-1) {
-            //             execSync(cmd, (error) => {
-            //               if (error) {
-            //                console.log(`error: ${error.message}`);
-            //                return;
-            //              } 
-            //            })
-            //           }
-            //         next();
-            //         }
-            //       });
-            //     });
-            //   }
-
-
-              
-            // }else{
-            //   knex(tableName)
-            //   .insert({filename: item.fullpath, filesize : item.size, 
-            //     fileupdate: item.updated, uploadstatus: 0, chainstatus: 0})
-            //   .then(()=>{
-            //     localStorage.getItem('member').then((value) => {
-            //       if(value != null){
-            //        next();
-            //       }
-            //     });
-            //   });
-            // }
-
-
-
-
             if(results.length == 0 ){
               log.info('22..일치하는 값 없음 = results = ', results);
 
@@ -606,7 +559,7 @@ if (!gotTheLock) {
 
                 if (item.fullpath.indexOf("datakeeperBackupZip")>0 && item.fullpath.indexOf(".7z")>0) {
                   log.info('5gb이상 7z폴더의 7z파일 === ' + item.fullpath);
-                  // fs.unlinkSync(item.fullpath); // 7z 용량이커짐에따라 압축시간이 길기때문에 못올릴수도있어서 지우면 안됨..
+                  // fs.unlinkSync(item.fullpath); // 여기서 지우면 안됨.
                   log.info('has 7z = ', item.fullpath);
                   knex(tableName)
                   .insert({filename: item.fullpath, filesize : item.size, 
@@ -1516,21 +1469,22 @@ function create7zBase(path, name, basename) {
         }
       }
     }
+
+    let cmdDiffPack = "7za u " + base7z + " " + path + " -ms=off -t7z -u- -up0q3r2x2y2z0w2!" + diffname;
+    log.info("create7zDiff : " + cmdDiffPack);
+    if (fs.existsSync(diffname)) {
+      console.log('exists : ' + diffname);
+    } else {
+      execSync(cmdDiffPack, (error) => {
+        if (error) {
+          log.error(`error: ${error.message}`);
+          // return;
+        } 
+      });
+    }
+
   }catch(err){
-    log.error('실패', err);
+    log.error('예전 차등백업 삭제 실패', err);
   }
-  // let cmd = " 7za a -t7z " + basename + ".seg " + path + " -v4g"
-  // make diff 7z
-  let cmdDiffPack = "7za u " + base7z + " " + path + " -ms=off -t7z -u- -up0q3r2x2y2z0w2!" + diffname;
-  log.info("create7zDiff : " + cmdDiffPack);
-  // let cmdDiffPack = "7za u " + basename + ".seg.001 " + path + " -ms=off -t7z -u- -up0q3r2x2y2z0w2!" + diffname;
-    execSync(cmdDiffPack, (error) => {
-      if (error) {
-        log.error(`error: ${error.message}`);
-        // return;
-      } 
-    });
-
-    
-
+  
  }

@@ -204,8 +204,10 @@ let fullpath = 'datakeeperBackupZip'
 // console.log(base7z + "seg.001")
 // console.log(!fs.existsSync(base7z + ".seg.001"))
 
-
+let estr = "s_s_s_s"
 // let jypath = 'C:\\datakeeperBackupZip\\base.7z'
 // console.log(jypath.indexOf("datakeeperBackupZip")>0 && jypath.indexOf(".7z")>0)
-// console.log(jypath.indexOf("datakeeperBackupZip")>0)
+console.log(estr.indexOf("_"))
 // console.log(jypath.indexOf(".7z"))
+
+// console.log(jypath.indexOf("base.7z.seg.001"))
