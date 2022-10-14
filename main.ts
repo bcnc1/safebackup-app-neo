@@ -568,6 +568,7 @@ if (!gotTheLock) {
                     localStorage.getItem('member').then((value: any) => {
                       if(value != null){
                         let cmd = " 7za a -t7z " + item.fullpath + ".seg " + item.fullpath + " -v2g";
+                        // let cmd = " bz c -v:2g " + item.fullpath + ".seg " + item.fullpath;
                         if (item.fullpath.indexOf(item.fullpath + ".seg.001")==-1) {
                           execSync(cmd, (error) => {
                             if (error) {

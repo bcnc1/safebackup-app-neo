@@ -26,7 +26,7 @@
       {
         "provider": "github",
         "owner": "bcnc1",
-        "repo": "SafeBackUp.Update",
+        "repo": "safebackup-app-neo",
         "releaseType": "release"
       }
     ],
